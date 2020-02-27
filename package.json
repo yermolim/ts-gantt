@@ -1,0 +1,34 @@
+{
+  "name": "ts-gantt",
+  "version": "0.0.1",
+  "description": "simple gantt chart written using typescript",
+  "main": "dist/ts-gantt.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc --declaration"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yermolim/ts-gantt.git"
+  },
+  "keywords": [
+    "gantt",
+    "chart",
+    "typescript",
+    "timeline"
+  ],
+  "author": "Volodymyr Yermolenko <yermolim@gmail.com> (https://github.com/yermolim)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yermolim/ts-gantt/issues"
+  },
+  "homepage": "https://github.com/yermolim/ts-gantt#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.21.0",
+    "@typescript-eslint/eslint-plugin-tslint": "^2.21.0",
+    "@typescript-eslint/parser": "^2.21.0",
+    "eslint": "^6.8.0",
+    "eslint-plugin-import": "^2.20.1",
+    "typescript": "^3.8.2"
+  }
+}
