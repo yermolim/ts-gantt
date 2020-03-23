@@ -1,2 +1,7 @@
-"use strict";
-//# sourceMappingURL=ts-gantt.js.map
+class TsGantt {
+    constructor() {
+        this.property = "test";
+    }
+}
+
+export { TsGantt };

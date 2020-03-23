@@ -1,0 +1,7 @@
+.*
+**/tsconfig.json
+**/webpack.config.js
+**/rollup.config.js
+node_modules
+src
+tsc
