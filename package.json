@@ -3,11 +3,12 @@
   "version": "0.0.1",
   "description": "simple gantt chart written using typescript",
   "main": "dist/ts-gantt.js",
+  "types": "dist/ts-gantt.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "buildts": "tsc && copyfiles -f ./src/*.css ./tsc/",
     "buildru": "rollup -c",
-    "build": "tsc && copyfiles -f ./src/*.css ./tsc/ && rollup -c"
+    "build": "tsc && copyfiles -f ./src/*.css ./tsc/ && rollup -c && dts-bundle-generator -o dist/tg-gantt.d.ts src/ts-gantt.ts"
   },
   "repository": {
     "type": "git",
@@ -36,6 +37,7 @@
     "@typescript-eslint/eslint-plugin-tslint": "^2.24.0",
     "@typescript-eslint/parser": "^2.24.0",
     "copyfiles": "^2.2.0",
+    "dts-bundle-generator": "^4.0.0",
     "eslint": "^6.8.0",
     "eslint-plugin-import": "^2.20.1",
     "rollup": "^2.1.0",

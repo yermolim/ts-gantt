@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<head>
+    <style>
+        html, body {
+            position: relative;
+            min-width: 320px;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+        }        
+        #gantt-container {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            padding: 0;
+            margin: 0;
+        }   
+    </style>
+    <base href="/">
+    <meta charset="UTF-8">
+    <meta name="description" content="TsGantt test">
+    <meta name="author" content="Volodymyr Yermolenko">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0">
+    <title>TsGantt test</title>
+</head>
+  <body>  
+      <div id="gantt-container"></div>
+      
+      <script type="module">
+          import { TsGantt } from "../dist/ts-gantt.js";
+
+          const ganttChart = new TsGantt("#gantt-container");
+
+      </script>    
+  </body>
+</html>
