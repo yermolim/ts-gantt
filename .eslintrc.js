@@ -2,7 +2,8 @@ module.exports = {
     "env": {
         "browser": true,
         "es6": true,
-        "node": true
+        "node": true,
+        "jest": true
     },
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
@@ -15,6 +16,7 @@ module.exports = {
     ],
     "plugins": [
         "@typescript-eslint/eslint-plugin",
+        "jest",
         "import"
     ],
     "rules": {
@@ -48,7 +50,7 @@ module.exports = {
         "@typescript-eslint/no-empty-interface": "error",
         "@typescript-eslint/no-inferrable-types": "error",
         "@typescript-eslint/no-misused-new": "error",
-        "@typescript-eslint/no-non-null-assertion": "error",
+        "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-use-before-define": "error",
         "@typescript-eslint/prefer-function-type": "error",
         "@typescript-eslint/quotes": [
@@ -61,6 +63,11 @@ module.exports = {
         ],
         "@typescript-eslint/type-annotation-spacing": "error",
         "@typescript-eslint/unified-signatures": "error",
+        "jest/no-disabled-tests": "warn",
+        "jest/no-focused-tests": "error",
+        "jest/no-identical-title": "error",
+        "jest/prefer-to-have-length": "warn",
+        "jest/valid-expect": "error",
         "arrow-body-style": "warn",
         "camelcase": "off",
         "constructor-super": "error",

@@ -1,1 +1,0 @@
-{"version":3,"file":"ts-gantt.js","sourceRoot":"src/","sources":["ts-gantt.ts"],"names":[],"mappings":"AAAA,OAAO,cAAc,CAAC;AAEtB,MAAM,OAAO,OAAO;IAApB;QACS,aAAQ,GAAG,MAAM,CAAC;IAK3B,CAAC;IAHS,WAAW;QACjB,OAAO,MAAM,CAAC,eAAe,CAAC,IAAI,WAAW,CAAC,CAAC,CAAC,CAAC,CAAC,IAAI,CAAC,GAAG,CAAC,CAAC;IAC9D,CAAC;CACF"}
