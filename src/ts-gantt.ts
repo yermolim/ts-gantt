@@ -1,5 +1,5 @@
 import "./styles.css";
-import { TsGanttTask } from "./ts-gantt-task";
+import { TsGanttTask, TsGanttTaskModel } from "./ts-gantt-task";
 import { TsGanttOptions } from "./ts-gantt-options";
 import { TsGanttChartRow, TsGanttChartColumn } from "./ts-gantt-chart";
 import { TsGanttTableColumn, TsGanttTableRow } from "./ts-gantt-table";
@@ -103,4 +103,4 @@ class TsGantt {
   };  
 }
 
-export {TsGantt, TsGanttOptions, TsGanttTask};
+export { TsGantt, TsGanttOptions, TsGanttTask, TsGanttTaskModel };

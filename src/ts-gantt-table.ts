@@ -1,3 +1,7 @@
+class TsGanttTable {
+
+}
+
 class TsGanttTableColumn {
 
 }
@@ -6,4 +10,4 @@ class TsGanttTableRow {
 
 }
 
-export {TsGanttTableRow, TsGanttTableColumn};
+export { TsGanttTable, TsGanttTableRow, TsGanttTableColumn };

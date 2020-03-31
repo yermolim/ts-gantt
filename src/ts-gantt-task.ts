@@ -1,21 +1,48 @@
 import { getRandomUuid } from "./ts-gantt-common";
 
-export class TsGanttTask {
-  uuid: string;
-  parentUuid: string;
+class TsGanttTaskModel {
+  id: string | number;
+  parentId: string | number | null;
 
-  id: any;
+  name: string;  
+  progress: number;
+
+  datePlannedStart: Date;
+  datePlannedEnd: Date;  
+  dateActualStart: Date | null;
+  dateActualEnd: Date | null;
+      
+  constructor(id: string | number, parentId: string | number | null, 
+    name: string, progress: number,
+    datePlannedStart: Date, datePlannedEnd: Date,
+    dateActualStart: Date | null = null, dateActualEnd: Date | null = null) {
+
+    this.id = id;
+    this.parentId = parentId;
+    this.name = name;
+    this.progress = progress > 100 ? 100 : progress < 0 ? 0 : progress;    
+    this.datePlannedStart = datePlannedStart;
+    this.datePlannedEnd = datePlannedEnd;
+    this.dateActualStart = dateActualStart;
+    this.dateActualEnd = dateActualEnd;     
+  }
+}
+
+class TsGanttTask {
+  readonly externalId: string | number;
+  readonly uuid: string;
+  parentUuid: string;
+  nestingLvl: number;
+
   name: string;
 
   datePlannedStart: Date;
   datePlannedEnd: Date;
-  durationPlanned = 0;
-  
   dateActualStart: Date | null;
   dateActualEnd: Date | null;
+
+  durationPlanned = 0;  
   durationActual = 0;
-  
-  children: TsGanttTask[];
 
   private _progress = 0;
   set progress(value: number) {
@@ -25,35 +52,69 @@ export class TsGanttTask {
     return this._progress;
   }  
     
-  constructor(name: string, progress: number,
-    datePlannedStart: Date, datePlannedEnd: Date,
-    dateActualStart: Date | null = null, dateActualEnd: Date | null = null,
-    children: TsGanttTask[] = []) {
+  constructor(id: string | number,
+    name: string, 
+    progress: number,
+    datePlannedStart: Date, 
+    datePlannedEnd: Date,
+    dateActualStart: Date | null = null, 
+    dateActualEnd: Date | null = null,
+    nestingLvl: number = 0,
+    parentUuid: string = null) {
 
+    this.externalId = id;
     this.name = name;
     this.progress = progress;    
     this.datePlannedStart = datePlannedStart;
     this.datePlannedEnd = datePlannedEnd;
     this.dateActualStart = dateActualStart;
-    this.dateActualEnd = dateActualEnd;    
-    this.children = children;
+    this.dateActualEnd = dateActualEnd;
+    this.nestingLvl = nestingLvl;
+    this.parentUuid = parentUuid;
 
     this.refreshDuration();
     this.uuid = getRandomUuid();      
   }
 
-  static flatten(tree: TsGanttTask[]): TsGanttTask[] {
-    const flattenedArray: TsGanttTask[] = [];
-
-    for (const task of tree) {
-      flattenedArray.push(task);
-
-      if (task.children.length !== 0) {
-        flattenedArray.push(...TsGanttTask.flatten(task.children));
+  static initTasksFromModels(taskModels: TsGanttTaskModel[]): TsGanttTask[] {
+    const models = taskModels.slice();
+    const tasks: TsGanttTask[] = [];
+    let currentLevelTasks: TsGanttTask[] = [];
+         
+    for (let i = models.length - 1; i >= 0; i--) {
+      const model = models[i];
+      if (model.parentId === null) {
+        const newTask = new TsGanttTask(model.id, model.name, model.progress,
+          model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd);
+        tasks.push(newTask);
+        currentLevelTasks.push(newTask);
+        models.splice(i, 1);
       }
+    }  
+    
+    let currentNestingLvl = 1;    
+    while (models.length !== 0 || currentLevelTasks.length !== 0) {
+      const nextLevelTasks: TsGanttTask[] = [];
+
+      currentLevelTasks.forEach(task => {
+        for (let i = models.length - 1; i >= 0; i--) {
+          const model = models[i];
+          if (model.parentId === task.externalId) {
+            const newTask = new TsGanttTask(model.id, model.name, model.progress,
+              model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd,
+              currentNestingLvl, task.uuid);
+            tasks.push(newTask);
+            nextLevelTasks.push(newTask);
+            models.splice(i, 1);
+          }
+        }  
+      });
+        
+      currentLevelTasks = nextLevelTasks;
+      currentNestingLvl++;
     }
 
-    return flattenedArray;
+    return tasks;
   }
 
   refreshDuration() {
@@ -68,3 +129,5 @@ export class TsGanttTask {
     }
   }
 }
+
+export { TsGanttTask, TsGanttTaskModel };

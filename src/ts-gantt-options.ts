@@ -1,6 +1,6 @@
 import { TsGanttTask } from "./ts-gantt-task";
 
-export class TsGanttOptions {
+class TsGanttOptions {
   headerHeight = 60;
   rowHeight = 0;
   columnWidth = 0;
@@ -28,3 +28,5 @@ export class TsGanttOptions {
   tooltipActualDurationGetter = (a: TsGanttTask) => a.durationActual;
   tooltipProgressGetter = (a: TsGanttTask) => a.progress;
 }
+
+export { TsGanttOptions }

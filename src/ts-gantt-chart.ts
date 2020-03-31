@@ -1,3 +1,7 @@
+class TsGanttChart {
+
+}
+
 class TsGanttChartColumn {
 
 }
@@ -5,5 +9,8 @@ class TsGanttChartColumn {
 class TsGanttChartRow {
 
 }
+class TsGanttChartTooltip {
 
-export {TsGanttChartRow, TsGanttChartColumn};
+}
+
+export { TsGanttChart, TsGanttChartRow, TsGanttChartColumn, TsGanttChartTooltip };

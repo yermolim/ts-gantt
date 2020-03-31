@@ -2,18 +2,32 @@ function getRandomUuid() {
     return crypto.getRandomValues(new Uint32Array(4)).join("-");
 }
 
+class TsGanttTaskModel {
+    constructor(id, parentId, name, progress, datePlannedStart, datePlannedEnd, dateActualStart = null, dateActualEnd = null) {
+        this.id = id;
+        this.parentId = parentId;
+        this.name = name;
+        this.progress = progress > 100 ? 100 : progress < 0 ? 0 : progress;
+        this.datePlannedStart = datePlannedStart;
+        this.datePlannedEnd = datePlannedEnd;
+        this.dateActualStart = dateActualStart;
+        this.dateActualEnd = dateActualEnd;
+    }
+}
 class TsGanttTask {
-    constructor(name, progress, datePlannedStart, datePlannedEnd, dateActualStart = null, dateActualEnd = null, children = []) {
+    constructor(id, name, progress, datePlannedStart, datePlannedEnd, dateActualStart = null, dateActualEnd = null, nestingLvl = 0, parentUuid = null) {
         this.durationPlanned = 0;
         this.durationActual = 0;
         this._progress = 0;
+        this.externalId = id;
         this.name = name;
         this.progress = progress;
         this.datePlannedStart = datePlannedStart;
         this.datePlannedEnd = datePlannedEnd;
         this.dateActualStart = dateActualStart;
         this.dateActualEnd = dateActualEnd;
-        this.children = children;
+        this.nestingLvl = nestingLvl;
+        this.parentUuid = parentUuid;
         this.refreshDuration();
         this.uuid = getRandomUuid();
     }
@@ -23,15 +37,37 @@ class TsGanttTask {
     get progress() {
         return this._progress;
     }
-    static flatten(tree) {
-        const flattenedArray = [];
-        for (const task of tree) {
-            flattenedArray.push(task);
-            if (task.children.length !== 0) {
-                flattenedArray.push(...TsGanttTask.flatten(task.children));
+    static initTasksFromModels(taskModels) {
+        const models = taskModels.slice();
+        const tasks = [];
+        let currentLevelTasks = [];
+        for (let i = models.length - 1; i >= 0; i--) {
+            const model = models[i];
+            if (model.parentId === null) {
+                const newTask = new TsGanttTask(model.id, model.name, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd);
+                tasks.push(newTask);
+                currentLevelTasks.push(newTask);
+                models.splice(i, 1);
             }
         }
-        return flattenedArray;
+        let currentNestingLvl = 1;
+        while (models.length !== 0 || currentLevelTasks.length !== 0) {
+            const nextLevelTasks = [];
+            currentLevelTasks.forEach(task => {
+                for (let i = models.length - 1; i >= 0; i--) {
+                    const model = models[i];
+                    if (model.parentId === task.externalId) {
+                        const newTask = new TsGanttTask(model.id, model.name, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, currentNestingLvl, task.uuid);
+                        tasks.push(newTask);
+                        nextLevelTasks.push(newTask);
+                        models.splice(i, 1);
+                    }
+                }
+            });
+            currentLevelTasks = nextLevelTasks;
+            currentNestingLvl++;
+        }
+        return tasks;
     }
     refreshDuration() {
         this.durationPlanned = this.datePlannedEnd.getTime() -
@@ -137,4 +173,4 @@ TsGantt.SVG_CLASS = "ts-gantt-svg";
 TsGantt.SEPARATOR_CLASS = "ts-gantt-separator";
 TsGantt.GRID_MIN_WIDTH = 100;
 
-export { TsGantt, TsGanttOptions, TsGanttTask };
+export { TsGantt, TsGanttOptions, TsGanttTask, TsGanttTaskModel };
