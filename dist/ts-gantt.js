@@ -15,11 +15,12 @@ class TsGanttTaskModel {
     }
 }
 class TsGanttTask {
-    constructor(id, name, progress, datePlannedStart, datePlannedEnd, dateActualStart = null, dateActualEnd = null, nestingLvl = 0, parentUuid = null) {
+    constructor(id, parentId, name, progress, datePlannedStart, datePlannedEnd, dateActualStart = null, dateActualEnd = null, nestingLvl = 0, parentUuid = null, uuid = null) {
         this.durationPlanned = 0;
         this.durationActual = 0;
         this._progress = 0;
         this.externalId = id;
+        this.parentExternalId = parentId;
         this.name = name;
         this.progress = progress;
         this.datePlannedStart = datePlannedStart;
@@ -28,8 +29,8 @@ class TsGanttTask {
         this.dateActualEnd = dateActualEnd;
         this.nestingLvl = nestingLvl;
         this.parentUuid = parentUuid;
+        this.uuid = uuid || getRandomUuid();
         this.refreshDuration();
-        this.uuid = getRandomUuid();
     }
     set progress(value) {
         this._progress = value < 0 ? 0 : value > 100 ? 100 : value;
@@ -37,14 +38,14 @@ class TsGanttTask {
     get progress() {
         return this._progress;
     }
-    static initTasksFromModels(taskModels) {
+    static convertModelsToTasks(taskModels, idsMap = new Map()) {
         const models = taskModels.slice();
         const tasks = [];
         let currentLevelTasks = [];
         for (let i = models.length - 1; i >= 0; i--) {
             const model = models[i];
             if (model.parentId === null) {
-                const newTask = new TsGanttTask(model.id, model.name, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd);
+                const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 0, null, idsMap.get(model.id));
                 tasks.push(newTask);
                 currentLevelTasks.push(newTask);
                 models.splice(i, 1);
@@ -57,7 +58,7 @@ class TsGanttTask {
                 for (let i = models.length - 1; i >= 0; i--) {
                     const model = models[i];
                     if (model.parentId === task.externalId) {
-                        const newTask = new TsGanttTask(model.id, model.name, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, currentNestingLvl, task.uuid);
+                        const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, currentNestingLvl, task.uuid, idsMap.get(model.id));
                         tasks.push(newTask);
                         nextLevelTasks.push(newTask);
                         models.splice(i, 1);
@@ -68,6 +69,39 @@ class TsGanttTask {
             currentNestingLvl++;
         }
         return tasks;
+    }
+    static convertTasksToModels(tasks) {
+        return tasks.map(x => new TsGanttTaskModel(x.externalId, x.parentExternalId, x.name, x.progress, x.datePlannedStart, x.datePlannedEnd, x.dateActualStart, x.dateActualEnd));
+    }
+    static detectTaskChanges(data) {
+        const { oldTasks, newTasks } = data;
+        const oldUuids = oldTasks.map(x => x.uuid);
+        const newUuids = newTasks.map(x => x.uuid);
+        const deleted = oldTasks.filter(x => !newUuids.includes(x.uuid));
+        const added = [];
+        const changed = [];
+        const unchanged = [];
+        for (const newTask of newTasks) {
+            if (!oldUuids.includes(newTask.uuid)) {
+                added.push(newTask);
+                continue;
+            }
+            const oldTask = oldTasks.find(x => x.uuid === newTask.uuid);
+            if (newTask.equals(oldTask)) {
+                unchanged.push(newTask);
+            }
+            changed.push(newTask);
+        }
+        return { deleted, added, changed, unchanged };
+    }
+    static getTasksIdsMap(tasks) {
+        const idsMap = new Map();
+        for (const task of tasks) {
+            if (!idsMap.has(task.externalId)) {
+                idsMap.set(task.externalId, task.uuid);
+            }
+        }
+        return idsMap;
     }
     refreshDuration() {
         this.durationPlanned = this.datePlannedEnd.getTime() -
@@ -80,6 +114,20 @@ class TsGanttTask {
             this.durationActual = 0;
         }
     }
+    equals(another) {
+        return this.uuid === another.uuid
+            && this.parentUuid === another.parentUuid
+            && this.nestingLvl === another.nestingLvl
+            && this.name === another.name
+            && this.datePlannedStart === another.datePlannedStart
+            && this.datePlannedEnd === another.datePlannedEnd
+            && this.dateActualStart === another.dateActualStart
+            && this.dateActualEnd === another.dateActualEnd;
+    }
+}
+class TsGanttTaskUpdateResult {
+}
+class TsGanttTaskChangesDetectionResult {
 }
 
 class TsGanttOptions {
@@ -160,9 +208,13 @@ class TsGantt {
         this.createLayout();
         this._options = new TsGanttOptions(options);
     }
+    get tasks() {
+        return TsGanttTask.convertTasksToModels(this._tasks);
+    }
     set tasks(taskModels) {
-        this.clearTasks();
-        this.pushTasks(taskModels);
+        const updateResult = this.updateTasks(taskModels);
+        const changeDetectionResult = TsGanttTask.detectTaskChanges(updateResult);
+        this.updateRows(changeDetectionResult);
     }
     destroy() {
         document.removeEventListener("mousedown", this.onMouseDownOnSep);
@@ -186,12 +238,14 @@ class TsGantt {
         document.addEventListener("mousemove", this.onMouseMoveOnSep);
         document.addEventListener("mouseup", this.onMouseUpOnSep);
     }
-    clearTasks() {
-        this._tasks.length = 0;
+    updateTasks(taskModels) {
+        const oldTasks = this._tasks;
+        const oldIdsMap = TsGanttTask.getTasksIdsMap(oldTasks);
+        const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldIdsMap);
+        this._tasks = newTasks;
+        return { oldTasks, newTasks };
     }
-    pushTasks(taskModels) {
-        const tasks = TsGanttTask.initTasksFromModels(taskModels);
-        this._tasks.push(...tasks);
+    updateRows(data) {
     }
 }
 TsGantt.WRAPPER_CLASS = "ts-gantt-wrapper";
@@ -200,4 +254,4 @@ TsGantt.CHART_CLASS = "ts-gantt-chart";
 TsGantt.SEPARATOR_CLASS = "ts-gantt-separator";
 TsGantt.TABLE_MIN_WIDTH = 100;
 
-export { TsGantt, TsGanttOptions, TsGanttTask, TsGanttTaskModel };
+export { TsGantt, TsGanttChart, TsGanttOptions, TsGanttTable, TsGanttTask, TsGanttTaskChangesDetectionResult, TsGanttTaskModel, TsGanttTaskUpdateResult };

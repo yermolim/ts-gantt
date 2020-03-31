@@ -29,4 +29,4 @@ class TsGanttOptions {
   tooltipProgressGetter = (a: TsGanttTask) => a.progress;
 }
 
-export { TsGanttOptions }
+export { TsGanttOptions };

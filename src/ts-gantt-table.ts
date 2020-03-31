@@ -1,13 +1,13 @@
 class TsGanttTable {
   private readonly _minWidth: number;
-
-  private _tableColumns: TsGanttTableColumn[];
-  private _tableRows: TsGanttTableRow[];
   
   private _htmlTable: HTMLTableElement;
   get htmlTable(): HTMLTableElement {
     return this._htmlTable;
-  }
+  }  
+
+  private _tableColumns: TsGanttTableColumn[];
+  private _tableRows: TsGanttTableRow[];
 
   constructor(classList: string[], minWidth: number) {
     
@@ -29,6 +29,10 @@ class TsGanttTableColumn {
 }
 
 class TsGanttTableRow {
+  private _htmlRow: HTMLTableRowElement;
+  get htmlRow(): HTMLTableRowElement {
+    return this._htmlRow;
+  }
 
 }
 

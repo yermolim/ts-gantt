@@ -1,5 +1,6 @@
 import "./styles.css";
-import { TsGanttTask, TsGanttTaskModel } from "./ts-gantt-task";
+import { TsGanttTask, TsGanttTaskModel, TsGanttTaskUpdateResult, 
+  TsGanttTaskChangesDetectionResult } from "./ts-gantt-task";
 import { TsGanttOptions } from "./ts-gantt-options";
 import { TsGanttChartRow, TsGanttChartColumn, TsGanttChart } from "./ts-gantt-chart";
 import { TsGanttTableColumn, TsGanttTableRow, TsGanttTable } from "./ts-gantt-table";
@@ -13,9 +14,13 @@ class TsGantt {
 
   private _options: TsGanttOptions;
   private _tasks: TsGanttTask[] = [];
+  get tasks(): TsGanttTaskModel[] {
+    return TsGanttTask.convertTasksToModels(this._tasks);
+  }  
   set tasks(taskModels: TsGanttTaskModel[]) {
-    this.clearTasks();
-    this.pushTasks(taskModels);
+    const updateResult = this.updateTasks(taskModels);
+    const changeDetectionResult = TsGanttTask.detectTaskChanges(updateResult);
+    this.updateRows(changeDetectionResult);
   }
 
   private _htmlContainer: HTMLElement;
@@ -66,16 +71,22 @@ class TsGantt {
     document.addEventListener("mouseup", this.onMouseUpOnSep);
   }
 
-  clearTasks() {
-    this._tasks.length = 0;
+  // #region task actions
+
+  updateTasks(taskModels: TsGanttTaskModel[]): TsGanttTaskUpdateResult {
+    const oldTasks = this._tasks;
+    const oldIdsMap = TsGanttTask.getTasksIdsMap(oldTasks);
+    const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldIdsMap);
+    this._tasks = newTasks;
+    return { oldTasks, newTasks };
   }
 
-  pushTasks(taskModels: TsGanttTaskModel[]) {
-    const tasks = TsGanttTask.initTasksFromModels(taskModels);
-    this._tasks.push(...tasks);
+  updateRows(data: TsGanttTaskChangesDetectionResult) {
+
   }
+  // #endregion
     
-  //#region separator event listeners
+  // #region separator event listeners
   onMouseDownOnSep = (e: MouseEvent) => {
     if (e.target === this._htmlSeparator) {
       this._htmlSeparatorDragActive = true;
@@ -95,7 +106,9 @@ class TsGantt {
   onMouseUpOnSep = (e: MouseEvent) => {
     this._htmlSeparatorDragActive = false;
   }; 
-  //#endregion
+  // #endregion
 }
 
-export { TsGantt, TsGanttOptions, TsGanttTask, TsGanttTaskModel };
+export { TsGantt, TsGanttOptions, TsGanttChart, TsGanttTable,
+  TsGanttTask, TsGanttTaskModel, TsGanttTaskUpdateResult, 
+  TsGanttTaskChangesDetectionResult };
