@@ -51,27 +51,24 @@ export declare class TsGanttOptions {
 }
 export declare class TsGantt {
 	private static readonly WRAPPER_CLASS;
-	private static readonly GRID_CLASS;
-	private static readonly SVG_CLASS;
+	private static readonly TABLE_CLASS;
+	private static readonly CHART_CLASS;
 	private static readonly SEPARATOR_CLASS;
-	private static readonly GRID_MIN_WIDTH;
+	private static readonly TABLE_MIN_WIDTH;
 	private _options;
 	private _tasks;
-	private _chartColumns;
-	private _chartRows;
-	private _tableColumns;
-	private _tableRows;
-	private _container;
-	private _wrapper;
+	set tasks(taskModels: TsGanttTaskModel[]);
+	private _htmlContainer;
+	private _htmlWrapper;
+	private _htmlSeparator;
+	private _htmlSeparatorDragActive;
 	private _table;
-	private _chartSvg;
-	private _separator;
-	private _isSeparatorDragActive;
+	private _chart;
 	constructor(containerSelector: string, options: TsGanttOptions);
 	destroy(): void;
 	createLayout(): void;
 	clearTasks(): void;
-	pushTasks(tasks: TsGanttTask[]): void;
+	pushTasks(taskModels: TsGanttTaskModel[]): void;
 	onMouseDownOnSep: (e: MouseEvent) => void;
 	onMouseMoveOnSep: (e: MouseEvent) => boolean;
 	onMouseUpOnSep: (e: MouseEvent) => void;

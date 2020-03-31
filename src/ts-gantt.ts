@@ -1,36 +1,35 @@
 import "./styles.css";
 import { TsGanttTask, TsGanttTaskModel } from "./ts-gantt-task";
 import { TsGanttOptions } from "./ts-gantt-options";
-import { TsGanttChartRow, TsGanttChartColumn } from "./ts-gantt-chart";
-import { TsGanttTableColumn, TsGanttTableRow } from "./ts-gantt-table";
+import { TsGanttChartRow, TsGanttChartColumn, TsGanttChart } from "./ts-gantt-chart";
+import { TsGanttTableColumn, TsGanttTableRow, TsGanttTable } from "./ts-gantt-table";
 
 class TsGantt {  
   private static readonly WRAPPER_CLASS = "ts-gantt-wrapper";
-  private static readonly GRID_CLASS = "ts-gantt-grid";
-  private static readonly SVG_CLASS = "ts-gantt-svg";
+  private static readonly TABLE_CLASS = "ts-gantt-grid";
+  private static readonly CHART_CLASS = "ts-gantt-chart";
   private static readonly SEPARATOR_CLASS = "ts-gantt-separator";
-  private static readonly GRID_MIN_WIDTH = 100;
+  private static readonly TABLE_MIN_WIDTH = 100;
 
   private _options: TsGanttOptions;
   private _tasks: TsGanttTask[] = [];
+  set tasks(taskModels: TsGanttTaskModel[]) {
+    this.clearTasks();
+    this.pushTasks(taskModels);
+  }
 
-  private _chartColumns: TsGanttChartColumn[];
-  private _chartRows: TsGanttChartRow[];
-  private _tableColumns: TsGanttTableColumn[];
-  private _tableRows: TsGanttTableRow[];
+  private _htmlContainer: HTMLElement;
+  private _htmlWrapper: HTMLDivElement;
+  private _htmlSeparator: HTMLDivElement;
+  private _htmlSeparatorDragActive = false;
 
-  private _container: HTMLElement;
-
-  private _wrapper: HTMLDivElement;
-  private _table: HTMLTableElement;
-  private _chartSvg: SVGElement;
-  private _separator: HTMLDivElement;
-  private _isSeparatorDragActive = false;
+  private _table: TsGanttTable;
+  private _chart: TsGanttChart;  
 
   constructor(containerSelector: string,
     options: TsGanttOptions) {
-    this._container = document.querySelector(containerSelector);
-    if (!this._container) {
+    this._htmlContainer = document.querySelector(containerSelector);
+    if (!this._htmlContainer) {
       throw new Error("Container is null");
     }
 
@@ -47,25 +46,20 @@ class TsGantt {
   createLayout() {
     const wrapper = document.createElement("div");
     wrapper.classList.add(TsGantt.WRAPPER_CLASS);
-    
-    const table = document.createElement("table");
-    table.classList.add(TsGantt.GRID_CLASS);
 
-    const chartSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    chartSvg.classList.add(TsGantt.SVG_CLASS);
-    
     const separator = document.createElement("div");
-    separator.classList.add(TsGantt.SEPARATOR_CLASS);    
- 
-    wrapper.appendChild(table);
-    wrapper.appendChild(separator);
-    wrapper.appendChild(chartSvg); 
-    this._container.appendChild(wrapper); 
+    separator.classList.add(TsGantt.SEPARATOR_CLASS);  
     
-    this._wrapper = wrapper;
-    this._table = table;
-    this._chartSvg = chartSvg;
-    this._separator = separator;
+    this._table = new TsGanttTable([TsGantt.TABLE_CLASS], TsGantt.TABLE_MIN_WIDTH);
+    this._chart = new TsGanttChart([TsGantt.CHART_CLASS]);      
+ 
+    wrapper.appendChild(this._table.htmlTable);
+    wrapper.appendChild(separator);
+    wrapper.appendChild(this._chart.htmlSvg);
+     
+    this._htmlContainer.appendChild(wrapper);     
+    this._htmlWrapper = wrapper;
+    this._htmlSeparator = separator;
 
     document.addEventListener("mousedown", this.onMouseDownOnSep);
     document.addEventListener("mousemove", this.onMouseMoveOnSep);
@@ -76,31 +70,32 @@ class TsGantt {
     this._tasks.length = 0;
   }
 
-  pushTasks(tasks: TsGanttTask[]) {
+  pushTasks(taskModels: TsGanttTaskModel[]) {
+    const tasks = TsGanttTask.initTasksFromModels(taskModels);
     this._tasks.push(...tasks);
   }
     
+  //#region separator event listeners
   onMouseDownOnSep = (e: MouseEvent) => {
-    if (e.target === this._separator) {
-      this._isSeparatorDragActive = true;
+    if (e.target === this._htmlSeparator) {
+      this._htmlSeparatorDragActive = true;
     }
   }; 
       
   onMouseMoveOnSep = (e: MouseEvent) => {
-    if (!this._isSeparatorDragActive) {
+    if (!this._htmlSeparatorDragActive) {
       return false;
     }
 
-    const wrapperLeftOffset = this._wrapper.offsetLeft;
+    const wrapperLeftOffset = this._htmlWrapper.offsetLeft;
     const pointerRelX = e.clientX - wrapperLeftOffset;
-
-    this._table.style.width = (Math.max(TsGantt.GRID_MIN_WIDTH, pointerRelX)) + "px";
-    this._table.style.flexGrow = "0";
+    this._table.setWidth(pointerRelX);
   };
       
   onMouseUpOnSep = (e: MouseEvent) => {
-    this._isSeparatorDragActive = false;
-  };  
+    this._htmlSeparatorDragActive = false;
+  }; 
+  //#endregion
 }
 
 export { TsGantt, TsGanttOptions, TsGanttTask, TsGanttTaskModel };

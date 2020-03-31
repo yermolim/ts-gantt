@@ -106,33 +106,63 @@ class TsGanttOptions {
     }
 }
 
+class TsGanttChart {
+    constructor(classList) {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.classList.add(...classList);
+        this._htmlSvg = svg;
+    }
+    get htmlSvg() {
+        return this._htmlSvg;
+    }
+}
+
+class TsGanttTable {
+    constructor(classList, minWidth) {
+        const table = document.createElement("table");
+        table.classList.add(...classList);
+        this._htmlTable = table;
+        this._minWidth = minWidth;
+    }
+    get htmlTable() {
+        return this._htmlTable;
+    }
+    setWidth(width) {
+        this._htmlTable.style.width = (Math.max(this._minWidth, width)) + "px";
+        this._htmlTable.style.flexGrow = "0";
+    }
+}
+
 class TsGantt {
     constructor(containerSelector, options) {
         this._tasks = [];
-        this._isSeparatorDragActive = false;
+        this._htmlSeparatorDragActive = false;
         this.onMouseDownOnSep = (e) => {
-            if (e.target === this._separator) {
-                this._isSeparatorDragActive = true;
+            if (e.target === this._htmlSeparator) {
+                this._htmlSeparatorDragActive = true;
             }
         };
         this.onMouseMoveOnSep = (e) => {
-            if (!this._isSeparatorDragActive) {
+            if (!this._htmlSeparatorDragActive) {
                 return false;
             }
-            const wrapperLeftOffset = this._wrapper.offsetLeft;
+            const wrapperLeftOffset = this._htmlWrapper.offsetLeft;
             const pointerRelX = e.clientX - wrapperLeftOffset;
-            this._table.style.width = (Math.max(TsGantt.GRID_MIN_WIDTH, pointerRelX)) + "px";
-            this._table.style.flexGrow = "0";
+            this._table.setWidth(pointerRelX);
         };
         this.onMouseUpOnSep = (e) => {
-            this._isSeparatorDragActive = false;
+            this._htmlSeparatorDragActive = false;
         };
-        this._container = document.querySelector(containerSelector);
-        if (!this._container) {
+        this._htmlContainer = document.querySelector(containerSelector);
+        if (!this._htmlContainer) {
             throw new Error("Container is null");
         }
         this.createLayout();
         this._options = new TsGanttOptions(options);
+    }
+    set tasks(taskModels) {
+        this.clearTasks();
+        this.pushTasks(taskModels);
     }
     destroy() {
         document.removeEventListener("mousedown", this.onMouseDownOnSep);
@@ -142,20 +172,16 @@ class TsGantt {
     createLayout() {
         const wrapper = document.createElement("div");
         wrapper.classList.add(TsGantt.WRAPPER_CLASS);
-        const table = document.createElement("table");
-        table.classList.add(TsGantt.GRID_CLASS);
-        const chartSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        chartSvg.classList.add(TsGantt.SVG_CLASS);
         const separator = document.createElement("div");
         separator.classList.add(TsGantt.SEPARATOR_CLASS);
-        wrapper.appendChild(table);
+        this._table = new TsGanttTable([TsGantt.TABLE_CLASS], TsGantt.TABLE_MIN_WIDTH);
+        this._chart = new TsGanttChart([TsGantt.CHART_CLASS]);
+        wrapper.appendChild(this._table.htmlTable);
         wrapper.appendChild(separator);
-        wrapper.appendChild(chartSvg);
-        this._container.appendChild(wrapper);
-        this._wrapper = wrapper;
-        this._table = table;
-        this._chartSvg = chartSvg;
-        this._separator = separator;
+        wrapper.appendChild(this._chart.htmlSvg);
+        this._htmlContainer.appendChild(wrapper);
+        this._htmlWrapper = wrapper;
+        this._htmlSeparator = separator;
         document.addEventListener("mousedown", this.onMouseDownOnSep);
         document.addEventListener("mousemove", this.onMouseMoveOnSep);
         document.addEventListener("mouseup", this.onMouseUpOnSep);
@@ -163,14 +189,15 @@ class TsGantt {
     clearTasks() {
         this._tasks.length = 0;
     }
-    pushTasks(tasks) {
+    pushTasks(taskModels) {
+        const tasks = TsGanttTask.initTasksFromModels(taskModels);
         this._tasks.push(...tasks);
     }
 }
 TsGantt.WRAPPER_CLASS = "ts-gantt-wrapper";
-TsGantt.GRID_CLASS = "ts-gantt-grid";
-TsGantt.SVG_CLASS = "ts-gantt-svg";
+TsGantt.TABLE_CLASS = "ts-gantt-grid";
+TsGantt.CHART_CLASS = "ts-gantt-chart";
 TsGantt.SEPARATOR_CLASS = "ts-gantt-separator";
-TsGantt.GRID_MIN_WIDTH = 100;
+TsGantt.TABLE_MIN_WIDTH = 100;
 
 export { TsGantt, TsGanttOptions, TsGanttTask, TsGanttTaskModel };
