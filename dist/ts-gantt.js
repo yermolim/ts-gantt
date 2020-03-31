@@ -90,7 +90,9 @@ class TsGanttTask {
             if (newTask.equals(oldTask)) {
                 unchanged.push(newTask);
             }
-            changed.push(newTask);
+            else {
+                changed.push(newTask);
+            }
         }
         return { deleted, added, changed, unchanged };
     }
@@ -115,14 +117,16 @@ class TsGanttTask {
         }
     }
     equals(another) {
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         return this.uuid === another.uuid
             && this.parentUuid === another.parentUuid
             && this.nestingLvl === another.nestingLvl
             && this.name === another.name
-            && this.datePlannedStart === another.datePlannedStart
-            && this.datePlannedEnd === another.datePlannedEnd
-            && this.dateActualStart === another.dateActualStart
-            && this.dateActualEnd === another.dateActualEnd;
+            && this.progress === another.progress
+            && ((_a = this.datePlannedStart) === null || _a === void 0 ? void 0 : _a.getTime()) === ((_b = another.datePlannedStart) === null || _b === void 0 ? void 0 : _b.getTime())
+            && ((_c = this.datePlannedEnd) === null || _c === void 0 ? void 0 : _c.getTime()) === ((_d = another.datePlannedEnd) === null || _d === void 0 ? void 0 : _d.getTime())
+            && ((_e = this.dateActualStart) === null || _e === void 0 ? void 0 : _e.getTime()) === ((_f = another.dateActualStart) === null || _f === void 0 ? void 0 : _f.getTime())
+            && ((_g = this.dateActualEnd) === null || _g === void 0 ? void 0 : _g.getTime()) === ((_h = another.dateActualEnd) === null || _h === void 0 ? void 0 : _h.getTime());
     }
 }
 class TsGanttTaskUpdateResult {
