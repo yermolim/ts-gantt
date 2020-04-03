@@ -1,5 +1,8 @@
+import { TsGanttTask, TsGanttTaskChangesDetectionResult } from "./ts-gantt-task";
+import { TsGanttOptions } from "./ts-gantt-options";
+
 class TsGanttTable {
-  private readonly _minWidth: number;
+  private _options: TsGanttOptions;
   
   private _htmlTable: HTMLTableElement;
   get htmlTable(): HTMLTableElement {
@@ -9,18 +12,331 @@ class TsGanttTable {
   private _tableColumns: TsGanttTableColumn[];
   private _tableRows: TsGanttTableRow[];
 
-  constructor(classList: string[], minWidth: number) {
+  constructor(classList: string[], options: TsGanttOptions) {    
+    this._options = options;
     
     const table = document.createElement("table");
     table.classList.add(...classList);
     this._htmlTable = table;
-
-    this._minWidth = minWidth;
+    
+    table.innerHTML = `<tbody>      
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+      <tr>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+        <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+        </p></div></td>
+      </tr>
+    </tbody>`;
   }
 
-  setWidth(width: number) {    
-    this._htmlTable.style.width = (Math.max(this._minWidth, width)) + "px";
-    this._htmlTable.style.flexGrow = "0";
+  updateRows(data: TsGanttTaskChangesDetectionResult) {
+    
   }
 }
 
@@ -34,6 +350,9 @@ class TsGanttTableRow {
     return this._htmlRow;
   }
 
+  constructor(task: TsGanttTask) {
+
+  }
 }
 
 export { TsGanttTable, TsGanttTableRow, TsGanttTableColumn };

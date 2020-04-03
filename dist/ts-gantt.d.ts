@@ -46,15 +46,31 @@ export declare class TsGanttTaskChangesDetectionResult {
 	unchanged: TsGanttTask[];
 }
 export declare class TsGanttOptions {
-	headerHeight: number;
-	rowHeight: number;
-	columnWidth: number;
-	scale: "hour" | "day" | "week" | "month";
-	locale: "ru" | "en" | "uk";
-	customDateFormat: string;
-	allowMoveBars: boolean;
-	allowResizeBars: boolean;
-	allowMoveProgress: boolean;
+	enableChartEdit: boolean;
+	tableMinWidth: number;
+	defaultScale: "hour" | "day" | "week" | "month";
+	localeLang: string;
+	localeDateFormat: {
+		[key: string]: string;
+	};
+	localeFirstWeekDay: {
+		[key: string]: number;
+	};
+	localeDateMonths: {
+		[key: string]: string[];
+	};
+	localeDateDays: {
+		[key: string]: string[];
+	};
+	localeDateScale: {
+		[key: string]: string[];
+	};
+	localeHeaders: {
+		[key: string]: string[];
+	};
+	localeFooters: {
+		[key: string]: string[];
+	};
 	constructor(item?: object);
 	barHeaderGetter: (a: TsGanttTask) => string;
 	tooltipHeaderGetter: (a: TsGanttTask) => string;
@@ -65,45 +81,56 @@ export declare class TsGanttOptions {
 	tooltipProgressGetter: (a: TsGanttTask) => number;
 }
 export declare class TsGanttChart {
+	private _options;
 	private _chartColumns;
 	private _chartRows;
 	private _htmlSvg;
 	get htmlSvg(): SVGElement;
-	constructor(classList: string[]);
+	constructor(classList: string[], options: TsGanttOptions);
+	updateRows(data: TsGanttTaskChangesDetectionResult): void;
 }
 export declare class TsGanttTable {
-	private readonly _minWidth;
+	private _options;
 	private _htmlTable;
 	get htmlTable(): HTMLTableElement;
 	private _tableColumns;
 	private _tableRows;
-	constructor(classList: string[], minWidth: number);
-	setWidth(width: number): void;
+	constructor(classList: string[], options: TsGanttOptions);
+	updateRows(data: TsGanttTaskChangesDetectionResult): void;
 }
 export declare class TsGantt {
 	private static readonly WRAPPER_CLASS;
+	private static readonly TABLE_WRAPPER_CLASS;
+	private static readonly CHART_WRAPPER_CLASS;
 	private static readonly TABLE_CLASS;
 	private static readonly CHART_CLASS;
 	private static readonly SEPARATOR_CLASS;
-	private static readonly TABLE_MIN_WIDTH;
 	private _options;
 	private _tasks;
 	get tasks(): TsGanttTaskModel[];
-	set tasks(taskModels: TsGanttTaskModel[]);
+	set tasks(models: TsGanttTaskModel[]);
 	private _htmlContainer;
 	private _htmlWrapper;
+	private _htmlTableWrapper;
+	private _htmlChartWrapper;
 	private _htmlSeparator;
 	private _htmlSeparatorDragActive;
 	private _table;
 	private _chart;
+	private _locale;
+	set locale(value: string);
+	private _dateFormat;
 	constructor(containerSelector: string, options: TsGanttOptions);
 	destroy(): void;
-	createLayout(): void;
-	updateTasks(taskModels: TsGanttTaskModel[]): TsGanttTaskUpdateResult;
-	updateRows(data: TsGanttTaskChangesDetectionResult): void;
 	onMouseDownOnSep: (e: MouseEvent) => void;
 	onMouseMoveOnSep: (e: MouseEvent) => boolean;
 	onMouseUpOnSep: (e: MouseEvent) => void;
+	private setTableWrapperWidth;
+	private removeSepEventListeners;
+	private createLayout;
+	private updateTasks;
+	private updateRows;
+	private updateLocale;
 }
 
 export {};

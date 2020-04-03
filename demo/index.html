@@ -27,14 +27,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0">
     <title>TsGantt test</title>
 </head>
-  <body>  
+    <body>  
       <div id="gantt-container"></div>
       
-      <script type="module">
-          import { TsGantt } from "../dist/ts-gantt.js";
+        <script type="module">
+            import { TsGantt, TsGanttTaskModel } from "../dist/ts-gantt.js";
 
-          const ganttChart = new TsGantt("#gantt-container");
+            const inputModels = [
+                new TsGanttTaskModel("root1id", null, "Root1", 55, 
+                    new Date(2020, 5, 1), new Date(2020, 5, 30)),
+                new TsGanttTaskModel("root2id", null, "Root2", 75, 
+                    new Date(2020, 5, 6), new Date(2020, 5, 26), new Date(2020, 7, 2)),
+                new TsGanttTaskModel("root3id", null, "Root3", -5, 
+                    new Date(2020, 6, 5), new Date(2020, 6, 20), new Date(2020, 7, 2), new Date(2020, 7, 28)),
+                new TsGanttTaskModel("root1child1id", "root1id", "Root1child1", 120, 
+                    new Date(2020, 5, 1), new Date(2020, 5, 15)),
+                new TsGanttTaskModel("root1child2id", "root1id", "Root1child2", 0, 
+                    new Date(2020, 5, 16), new Date(2020, 5, 30)),
+                new TsGanttTaskModel("root1child1child1id", "root1child1id", "Root1child1child1", 100, 
+                    new Date(2020, 5, 1), new Date(2020, 5, 10)),
+                new TsGanttTaskModel("root2child1id", "root2id", "Root2child1", 15, 
+                    new Date(2020, 5, 6), new Date(2020, 5, 16)),
+            ];
 
-      </script>    
-  </body>
+            const ganttChart = new TsGantt("#gantt-container");
+            ganttChart.tasks = inputModels;
+
+        </script>    
+    </body>
 </html>
