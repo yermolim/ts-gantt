@@ -10,7 +10,8 @@ class TsGanttOptions {
   columnsMinWidthPx: number[] = [200, 100, 100, 100, 100, 100, 100, 100]; // 0 to disable column
 
   defaultScale: "day" | "week" | "month" | "year" = "day";
-  localeLang = "en";
+
+  locale = "en";
   localeDecimalSeparator: {[key: string]: string} = {
     en: ".",
     uk: ",",
@@ -57,23 +58,76 @@ class TsGanttOptions {
     ru: ["Имя", "Прогресс", "Дата начала планируемая", "Дата окончания планируемая", 
       "Дата начала фактическая", "Дата окончания фактическая", "Длительность планируемая", "Длительность фактическая"],
   };
+  localeDurationFormatters: {[key: string]: (duration: number) => string} = {
+    en: (duration: number) => duration === 1 ? "1 day" : duration + " days",
+    uk: (duration: number) => {     
+      let d = duration % 100;
+      if (d > 10 && d < 20) {
+        return d + " днів";
+      } else {
+        d = d % 10;
+        if (d === 1) {
+          return d + " день";
+        } else if (d < 5) {
+          return d + " дні";
+        } else {
+          return d + " днів";
+        }
+      }
+    },
+    ru: (duration: number) => {      
+      let d = duration % 100;
+      if (d > 10 && d < 20) {
+        return d + " дней";
+      } else {
+        d = d % 10;
+        if (d === 1) {
+          return d + " день";
+        } else if (d < 5) {
+          return d + " дня";
+        } else {
+          return d + " дней";
+        }
+      }
+    },
+  };
+
   columnValueGetters: ((a: TsGanttTask) => string)[] = [
-    ((task: TsGanttTask) => task.localizedNames[this.localeLang] || name).bind(this),
+    ((task: TsGanttTask) => task.localizedNames[this.locale] || name).bind(this),
     ((task: TsGanttTask) => (+task.progress.toFixed(2)).toLocaleString("en-US")
-      .replace(".", this.localeDecimalSeparator[this.localeLang] || ".")).bind(this),
+      .replace(".", this.localeDecimalSeparator[this.locale] || ".")).bind(this),
     ((task: TsGanttTask) => moment(task.datePlannedStart)
-      .format(this.localeDateFormat[this.localeLang] || "L")).bind(this),
+      .format(this.localeDateFormat[this.locale] || "L")).bind(this),
     ((task: TsGanttTask) => moment(task.datePlannedEnd)
-      .format(this.localeDateFormat[this.localeLang] || "L")).bind(this),
+      .format(this.localeDateFormat[this.locale] || "L")).bind(this),
     ((task: TsGanttTask) => task.dateActualStart 
-      ? moment(task.dateActualStart).format(this.localeDateFormat[this.localeLang] || "L")
+      ? moment(task.dateActualStart).format(this.localeDateFormat[this.locale] || "L")
       : "").bind(this),
     ((task: TsGanttTask) => task.dateActualEnd 
-      ? moment(task.dateActualEnd).format(this.localeDateFormat[this.localeLang] || "L")
+      ? moment(task.dateActualEnd).format(this.localeDateFormat[this.locale] || "L")
       : "").bind(this),
     ((task: TsGanttTask) => task.dateActualEnd 
-      ? moment(task.dateActualEnd).format(this.localeDateFormat[this.localeLang] || "L")
+      ? moment(task.dateActualEnd).format(this.localeDateFormat[this.locale] || "L")
       : "").bind(this),
+    ((task: TsGanttTask) => {
+      const end = moment(task.datePlannedEnd);
+      const start = moment(task.datePlannedStart);
+      const duration = end.diff(start, "days") + 1;
+      return this.localeDurationFormatters[this.locale]
+        ? this.localeDurationFormatters[this.locale](duration) 
+        : duration.toString();
+    }).bind(this),
+    ((task: TsGanttTask) => {
+      if (!task.dateActualEnd || !task.dateActualStart) {
+        return "";
+      }
+      const end = moment(task.dateActualEnd);
+      const start = moment(task.dateActualStart);
+      const duration = end.diff(start, "days") + 1;
+      return this.localeDurationFormatters[this.locale]
+        ? this.localeDurationFormatters[this.locale](duration) 
+        : duration.toString();
+    }).bind(this),
   ];
   
   constructor(item: object = null) {

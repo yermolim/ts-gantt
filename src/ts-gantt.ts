@@ -38,7 +38,7 @@ class TsGantt {
 
   private _locale: string;
   set locale(value: string) {
-    this._options.localeLang = value;
+    this._options.locale = value;
     this.updateLocale();
   }
   private _dateFormat = "YYYY-MM-DD";
