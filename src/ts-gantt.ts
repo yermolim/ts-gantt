@@ -6,12 +6,13 @@ import { TsGanttChartRow, TsGanttChartColumn, TsGanttChart } from "./ts-gantt-ch
 import { TsGanttTableColumn, TsGanttTableRow, TsGanttTable } from "./ts-gantt-table";
 
 class TsGantt {  
-  private static readonly WRAPPER_CLASS = "ts-gantt-wrapper";
-  private static readonly TABLE_WRAPPER_CLASS = "ts-gantt-table-wrapper";
-  private static readonly CHART_WRAPPER_CLASS = "ts-gantt-chart-wrapper";
-  private static readonly TABLE_CLASS = "ts-gantt-table";
-  private static readonly CHART_CLASS = "ts-gantt-chart";
-  private static readonly SEPARATOR_CLASS = "ts-gantt-separator";
+  private static readonly WRAPPER_CLASS = "tsg-wrapper";
+  private static readonly FOOTER_CLASS = "tsg-footer";
+  private static readonly TABLE_WRAPPER_CLASS = "tsg-table-wrapper";
+  private static readonly CHART_WRAPPER_CLASS = "tsg-chart-wrapper";
+  private static readonly TABLE_CLASS = "tsg-table";
+  private static readonly CHART_CLASS = "tsg-chart";
+  private static readonly SEPARATOR_CLASS = "tsg-separator";
 
   private _options: TsGanttOptions;
   private _tasks: TsGanttTask[] = [];
@@ -25,6 +26,7 @@ class TsGantt {
   }
 
   private _htmlContainer: HTMLElement;
+  
   private _htmlWrapper: HTMLDivElement;
   private _htmlTableWrapper: HTMLDivElement;
   private _htmlChartWrapper: HTMLDivElement;

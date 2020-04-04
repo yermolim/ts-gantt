@@ -26,9 +26,9 @@ const inputModelUpdated = [
     new Date(2020, 5, 1), new Date(2020, 5, 15)),
   new TsGanttTaskModel("root1child1child1id", "root1child1id", "Root1child1child1", 100, 
     new Date(2020, 5, 1), new Date(2020, 5, 10)),
-  new TsGanttTaskModel("root2child1id", "root2id", "Root2child1", 65, 
-    new Date(2020, 5, 6), new Date(2020, 5, 26)),
-  new TsGanttTaskModel("root2child2id", "root2id", "Root2child2", 15, 
+  new TsGanttTaskModel("root2child1id", "root2id", "Root2child1", 15, 
+    new Date(2020, 5, 6), new Date(2020, 5, 16)),
+  new TsGanttTaskModel("root2child1child1id", "root2child1id", "Root2child1child1", 15, 
     new Date(2020, 5, 6), new Date(2020, 5, 16)),
 ];
 
@@ -40,7 +40,7 @@ describe("TsGanttTask", () => {
   it("converted tasks should be instanciated from models", () => {
     expect(tasks).toBeTruthy();
   });
-  it("converted tasks should have correct length", () => {
+  it("converted task list should have correct length", () => {
     expect(tasks.length).toEqual(7);
   });
   it("converted tasks should preserve predefined uuids", () => {
@@ -52,7 +52,7 @@ describe("TsGanttTask", () => {
     expect(tasks.filter(x => x.nestingLvl === 1).length).toEqual(3);
     expect(tasks.filter(x => x.nestingLvl === 2).length).toEqual(1);
   });
-  it("converted tasks should have correct uuid inheritance", () => {
+  it("converted tasks should have correct parent uuid inheritance", () => {
     expect(tasks.find(x => x.externalId === "root1id").parentUuid)
       .toEqual(null);
     expect(tasks.find(x => x.externalId === "root1child1id").parentUuid)
@@ -60,7 +60,7 @@ describe("TsGanttTask", () => {
     expect(tasks.find(x => x.externalId === "root1child1child1id").parentUuid)
       .toEqual(tasks.find(x => x.externalId === "root1child1id").uuid);
   });  
-  it("converted tasks should have correct progress", () => {
+  it("converted tasks should have correct progress value", () => {
     expect(tasks.find(x => x.externalId === "root3id").progress)
       .toEqual(0);
     expect(tasks.find(x => x.externalId === "root1child1id").progress)
@@ -68,13 +68,21 @@ describe("TsGanttTask", () => {
     expect(tasks.find(x => x.externalId === "root2child1id").progress)
       .toEqual(15);
   });   
-  it("converted tasks should have correct duration", () => {
+  it("converted tasks should have correct duration value", () => {
     expect(tasks.find(x => x.externalId === "root2id").durationPlanned)
       .toEqual(1.728e9);
     expect(tasks.find(x => x.externalId === "root2id").durationActual)
       .toEqual(0);
     expect(tasks.find(x => x.externalId === "root3id").durationActual)
       .toEqual(2.2464e9);
+  });  
+  it("converted tasks should have correct value of 'hasChildren' property", () => {
+    expect(tasks.find(x => x.externalId === "root2id").hasChildren)
+      .toEqual(true);
+    expect(tasks.find(x => x.externalId === "root3id").hasChildren)
+      .toEqual(false);
+    expect(tasks.find(x => x.externalId === "root1child1child1id").hasChildren)
+      .toEqual(false);
   });
 
   const models = TsGanttTask.convertTasksToModels(tasks);

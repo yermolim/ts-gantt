@@ -3,12 +3,9 @@ import { TsGanttTask } from "./ts-gantt-task";
 class TsGanttOptions {
 
   enableChartEdit = true;
-
-  // headerHeight = 60;
-  // footerHeight = 60;
-  // rowHeight = 40;
-
   tableMinWidth = 100;
+  rowNestingMaxCount = 5;
+  rowNestingIndentPx = 20;
 
   defaultScale: "hour" | "day" | "week" | "month" = "day";
   localeLang = "en";

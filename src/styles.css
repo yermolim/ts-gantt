@@ -1,108 +1,125 @@
 :root {
-  --ts-gantt-header-height: 60px;
-  --ts-gantt-row-height: 40px;
-  --ts-gantt-max-cell-text-rows: 2;
-  --ts-gantt-line-height: 16px;
-  --ts-gantt-font-size: 14px;
+  --tsg-font-family: 'Calibri', sans-serif;
+  --tsg-table-border-color: lightgray;
+  --tsg-header-height: 60px;
+  --tsg-row-height: 40px;
+  --tsg-row-nesting-indent: 20px;
+  --tsg-max-cell-text-rows: 2;
+  --tsg-line-height: 16px;
+  --tsg-font-size: 14px;
 }
 
-.ts-gantt-separator {
-  width: 5px;
-  padding: 0;
-  flex: 0 0 auto;
-  cursor: ew-resize;
-  background-color: black;
-}
-
-.ts-gantt-wrapper {  
+.tsg-wrapper {  
   position: relative;
+  box-sizing: border-box;
   display: flex;
   flex-direction: row;
   justify-content: stretch;
   align-items: stretch;
+  width: 100%;
+  height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  width: 100%;
-  min-height: 100%;
 }
 
-.ts-gantt-chart-wrapper {
+.tsg-separator {
+  box-sizing: border-box;
+  display: flex;
+  flex: 0 0 auto;
+  width: 5px;
+  padding: 0;
+  cursor: ew-resize;
+  background-color: black;
+}
+
+.tsg-table-wrapper {
   position: relative;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
-  overflow-y: hidden;
+  height: 100%;
+  overflow-y: auto;
   overflow-x: auto;
 }
 
-.ts-gantt-chart {
+.tsg-table {
   box-sizing: border-box;
-  flex: 1 1 auto;
-}
-
-.ts-gantt-table-wrapper {
-  position: relative;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  overflow-y: hidden;
-  overflow-x: auto;
-}
-
-.ts-gantt-table {
   width: 100%;
   border-collapse: collapse;
+  font-family: var(--tsg-font-family);
 }
 
-.ts-gantt-table thead tr {
+.tsg-table thead tr {
+  box-sizing: border-box;
+  height: var(--tsg-header-height) !important;
+}
+
+.tsg-table thead th {
   box-sizing: border-box;
   position: sticky;
-  height: var(--ts-gantt-header-height) !important;
-  border: 1px solid lightgray;
+  top: 0;
+  background-color: var(--tsg-table-border-color);
+  z-index: 5;
 }
 
-.ts-gantt-table tbody tr {
+.tsg-table tbody tr {
   box-sizing: border-box;
-  height: var(--ts-gantt-row-height) !important;
-  border: 1px solid lightgray;
+  height: var(--tsg-row-height) !important;
+  border-width: 1px 0;
+  border-style: solid;
+  border-color: var(--tsg-table-border-color);
 }
 
-.ts-gantt-table td {
+.tsg-table tbody td {
   box-sizing: border-box;
   min-width: 100px;
   padding: 0;
 }
 
-.ts-gantt-cell-text-wrapper {
+.tsg-cell-text-wrapper {
   box-sizing: border-box;
-  height: calc(var(--ts-gantt-row-height) - 2px);
-  padding: 2px;
   display: flex;
   align-items: center;
+  height: calc(var(--tsg-row-height) - 2px);
+  padding: 2px;
 }
-.ts-gantt-cell-text {
+.tsg-cell-text {
   overflow: hidden;
   position: relative; 
   text-align: justify;  
-  font-size: var(--ts-gantt-font-size);
-  line-height: var(--ts-gantt-line-height);
-  max-height: calc(var(--ts-gantt-max-cell-text-rows) * var(--ts-gantt-line-height)); 
+  max-height: calc(var(--tsg-max-cell-text-rows) * var(--tsg-line-height)); 
+  font-size: var(--tsg-font-size);
+  line-height: var(--tsg-line-height);
   margin-right: 0px;
-  padding-right: var(--ts-gantt-line-height);
+  padding-right: var(--tsg-line-height);
 }
-.ts-gantt-cell-text:before {
+.tsg-cell-text:before {
   content: '...';
   position: absolute;
   right: 0;
   bottom: 0;
 }
-.ts-gantt-cell-text:after {
+.tsg-cell-text:after {
   content: '';
   position: absolute;
   right: 0;
-  width: var(--ts-gantt-line-height);
-  height: var(--ts-gantt-line-height);
+  width: var(--tsg-line-height);
+  height: var(--tsg-line-height);
   margin-top: 3px;
   background-color: white;
+}
+
+.tsg-chart-wrapper {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  overflow-y: hidden;
+  overflow-x: auto;
+}
+
+.tsg-chart {
+  box-sizing: border-box;
+  flex: 1 1 auto;
 }

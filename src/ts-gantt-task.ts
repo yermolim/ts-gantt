@@ -35,6 +35,7 @@ class TsGanttTask {
   parentUuid: string;
 
   nestingLvl: number;
+  hasChildren: boolean;
 
   name: string;
 
@@ -63,6 +64,7 @@ class TsGanttTask {
     dateActualStart: Date | null = null, 
     dateActualEnd: Date | null = null,
     nestingLvl = 0,
+    hasChildren = false,
     parentUuid: string = null,
     uuid: string = null) {
 
@@ -75,6 +77,7 @@ class TsGanttTask {
     this.dateActualStart = dateActualStart;
     this.dateActualEnd = dateActualEnd;
     this.nestingLvl = nestingLvl;
+    this.hasChildren = hasChildren;
     this.parentUuid = parentUuid;
     this.uuid = uuid || getRandomUuid();
 
@@ -85,6 +88,7 @@ class TsGanttTask {
     idsMap = new Map<string, string>()): TsGanttTask[] {
 
     const models = taskModels.slice();
+    const allParentIds = new Set(models.map(x => x.parentId));
     const tasks: TsGanttTask[] = [];
     let currentLevelTasks: TsGanttTask[] = [];
          
@@ -93,7 +97,7 @@ class TsGanttTask {
       if (model.parentId === null) {
         const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.progress,
           model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 
-          0, null, idsMap.get(model.id));
+          0, allParentIds.has(model.id), null, idsMap.get(model.id));
         tasks.push(newTask);
         currentLevelTasks.push(newTask);
         models.splice(i, 1);
@@ -104,13 +108,13 @@ class TsGanttTask {
     while (models.length !== 0 || currentLevelTasks.length !== 0) {
       const nextLevelTasks: TsGanttTask[] = [];
 
-      currentLevelTasks.forEach(task => {
+      currentLevelTasks.filter(x => x.hasChildren).forEach(task => {
         for (let i = models.length - 1; i >= 0; i--) {
           const model = models[i];
           if (model.parentId === task.externalId) {
             const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.progress,
               model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd,
-              currentNestingLvl, task.uuid, idsMap.get(model.id));
+              currentNestingLvl, allParentIds.has(model.id), task.uuid, idsMap.get(model.id));
             tasks.push(newTask);
             nextLevelTasks.push(newTask);
             models.splice(i, 1);
@@ -182,6 +186,7 @@ class TsGanttTask {
     return this.uuid === another.uuid 
       && this.parentUuid === another.parentUuid
       && this.nestingLvl === another.nestingLvl
+      && this.hasChildren === another.hasChildren
       && this.name === another.name
       && this.progress === another.progress
       && this.datePlannedStart?.getTime() === another.datePlannedStart?.getTime()

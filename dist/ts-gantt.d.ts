@@ -17,6 +17,7 @@ export declare class TsGanttTask {
 	parentExternalId: string;
 	parentUuid: string;
 	nestingLvl: number;
+	hasChildren: boolean;
 	name: string;
 	datePlannedStart: Date;
 	datePlannedEnd: Date;
@@ -27,7 +28,7 @@ export declare class TsGanttTask {
 	private _progress;
 	set progress(value: number);
 	get progress(): number;
-	constructor(id: string, parentId: string, name: string, progress: number, datePlannedStart: Date, datePlannedEnd: Date, dateActualStart?: Date | null, dateActualEnd?: Date | null, nestingLvl?: number, parentUuid?: string, uuid?: string);
+	constructor(id: string, parentId: string, name: string, progress: number, datePlannedStart: Date, datePlannedEnd: Date, dateActualStart?: Date | null, dateActualEnd?: Date | null, nestingLvl?: number, hasChildren?: boolean, parentUuid?: string, uuid?: string);
 	static convertModelsToTasks(taskModels: TsGanttTaskModel[], idsMap?: Map<string, string>): TsGanttTask[];
 	static convertTasksToModels(tasks: TsGanttTask[]): TsGanttTaskModel[];
 	static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangesDetectionResult;
@@ -48,6 +49,8 @@ export declare class TsGanttTaskChangesDetectionResult {
 export declare class TsGanttOptions {
 	enableChartEdit: boolean;
 	tableMinWidth: number;
+	rowNestingMaxCount: number;
+	rowNestingIndentPx: number;
 	defaultScale: "hour" | "day" | "week" | "month";
 	localeLang: string;
 	localeDateFormat: {
@@ -100,6 +103,7 @@ export declare class TsGanttTable {
 }
 export declare class TsGantt {
 	private static readonly WRAPPER_CLASS;
+	private static readonly FOOTER_CLASS;
 	private static readonly TABLE_WRAPPER_CLASS;
 	private static readonly CHART_WRAPPER_CLASS;
 	private static readonly TABLE_CLASS;
