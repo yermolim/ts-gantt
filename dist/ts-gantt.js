@@ -214,7 +214,14 @@ class TsGanttTable {
         const table = document.createElement("table");
         table.classList.add(...classList);
         this._htmlTable = table;
-        table.innerHTML = `<tbody>      
+        table.innerHTML = `
+      <thead> 
+        <tr>      
+          <th>Lorem ipsum</th>
+          <th>Lorem ipsum dolor sit amet</th>
+        </tr> 
+      </thead>
+      <tbody>    
       <tr>
         <td><div class='ts-gantt-cell-text-wrapper'><p class='ts-gantt-cell-text'>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua

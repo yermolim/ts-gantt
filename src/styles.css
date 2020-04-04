@@ -1,4 +1,5 @@
 :root {
+  --ts-gantt-header-height: 60px;
   --ts-gantt-row-height: 40px;
   --ts-gantt-max-cell-text-rows: 2;
   --ts-gantt-line-height: 16px;
@@ -54,7 +55,14 @@
   border-collapse: collapse;
 }
 
-.ts-gantt-table tr {
+.ts-gantt-table thead tr {
+  box-sizing: border-box;
+  position: sticky;
+  height: var(--ts-gantt-header-height) !important;
+  border: 1px solid lightgray;
+}
+
+.ts-gantt-table tbody tr {
   box-sizing: border-box;
   height: var(--ts-gantt-row-height) !important;
   border: 1px solid lightgray;
