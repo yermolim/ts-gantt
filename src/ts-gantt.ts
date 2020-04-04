@@ -26,7 +26,7 @@ class TsGantt {
   }
 
   private _htmlContainer: HTMLElement;
-  
+
   private _htmlWrapper: HTMLDivElement;
   private _htmlTableWrapper: HTMLDivElement;
   private _htmlChartWrapper: HTMLDivElement;
@@ -106,13 +106,13 @@ class TsGantt {
     this._table = new TsGanttTable([TsGantt.TABLE_CLASS], this._options);
     this._chart = new TsGanttChart([TsGantt.CHART_CLASS], this._options);      
  
-    wrapper.appendChild(tableWrapper);
-    wrapper.appendChild(separator);
-    wrapper.appendChild(chartWrapper);
-    tableWrapper.appendChild(this._table.htmlTable);
-    chartWrapper.appendChild(this._chart.htmlSvg);
+    wrapper.append(tableWrapper);
+    wrapper.append(separator);
+    wrapper.append(chartWrapper);
+    tableWrapper.append(this._table.htmlTable);
+    chartWrapper.append(this._chart.htmlSvg);
      
-    this._htmlContainer.appendChild(wrapper);     
+    this._htmlContainer.append(wrapper);     
     this._htmlWrapper = wrapper;
     this._htmlTableWrapper = tableWrapper;
     this._htmlChartWrapper = chartWrapper;

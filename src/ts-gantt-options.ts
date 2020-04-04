@@ -6,6 +6,7 @@ class TsGanttOptions {
   tableMinWidth = 100;
   rowNestingMaxCount = 5;
   rowNestingIndentPx = 20;
+  columnsMinWidthPx: number[] = [200, 100, 100, 100, 100, 100, 100, 100]; // 0 to disable column
 
   defaultScale: "hour" | "day" | "week" | "month" = "day";
   localeLang = "en";
@@ -39,11 +40,11 @@ class TsGanttOptions {
   };
   localeHeaders: {[key: string]: string[]} = {
     en: ["Name", "Progress", "Start date planned", "End date planned", 
-      "Start date actual", "End date actual"],
+      "Start date actual", "End date actual", "Duration planned", "Duration actual"],
     uk: ["Ім'я", "Прогрес", "Дата початку планована", "Дата завершення планована", 
-      "Дата початку фактична", "Дата завершення фактична"],
+      "Дата початку фактична", "Дата завершення фактична", "Тривалість планована", "Тривалість фактична"],
     ru: ["Имя", "Прогресс", "Дата начала планируемая", "Дата окончания планируемая", 
-      "Дата начала фактическая", "Дата окончания фактическая"],
+      "Дата начала фактическая", "Дата окончания фактическая", "Длительность планируемая", "Длительность фактическая"],
   };
   localeFooters: {[key: string]: string[]} = {
     en: ["Total tasks", "Completed"],

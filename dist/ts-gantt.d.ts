@@ -51,6 +51,7 @@ export declare class TsGanttOptions {
 	tableMinWidth: number;
 	rowNestingMaxCount: number;
 	rowNestingIndentPx: number;
+	columnsMinWidthPx: number[];
 	defaultScale: "hour" | "day" | "week" | "month";
 	localeLang: string;
 	localeDateFormat: {
@@ -96,6 +97,8 @@ export declare class TsGanttTable {
 	private _options;
 	private _htmlTable;
 	get htmlTable(): HTMLTableElement;
+	private _htmlTableHead;
+	private _htmlTableBody;
 	private _tableColumns;
 	private _tableRows;
 	constructor(classList: string[], options: TsGanttOptions);

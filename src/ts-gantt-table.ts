@@ -9,6 +9,9 @@ class TsGanttTable {
     return this._htmlTable;
   }  
 
+  private _htmlTableHead: HTMLTableSectionElement;
+  private _htmlTableBody: HTMLTableSectionElement;
+
   private _tableColumns: TsGanttTableColumn[];
   private _tableRows: TsGanttTableRow[];
 
@@ -17,6 +20,11 @@ class TsGanttTable {
     
     const table = document.createElement("table");
     table.classList.add(...classList);
+    const tableHead = table.createTHead();
+    const tableBody = table.createTBody();
+
+    this._htmlTableHead = tableHead;
+    this._htmlTableBody = tableBody;
     this._htmlTable = table;
     
     table.innerHTML = `
@@ -54,8 +62,9 @@ class TsGanttTable {
       <tr>
         <td><div class='tsg-cell-text-wrapper'>
             <p style='width:20px;'></p>
-            <p style='width:20px;'></p>
+            <p style='width:20px;'>⯁</p>
             <p style='width:20px;'>⯆</p>
+            <p style='width:20px;'>⯅</p>
             <p class='tsg-cell-text'>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
             </p>
@@ -355,16 +364,25 @@ class TsGanttTable {
     </tbody>`;
   }
 
+  updateColumns() {
+    
+  }
+
   updateRows(data: TsGanttTaskChangesDetectionResult) {
     
   }
 }
 
 class TsGanttTableColumn {
+  minWidth = 100;
+  
 
 }
 
 class TsGanttTableRow {
+
+  shown = false;
+
   private _htmlRow: HTMLTableRowElement;
   get htmlRow(): HTMLTableRowElement {
     return this._htmlRow;

@@ -143,6 +143,7 @@ class TsGanttOptions {
         this.tableMinWidth = 100;
         this.rowNestingMaxCount = 5;
         this.rowNestingIndentPx = 20;
+        this.columnsMinWidthPx = [200, 100, 100, 100, 100, 100, 100, 100];
         this.defaultScale = "day";
         this.localeLang = "en";
         this.localeDateFormat = {
@@ -175,11 +176,11 @@ class TsGanttOptions {
         };
         this.localeHeaders = {
             en: ["Name", "Progress", "Start date planned", "End date planned",
-                "Start date actual", "End date actual"],
+                "Start date actual", "End date actual", "Duration planned", "Duration actual"],
             uk: ["Ім'я", "Прогрес", "Дата початку планована", "Дата завершення планована",
-                "Дата початку фактична", "Дата завершення фактична"],
+                "Дата початку фактична", "Дата завершення фактична", "Тривалість планована", "Тривалість фактична"],
             ru: ["Имя", "Прогресс", "Дата начала планируемая", "Дата окончания планируемая",
-                "Дата начала фактическая", "Дата окончания фактическая"],
+                "Дата начала фактическая", "Дата окончания фактическая", "Длительность планируемая", "Длительность фактическая"],
         };
         this.localeFooters = {
             en: ["Total tasks", "Completed"],
@@ -218,6 +219,10 @@ class TsGanttTable {
         this._options = options;
         const table = document.createElement("table");
         table.classList.add(...classList);
+        const tableHead = table.createTHead();
+        const tableBody = table.createTBody();
+        this._htmlTableHead = tableHead;
+        this._htmlTableBody = tableBody;
         this._htmlTable = table;
         table.innerHTML = `
       <thead> 
@@ -254,8 +259,9 @@ class TsGanttTable {
       <tr>
         <td><div class='tsg-cell-text-wrapper'>
             <p style='width:20px;'></p>
-            <p style='width:20px;'></p>
+            <p style='width:20px;'>⯁</p>
             <p style='width:20px;'>⯆</p>
+            <p style='width:20px;'>⯅</p>
             <p class='tsg-cell-text'>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
             </p>
@@ -623,12 +629,12 @@ class TsGantt {
         separator.classList.add(TsGantt.SEPARATOR_CLASS);
         this._table = new TsGanttTable([TsGantt.TABLE_CLASS], this._options);
         this._chart = new TsGanttChart([TsGantt.CHART_CLASS], this._options);
-        wrapper.appendChild(tableWrapper);
-        wrapper.appendChild(separator);
-        wrapper.appendChild(chartWrapper);
-        tableWrapper.appendChild(this._table.htmlTable);
-        chartWrapper.appendChild(this._chart.htmlSvg);
-        this._htmlContainer.appendChild(wrapper);
+        wrapper.append(tableWrapper);
+        wrapper.append(separator);
+        wrapper.append(chartWrapper);
+        tableWrapper.append(this._table.htmlTable);
+        chartWrapper.append(this._chart.htmlSvg);
+        this._htmlContainer.append(wrapper);
         this._htmlWrapper = wrapper;
         this._htmlTableWrapper = tableWrapper;
         this._htmlChartWrapper = chartWrapper;
