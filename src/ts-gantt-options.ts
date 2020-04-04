@@ -1,4 +1,4 @@
-import moment from "moment";
+import dayjs from "dayjs";
 import { TsGanttTask } from "./ts-gantt-task";
 
 class TsGanttOptions {
@@ -96,23 +96,23 @@ class TsGanttOptions {
     ((task: TsGanttTask) => task.localizedNames[this.locale] || name).bind(this),
     ((task: TsGanttTask) => (+task.progress.toFixed(2)).toLocaleString("en-US")
       .replace(".", this.localeDecimalSeparator[this.locale] || ".")).bind(this),
-    ((task: TsGanttTask) => moment(task.datePlannedStart)
+    ((task: TsGanttTask) => dayjs(task.datePlannedStart)
       .format(this.localeDateFormat[this.locale] || "L")).bind(this),
-    ((task: TsGanttTask) => moment(task.datePlannedEnd)
+    ((task: TsGanttTask) => dayjs(task.datePlannedEnd)
       .format(this.localeDateFormat[this.locale] || "L")).bind(this),
     ((task: TsGanttTask) => task.dateActualStart 
-      ? moment(task.dateActualStart).format(this.localeDateFormat[this.locale] || "L")
+      ? dayjs(task.dateActualStart).format(this.localeDateFormat[this.locale] || "L")
       : "").bind(this),
     ((task: TsGanttTask) => task.dateActualEnd 
-      ? moment(task.dateActualEnd).format(this.localeDateFormat[this.locale] || "L")
+      ? dayjs(task.dateActualEnd).format(this.localeDateFormat[this.locale] || "L")
       : "").bind(this),
     ((task: TsGanttTask) => task.dateActualEnd 
-      ? moment(task.dateActualEnd).format(this.localeDateFormat[this.locale] || "L")
+      ? dayjs(task.dateActualEnd).format(this.localeDateFormat[this.locale] || "L")
       : "").bind(this),
     ((task: TsGanttTask) => {
-      const end = moment(task.datePlannedEnd);
-      const start = moment(task.datePlannedStart);
-      const duration = end.diff(start, "days") + 1;
+      const end = dayjs(task.datePlannedEnd);
+      const start = dayjs(task.datePlannedStart);
+      const duration = end.diff(start, "day") + 1;
       return this.localeDurationFormatters[this.locale]
         ? this.localeDurationFormatters[this.locale](duration) 
         : duration.toString();
@@ -121,9 +121,9 @@ class TsGanttOptions {
       if (!task.dateActualEnd || !task.dateActualStart) {
         return "";
       }
-      const end = moment(task.dateActualEnd);
-      const start = moment(task.dateActualStart);
-      const duration = end.diff(start, "days") + 1;
+      const end = dayjs(task.dateActualEnd);
+      const start = dayjs(task.dateActualStart);
+      const duration = end.diff(start, "day") + 1;
       return this.localeDurationFormatters[this.locale]
         ? this.localeDurationFormatters[this.locale](duration) 
         : duration.toString();

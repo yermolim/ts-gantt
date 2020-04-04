@@ -26,15 +26,14 @@ class TsGanttTable {
     this._htmlTableHead = tableHead;
     this._htmlTableBody = tableBody;
     this._htmlTable = table;
+
+    this._htmlTableHead.innerHTML = `
+      <tr>      
+        <th>Lorem ipsum</th>
+        <th>Lorem ipsum dolor sit amet</th>
+      </tr>`;
     
-    table.innerHTML = `
-      <thead> 
-        <tr>      
-          <th>Lorem ipsum</th>
-          <th>Lorem ipsum dolor sit amet</th>
-        </tr> 
-      </thead>
-      <tbody>    
+    this._htmlTableBody.innerHTML = ` 
       <tr>
         <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
@@ -360,8 +359,7 @@ class TsGanttTable {
         <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
         </p></div></td>
-      </tr>
-    </tbody>`;
+      </tr>`;
   }
 
   updateColumns() {

@@ -60,7 +60,7 @@ export declare class TsGanttOptions {
 	rowNestingIndentPx: number;
 	columnsMinWidthPx: number[];
 	defaultScale: "day" | "week" | "month" | "year";
-	localeLang: string;
+	locale: string;
 	localeDecimalSeparator: {
 		[key: string]: string;
 	};
@@ -84,6 +84,9 @@ export declare class TsGanttOptions {
 	};
 	localeHeaders: {
 		[key: string]: string[];
+	};
+	localeDurationFormatters: {
+		[key: string]: (duration: number) => string;
 	};
 	columnValueGetters: ((a: TsGanttTask) => string)[];
 	constructor(item?: object);
