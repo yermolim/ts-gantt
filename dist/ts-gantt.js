@@ -1,12 +1,15 @@
+import moment from 'moment';
+
 function getRandomUuid() {
     return crypto.getRandomValues(new Uint32Array(4)).join("-");
 }
 
 class TsGanttTaskModel {
-    constructor(id, parentId, name, progress, datePlannedStart, datePlannedEnd, dateActualStart = null, dateActualEnd = null) {
+    constructor(id, parentId, name, progress, datePlannedStart, datePlannedEnd, dateActualStart = null, dateActualEnd = null, localizedNames = null) {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
+        this.localizedNames = localizedNames;
         this.progress = progress > 100 ? 100 : progress < 0 ? 0 : progress;
         this.datePlannedStart = datePlannedStart;
         this.datePlannedEnd = datePlannedEnd;
@@ -15,13 +18,12 @@ class TsGanttTaskModel {
     }
 }
 class TsGanttTask {
-    constructor(id, parentId, name, progress, datePlannedStart, datePlannedEnd, dateActualStart = null, dateActualEnd = null, nestingLvl = 0, hasChildren = false, parentUuid = null, uuid = null) {
-        this.durationPlanned = 0;
-        this.durationActual = 0;
+    constructor(id, parentId, name, localizedNames, progress, datePlannedStart, datePlannedEnd, dateActualStart = null, dateActualEnd = null, nestingLvl = 0, hasChildren = false, parentUuid = null, uuid = null) {
         this._progress = 0;
         this.externalId = id;
         this.parentExternalId = parentId;
         this.name = name;
+        this.localizedNames = localizedNames;
         this.progress = progress;
         this.datePlannedStart = datePlannedStart;
         this.datePlannedEnd = datePlannedEnd;
@@ -31,7 +33,6 @@ class TsGanttTask {
         this.hasChildren = hasChildren;
         this.parentUuid = parentUuid;
         this.uuid = uuid || getRandomUuid();
-        this.refreshDuration();
     }
     set progress(value) {
         this._progress = value < 0 ? 0 : value > 100 ? 100 : value;
@@ -47,7 +48,7 @@ class TsGanttTask {
         for (let i = models.length - 1; i >= 0; i--) {
             const model = models[i];
             if (model.parentId === null) {
-                const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 0, allParentIds.has(model.id), null, idsMap.get(model.id));
+                const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 0, allParentIds.has(model.id), null, idsMap.get(model.id));
                 tasks.push(newTask);
                 currentLevelTasks.push(newTask);
                 models.splice(i, 1);
@@ -60,7 +61,7 @@ class TsGanttTask {
                 for (let i = models.length - 1; i >= 0; i--) {
                     const model = models[i];
                     if (model.parentId === task.externalId) {
-                        const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, currentNestingLvl, allParentIds.has(model.id), task.uuid, idsMap.get(model.id));
+                        const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, currentNestingLvl, allParentIds.has(model.id), task.uuid, idsMap.get(model.id));
                         tasks.push(newTask);
                         nextLevelTasks.push(newTask);
                         models.splice(i, 1);
@@ -73,7 +74,7 @@ class TsGanttTask {
         return tasks;
     }
     static convertTasksToModels(tasks) {
-        return tasks.map(x => new TsGanttTaskModel(x.externalId, x.parentExternalId, x.name, x.progress, x.datePlannedStart, x.datePlannedEnd, x.dateActualStart, x.dateActualEnd));
+        return tasks.map(x => new TsGanttTaskModel(x.externalId, x.parentExternalId, x.name, x.progress, x.datePlannedStart, x.datePlannedEnd, x.dateActualStart, x.dateActualEnd, x.localizedNames));
     }
     static detectTaskChanges(data) {
         const { oldTasks, newTasks } = data;
@@ -107,17 +108,6 @@ class TsGanttTask {
         }
         return idsMap;
     }
-    refreshDuration() {
-        this.durationPlanned = this.datePlannedEnd.getTime() -
-            this.datePlannedStart.getTime();
-        if (this.dateActualStart && this.dateActualEnd) {
-            this.durationActual = this.dateActualEnd.getTime() -
-                this.dateActualStart.getTime();
-        }
-        else {
-            this.durationActual = 0;
-        }
-    }
     equals(another) {
         var _a, _b, _c, _d, _e, _f, _g, _h;
         return this.uuid === another.uuid
@@ -146,6 +136,11 @@ class TsGanttOptions {
         this.columnsMinWidthPx = [200, 100, 100, 100, 100, 100, 100, 100];
         this.defaultScale = "day";
         this.localeLang = "en";
+        this.localeDecimalSeparator = {
+            en: ".",
+            uk: ",",
+            ru: ",",
+        };
         this.localeDateFormat = {
             en: "MM/DD/YYYY",
             uk: "DD.MM.YYYY",
@@ -174,6 +169,11 @@ class TsGanttOptions {
             uk: ["Години", "Дні", "Тижні", "Місяці"],
             ru: ["Часы", "Дни", "Недели", "Месяцы"],
         };
+        this.localeFooters = {
+            en: ["Total tasks", "Completed"],
+            uk: ["Всього задач", "Завершено"],
+            ru: ["Всего задач", "Завершено"],
+        };
         this.localeHeaders = {
             en: ["Name", "Progress", "Start date planned", "End date planned",
                 "Start date actual", "End date actual", "Duration planned", "Duration actual"],
@@ -182,18 +182,24 @@ class TsGanttOptions {
             ru: ["Имя", "Прогресс", "Дата начала планируемая", "Дата окончания планируемая",
                 "Дата начала фактическая", "Дата окончания фактическая", "Длительность планируемая", "Длительность фактическая"],
         };
-        this.localeFooters = {
-            en: ["Total tasks", "Completed"],
-            uk: ["Всього задач", "Завершено"],
-            ru: ["Всего задач", "Завершено"],
-        };
-        this.barHeaderGetter = (a) => a.name;
-        this.tooltipHeaderGetter = (a) => a.name;
-        this.tooltipPlannedPeriodGetter = (a) => `${a.datePlannedStart}-${a.datePlannedEnd}`;
-        this.tooltipActualPeriodGetter = (a) => `${a.dateActualStart}-${a.dateActualEnd}`;
-        this.tooltipPlannedDurationGetter = (a) => a.durationPlanned;
-        this.tooltipActualDurationGetter = (a) => a.durationActual;
-        this.tooltipProgressGetter = (a) => a.progress;
+        this.columnValueGetters = [
+            ((task) => task.localizedNames[this.localeLang] || name).bind(this),
+            ((task) => (+task.progress.toFixed(2)).toLocaleString("en-US")
+                .replace(".", this.localeDecimalSeparator[this.localeLang] || ".")).bind(this),
+            ((task) => moment(task.datePlannedStart)
+                .format(this.localeDateFormat[this.localeLang] || "L")).bind(this),
+            ((task) => moment(task.datePlannedEnd)
+                .format(this.localeDateFormat[this.localeLang] || "L")).bind(this),
+            ((task) => task.dateActualStart
+                ? moment(task.dateActualStart).format(this.localeDateFormat[this.localeLang] || "L")
+                : "").bind(this),
+            ((task) => task.dateActualEnd
+                ? moment(task.dateActualEnd).format(this.localeDateFormat[this.localeLang] || "L")
+                : "").bind(this),
+            ((task) => task.dateActualEnd
+                ? moment(task.dateActualEnd).format(this.localeDateFormat[this.localeLang] || "L")
+                : "").bind(this),
+        ];
         if (item != null) {
             Object.assign(this, item);
         }
@@ -562,6 +568,8 @@ class TsGanttTable {
     }
     get htmlTable() {
         return this._htmlTable;
+    }
+    updateColumns() {
     }
     updateRows(data) {
     }

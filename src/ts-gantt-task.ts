@@ -5,6 +5,7 @@ class TsGanttTaskModel {
   parentId: string | null;
 
   name: string;  
+  localizedNames: {[key: string]: string};
   progress: number;
 
   datePlannedStart: Date;
@@ -15,11 +16,13 @@ class TsGanttTaskModel {
   constructor(id: string, parentId: string | null, 
     name: string, progress: number,
     datePlannedStart: Date, datePlannedEnd: Date,
-    dateActualStart: Date | null = null, dateActualEnd: Date | null = null) {
+    dateActualStart: Date | null = null, dateActualEnd: Date | null = null,
+    localizedNames: {[key: string]: string} = null) {
 
     this.id = id;
     this.parentId = parentId;
     this.name = name;
+    this.localizedNames = localizedNames;
     this.progress = progress > 100 ? 100 : progress < 0 ? 0 : progress;    
     this.datePlannedStart = datePlannedStart;
     this.datePlannedEnd = datePlannedEnd;
@@ -38,14 +41,12 @@ class TsGanttTask {
   hasChildren: boolean;
 
   name: string;
+  localizedNames: {[key: string]: string};
 
   datePlannedStart: Date;
   datePlannedEnd: Date;
   dateActualStart: Date | null;
   dateActualEnd: Date | null;
-
-  durationPlanned = 0;  
-  durationActual = 0;
 
   private _progress = 0;
   set progress(value: number) {
@@ -57,7 +58,8 @@ class TsGanttTask {
     
   constructor(id: string,
     parentId: string,
-    name: string, 
+    name: string,
+    localizedNames: {[key: string]: string},
     progress: number,
     datePlannedStart: Date, 
     datePlannedEnd: Date,
@@ -71,6 +73,7 @@ class TsGanttTask {
     this.externalId = id;
     this.parentExternalId = parentId;
     this.name = name;
+    this.localizedNames = localizedNames;
     this.progress = progress;    
     this.datePlannedStart = datePlannedStart;
     this.datePlannedEnd = datePlannedEnd;
@@ -80,8 +83,6 @@ class TsGanttTask {
     this.hasChildren = hasChildren;
     this.parentUuid = parentUuid;
     this.uuid = uuid || getRandomUuid();
-
-    this.refreshDuration();
   }
 
   static convertModelsToTasks(taskModels: TsGanttTaskModel[], 
@@ -95,7 +96,7 @@ class TsGanttTask {
     for (let i = models.length - 1; i >= 0; i--) {
       const model = models[i];
       if (model.parentId === null) {
-        const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.progress,
+        const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress,
           model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 
           0, allParentIds.has(model.id), null, idsMap.get(model.id));
         tasks.push(newTask);
@@ -112,7 +113,7 @@ class TsGanttTask {
         for (let i = models.length - 1; i >= 0; i--) {
           const model = models[i];
           if (model.parentId === task.externalId) {
-            const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.progress,
+            const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress,
               model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd,
               currentNestingLvl, allParentIds.has(model.id), task.uuid, idsMap.get(model.id));
             tasks.push(newTask);
@@ -131,7 +132,7 @@ class TsGanttTask {
   
   static convertTasksToModels(tasks: TsGanttTask[]): TsGanttTaskModel[] {
     return tasks.map(x => new TsGanttTaskModel(x.externalId, x.parentExternalId, x.name, 
-      x.progress, x.datePlannedStart, x.datePlannedEnd, x.dateActualStart, x.dateActualEnd));
+      x.progress, x.datePlannedStart, x.datePlannedEnd, x.dateActualStart, x.dateActualEnd, x.localizedNames));
   }
     
   static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangesDetectionResult {
@@ -168,19 +169,7 @@ class TsGanttTask {
       }
     }
     return idsMap;
-  }
-
-  refreshDuration() {
-    this.durationPlanned = this.datePlannedEnd.getTime() - 
-      this.datePlannedStart.getTime();
-      
-    if (this.dateActualStart && this.dateActualEnd) {
-      this.durationActual = this.dateActualEnd.getTime() - 
-      this.dateActualStart.getTime();
-    } else {
-      this.durationActual = 0;
-    }
-  }
+  }  
 
   equals(another: TsGanttTask): boolean {
     return this.uuid === another.uuid 

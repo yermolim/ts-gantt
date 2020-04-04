@@ -4,12 +4,17 @@ export declare class TsGanttTaskModel {
 	id: string;
 	parentId: string | null;
 	name: string;
+	localizedNames: {
+		[key: string]: string;
+	};
 	progress: number;
 	datePlannedStart: Date;
 	datePlannedEnd: Date;
 	dateActualStart: Date | null;
 	dateActualEnd: Date | null;
-	constructor(id: string, parentId: string | null, name: string, progress: number, datePlannedStart: Date, datePlannedEnd: Date, dateActualStart?: Date | null, dateActualEnd?: Date | null);
+	constructor(id: string, parentId: string | null, name: string, progress: number, datePlannedStart: Date, datePlannedEnd: Date, dateActualStart?: Date | null, dateActualEnd?: Date | null, localizedNames?: {
+		[key: string]: string;
+	});
 }
 export declare class TsGanttTask {
 	readonly externalId: string;
@@ -19,21 +24,23 @@ export declare class TsGanttTask {
 	nestingLvl: number;
 	hasChildren: boolean;
 	name: string;
+	localizedNames: {
+		[key: string]: string;
+	};
 	datePlannedStart: Date;
 	datePlannedEnd: Date;
 	dateActualStart: Date | null;
 	dateActualEnd: Date | null;
-	durationPlanned: number;
-	durationActual: number;
 	private _progress;
 	set progress(value: number);
 	get progress(): number;
-	constructor(id: string, parentId: string, name: string, progress: number, datePlannedStart: Date, datePlannedEnd: Date, dateActualStart?: Date | null, dateActualEnd?: Date | null, nestingLvl?: number, hasChildren?: boolean, parentUuid?: string, uuid?: string);
+	constructor(id: string, parentId: string, name: string, localizedNames: {
+		[key: string]: string;
+	}, progress: number, datePlannedStart: Date, datePlannedEnd: Date, dateActualStart?: Date | null, dateActualEnd?: Date | null, nestingLvl?: number, hasChildren?: boolean, parentUuid?: string, uuid?: string);
 	static convertModelsToTasks(taskModels: TsGanttTaskModel[], idsMap?: Map<string, string>): TsGanttTask[];
 	static convertTasksToModels(tasks: TsGanttTask[]): TsGanttTaskModel[];
 	static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangesDetectionResult;
 	static getTasksIdsMap(tasks: TsGanttTask[]): Map<string, string>;
-	refreshDuration(): void;
 	equals(another: TsGanttTask): boolean;
 }
 export declare class TsGanttTaskUpdateResult {
@@ -52,8 +59,11 @@ export declare class TsGanttOptions {
 	rowNestingMaxCount: number;
 	rowNestingIndentPx: number;
 	columnsMinWidthPx: number[];
-	defaultScale: "hour" | "day" | "week" | "month";
+	defaultScale: "day" | "week" | "month" | "year";
 	localeLang: string;
+	localeDecimalSeparator: {
+		[key: string]: string;
+	};
 	localeDateFormat: {
 		[key: string]: string;
 	};
@@ -69,20 +79,14 @@ export declare class TsGanttOptions {
 	localeDateScale: {
 		[key: string]: string[];
 	};
-	localeHeaders: {
-		[key: string]: string[];
-	};
 	localeFooters: {
 		[key: string]: string[];
 	};
+	localeHeaders: {
+		[key: string]: string[];
+	};
+	columnValueGetters: ((a: TsGanttTask) => string)[];
 	constructor(item?: object);
-	barHeaderGetter: (a: TsGanttTask) => string;
-	tooltipHeaderGetter: (a: TsGanttTask) => string;
-	tooltipPlannedPeriodGetter: (a: TsGanttTask) => string;
-	tooltipActualPeriodGetter: (a: TsGanttTask) => string;
-	tooltipPlannedDurationGetter: (a: TsGanttTask) => number;
-	tooltipActualDurationGetter: (a: TsGanttTask) => number;
-	tooltipProgressGetter: (a: TsGanttTask) => number;
 }
 export declare class TsGanttChart {
 	private _options;
@@ -102,6 +106,7 @@ export declare class TsGanttTable {
 	private _tableColumns;
 	private _tableRows;
 	constructor(classList: string[], options: TsGanttOptions);
+	updateColumns(): void;
 	updateRows(data: TsGanttTaskChangesDetectionResult): void;
 }
 export declare class TsGantt {

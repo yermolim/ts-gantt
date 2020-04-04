@@ -1,3 +1,4 @@
+import moment from "moment";
 import { TsGanttTask } from "./ts-gantt-task";
 
 class TsGanttOptions {
@@ -8,8 +9,13 @@ class TsGanttOptions {
   rowNestingIndentPx = 20;
   columnsMinWidthPx: number[] = [200, 100, 100, 100, 100, 100, 100, 100]; // 0 to disable column
 
-  defaultScale: "hour" | "day" | "week" | "month" = "day";
+  defaultScale: "day" | "week" | "month" | "year" = "day";
   localeLang = "en";
+  localeDecimalSeparator: {[key: string]: string} = {
+    en: ".",
+    uk: ",",
+    ru: ",",
+  };
   localeDateFormat: {[key: string]: string} = { 
     en: "MM/DD/YYYY",
     uk: "DD.MM.YYYY",
@@ -38,6 +44,11 @@ class TsGanttOptions {
     uk: ["Години", "Дні", "Тижні", "Місяці"],
     ru: ["Часы", "Дни", "Недели", "Месяцы"],
   };
+  localeFooters: {[key: string]: string[]} = {
+    en: ["Total tasks", "Completed"],
+    uk: ["Всього задач", "Завершено"],
+    ru: ["Всего задач", "Завершено"],
+  };
   localeHeaders: {[key: string]: string[]} = {
     en: ["Name", "Progress", "Start date planned", "End date planned", 
       "Start date actual", "End date actual", "Duration planned", "Duration actual"],
@@ -46,25 +57,30 @@ class TsGanttOptions {
     ru: ["Имя", "Прогресс", "Дата начала планируемая", "Дата окончания планируемая", 
       "Дата начала фактическая", "Дата окончания фактическая", "Длительность планируемая", "Длительность фактическая"],
   };
-  localeFooters: {[key: string]: string[]} = {
-    en: ["Total tasks", "Completed"],
-    uk: ["Всього задач", "Завершено"],
-    ru: ["Всего задач", "Завершено"],
-  };
+  columnValueGetters: ((a: TsGanttTask) => string)[] = [
+    ((task: TsGanttTask) => task.localizedNames[this.localeLang] || name).bind(this),
+    ((task: TsGanttTask) => (+task.progress.toFixed(2)).toLocaleString("en-US")
+      .replace(".", this.localeDecimalSeparator[this.localeLang] || ".")).bind(this),
+    ((task: TsGanttTask) => moment(task.datePlannedStart)
+      .format(this.localeDateFormat[this.localeLang] || "L")).bind(this),
+    ((task: TsGanttTask) => moment(task.datePlannedEnd)
+      .format(this.localeDateFormat[this.localeLang] || "L")).bind(this),
+    ((task: TsGanttTask) => task.dateActualStart 
+      ? moment(task.dateActualStart).format(this.localeDateFormat[this.localeLang] || "L")
+      : "").bind(this),
+    ((task: TsGanttTask) => task.dateActualEnd 
+      ? moment(task.dateActualEnd).format(this.localeDateFormat[this.localeLang] || "L")
+      : "").bind(this),
+    ((task: TsGanttTask) => task.dateActualEnd 
+      ? moment(task.dateActualEnd).format(this.localeDateFormat[this.localeLang] || "L")
+      : "").bind(this),
+  ];
   
   constructor(item: object = null) {
     if (item != null) {
       Object.assign(this, item);
     }
   }
-  
-  barHeaderGetter = (a: TsGanttTask) => a.name;
-  tooltipHeaderGetter = (a: TsGanttTask) => a.name;
-  tooltipPlannedPeriodGetter = (a: TsGanttTask) => `${a.datePlannedStart}-${a.datePlannedEnd}`;
-  tooltipActualPeriodGetter = (a: TsGanttTask) => `${a.dateActualStart}-${a.dateActualEnd}`;
-  tooltipPlannedDurationGetter = (a: TsGanttTask) => a.durationPlanned;
-  tooltipActualDurationGetter = (a: TsGanttTask) => a.durationActual;
-  tooltipProgressGetter = (a: TsGanttTask) => a.progress;
 }
 
 export { TsGanttOptions };

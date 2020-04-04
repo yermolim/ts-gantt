@@ -2,7 +2,7 @@ import { TsGanttTask, TsGanttTaskModel, TsGantt } from "../src/ts-gantt";
 
 const inputModels = [
   new TsGanttTaskModel("root1id", null, "Root1", 55, 
-    new Date(2020, 5, 1), new Date(2020, 5, 30)),
+    new Date(2020, 5, 1), new Date(2020, 5, 30), null, null, {en: "Root one", uk: "Корінь один", ru: "Корень один"}),
   new TsGanttTaskModel("root2id", null, "Root2", 75, 
     new Date(2020, 5, 6), new Date(2020, 5, 26), new Date(2020, 7, 2)),
   new TsGanttTaskModel("root3id", null, "Root3", -5, 
@@ -43,6 +43,10 @@ describe("TsGanttTask", () => {
   it("converted task list should have correct length", () => {
     expect(tasks.length).toEqual(7);
   });
+  it("converted tasks should have correct names", () => {
+    expect(tasks.find(x => x.externalId === "root1id").name).toEqual("Root1");
+    expect(tasks.find(x => x.externalId === "root1id").localizedNames["en"]).toEqual("Root one");
+  });
   it("converted tasks should preserve predefined uuids", () => {
     expect(tasks.find(x => x.externalId === "root1id").uuid)
       .toEqual("some-generated-id");
@@ -67,14 +71,6 @@ describe("TsGanttTask", () => {
       .toEqual(100);
     expect(tasks.find(x => x.externalId === "root2child1id").progress)
       .toEqual(15);
-  });   
-  it("converted tasks should have correct duration value", () => {
-    expect(tasks.find(x => x.externalId === "root2id").durationPlanned)
-      .toEqual(1.728e9);
-    expect(tasks.find(x => x.externalId === "root2id").durationActual)
-      .toEqual(0);
-    expect(tasks.find(x => x.externalId === "root3id").durationActual)
-      .toEqual(2.2464e9);
   });  
   it("converted tasks should have correct value of 'hasChildren' property", () => {
     expect(tasks.find(x => x.externalId === "root2id").hasChildren)

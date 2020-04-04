@@ -5,6 +5,12 @@ module.exports = function(config) {
       { pattern: "src/**/*.ts" },
       { pattern: "test/**/*.ts" }
     ],
+    karmaTypescriptConfig: {
+      compilerOptions: {
+        module: "commonjs"
+      },
+      tsconfig: "./tsconfig.json",
+    },
     preprocessors: {
       "**/*.ts": ["karma-typescript"]
     },
