@@ -17,7 +17,7 @@ class TsGanttTaskModel {
     name: string, progress: number,
     datePlannedStart: Date, datePlannedEnd: Date,
     dateActualStart: Date | null = null, dateActualEnd: Date | null = null,
-    localizedNames: {[key: string]: string} = null) {
+    localizedNames: {[key: string]: string} = {}) {
 
     this.id = id;
     this.parentId = parentId;
@@ -182,6 +182,41 @@ class TsGanttTask {
       && this.datePlannedEnd?.getTime() === another.datePlannedEnd?.getTime()
       && this.dateActualStart?.getTime() === another.dateActualStart?.getTime()
       && this.dateActualEnd?.getTime() === another.dateActualEnd?.getTime();
+  }
+
+  compareTo(another: TsGanttTask): number {    
+    if (this.nestingLvl > another.nestingLvl) {
+      return 1;
+    }
+    if (this.nestingLvl < another.nestingLvl) {
+      return -1;
+    }
+    if (this.datePlannedStart?.getTime() > another.datePlannedStart?.getTime()) {
+      return 1;
+    }
+    if (this.datePlannedStart?.getTime() < another.datePlannedStart?.getTime()) {
+      return -1;
+    }
+    if (this.datePlannedEnd?.getTime() > another.datePlannedEnd?.getTime()) {
+      return 1;
+    }
+    if (this.datePlannedEnd?.getTime() < another.datePlannedEnd?.getTime()) {
+      return -1;
+    }
+    if (this.dateActualStart?.getTime() > another.dateActualStart?.getTime()) {
+      return 1;
+    }
+    if (this.dateActualStart?.getTime() < another.dateActualStart?.getTime()) {
+      return -1;
+    }
+    if (this.dateActualEnd?.getTime() > another.dateActualEnd?.getTime()) {
+      return 1;
+    }
+    if (this.dateActualEnd?.getTime() < another.dateActualEnd?.getTime()) {
+      return -1;
+    }
+
+    return 0;
   }
 }
 

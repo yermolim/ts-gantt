@@ -93,7 +93,7 @@ class TsGanttOptions {
   };
 
   columnValueGetters: ((a: TsGanttTask) => string)[] = [
-    ((task: TsGanttTask) => task.localizedNames[this.locale] || name).bind(this),
+    ((task: TsGanttTask) => task.localizedNames[this.locale] || task.name).bind(this),
     ((task: TsGanttTask) => (+task.progress.toFixed(2)).toLocaleString("en-US")
       .replace(".", this.localeDecimalSeparator[this.locale] || ".")).bind(this),
     ((task: TsGanttTask) => dayjs(task.datePlannedStart)
@@ -102,9 +102,6 @@ class TsGanttOptions {
       .format(this.localeDateFormat[this.locale] || "L")).bind(this),
     ((task: TsGanttTask) => task.dateActualStart 
       ? dayjs(task.dateActualStart).format(this.localeDateFormat[this.locale] || "L")
-      : "").bind(this),
-    ((task: TsGanttTask) => task.dateActualEnd 
-      ? dayjs(task.dateActualEnd).format(this.localeDateFormat[this.locale] || "L")
       : "").bind(this),
     ((task: TsGanttTask) => task.dateActualEnd 
       ? dayjs(task.dateActualEnd).format(this.localeDateFormat[this.locale] || "L")

@@ -3,7 +3,7 @@ function getRandomUuid() {
 }
 
 class TsGanttTaskModel {
-    constructor(id, parentId, name, progress, datePlannedStart, datePlannedEnd, dateActualStart = null, dateActualEnd = null, localizedNames = null) {
+    constructor(id, parentId, name, progress, datePlannedStart, datePlannedEnd, dateActualStart = null, dateActualEnd = null, localizedNames = {}) {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
@@ -119,6 +119,40 @@ class TsGanttTask {
             && ((_e = this.dateActualStart) === null || _e === void 0 ? void 0 : _e.getTime()) === ((_f = another.dateActualStart) === null || _f === void 0 ? void 0 : _f.getTime())
             && ((_g = this.dateActualEnd) === null || _g === void 0 ? void 0 : _g.getTime()) === ((_h = another.dateActualEnd) === null || _h === void 0 ? void 0 : _h.getTime());
     }
+    compareTo(another) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+        if (this.nestingLvl > another.nestingLvl) {
+            return 1;
+        }
+        if (this.nestingLvl < another.nestingLvl) {
+            return -1;
+        }
+        if (((_a = this.datePlannedStart) === null || _a === void 0 ? void 0 : _a.getTime()) > ((_b = another.datePlannedStart) === null || _b === void 0 ? void 0 : _b.getTime())) {
+            return 1;
+        }
+        if (((_c = this.datePlannedStart) === null || _c === void 0 ? void 0 : _c.getTime()) < ((_d = another.datePlannedStart) === null || _d === void 0 ? void 0 : _d.getTime())) {
+            return -1;
+        }
+        if (((_e = this.datePlannedEnd) === null || _e === void 0 ? void 0 : _e.getTime()) > ((_f = another.datePlannedEnd) === null || _f === void 0 ? void 0 : _f.getTime())) {
+            return 1;
+        }
+        if (((_g = this.datePlannedEnd) === null || _g === void 0 ? void 0 : _g.getTime()) < ((_h = another.datePlannedEnd) === null || _h === void 0 ? void 0 : _h.getTime())) {
+            return -1;
+        }
+        if (((_j = this.dateActualStart) === null || _j === void 0 ? void 0 : _j.getTime()) > ((_k = another.dateActualStart) === null || _k === void 0 ? void 0 : _k.getTime())) {
+            return 1;
+        }
+        if (((_l = this.dateActualStart) === null || _l === void 0 ? void 0 : _l.getTime()) < ((_m = another.dateActualStart) === null || _m === void 0 ? void 0 : _m.getTime())) {
+            return -1;
+        }
+        if (((_o = this.dateActualEnd) === null || _o === void 0 ? void 0 : _o.getTime()) > ((_p = another.dateActualEnd) === null || _p === void 0 ? void 0 : _p.getTime())) {
+            return 1;
+        }
+        if (((_q = this.dateActualEnd) === null || _q === void 0 ? void 0 : _q.getTime()) < ((_r = another.dateActualEnd) === null || _r === void 0 ? void 0 : _r.getTime())) {
+            return -1;
+        }
+        return 0;
+    }
 }
 class TsGanttTaskUpdateResult {
 }
@@ -230,7 +264,7 @@ class TsGanttOptions {
             },
         };
         this.columnValueGetters = [
-            ((task) => task.localizedNames[this.locale] || name).bind(this),
+            ((task) => task.localizedNames[this.locale] || task.name).bind(this),
             ((task) => (+task.progress.toFixed(2)).toLocaleString("en-US")
                 .replace(".", this.localeDecimalSeparator[this.locale] || ".")).bind(this),
             ((task) => dayjs_min(task.datePlannedStart)
@@ -239,9 +273,6 @@ class TsGanttOptions {
                 .format(this.localeDateFormat[this.locale] || "L")).bind(this),
             ((task) => task.dateActualStart
                 ? dayjs_min(task.dateActualStart).format(this.localeDateFormat[this.locale] || "L")
-                : "").bind(this),
-            ((task) => task.dateActualEnd
-                ? dayjs_min(task.dateActualEnd).format(this.localeDateFormat[this.locale] || "L")
                 : "").bind(this),
             ((task) => task.dateActualEnd
                 ? dayjs_min(task.dateActualEnd).format(this.localeDateFormat[this.locale] || "L")
@@ -291,14 +322,52 @@ class TsGanttTableColumn {
         this.minWidth = minWidth;
         this.header = header;
         this.valueGetter = valueGetter;
-        this.columnHtml = `
+        this.html = `
       <th style='min-width:${this.minWidth}px;'>
         ${this.header}
       </th>`;
     }
 }
+class TsGanttTableRow {
+    constructor(task, columns) {
+        this.expanded = true;
+        this.shown = false;
+        this.task = task;
+        this.shown = true;
+        this.html = this.generateHtml(columns);
+    }
+    generateHtml(columns) {
+        let html = "<tr>";
+        columns.forEach((x, i) => {
+            html += `<td><div class='${TsGanttTableRow.CELL_TEXT_WRAPPER_CLASS}'>`;
+            if (i === 0) {
+                for (let j = 0; j < this.task.nestingLvl; j++) {
+                    html += TsGanttTableRow.INDENT_TEMPLATE_EMPTY;
+                }
+                html += !this.task.hasChildren
+                    ? TsGanttTableRow.INDENT_TEMPLATE_NON_EXPANDABLE
+                    : this.expanded
+                        ? TsGanttTableRow.INDENT_TEMPLATE_EXPANDED
+                        : TsGanttTableRow.INDENT_TEMPLATE_EXPANDABLE;
+            }
+            html += `<p class='${TsGanttTableRow.CELL_TEXT_CLASS}'>
+        ${x.valueGetter(this.task)}
+      </p>`;
+            html += "</div></td>";
+        });
+        html += "</tr>";
+        return html;
+    }
+}
+TsGanttTableRow.INDENT_TEMPLATE_EMPTY = "<p class='tsg-cell-text-indent' style='width:20px;'></p>";
+TsGanttTableRow.INDENT_TEMPLATE_NON_EXPANDABLE = "<p class='tsg-cell-text-indent' style='width:20px;'>⯁</p>";
+TsGanttTableRow.INDENT_TEMPLATE_EXPANDABLE = "<p class='tsg-cell-text-indent' style='width:20px;'>⯆</p>";
+TsGanttTableRow.INDENT_TEMPLATE_EXPANDED = "<p class='tsg-cell-text-indent' style='width:20px;'>⯅</p>";
+TsGanttTableRow.CELL_TEXT_WRAPPER_CLASS = "tsg-cell-text-wrapper";
+TsGanttTableRow.CELL_TEXT_CLASS = "tsg-cell-text";
 class TsGanttTable {
     constructor(classList, options) {
+        this._tableRows = [];
         this._options = options;
         const table = document.createElement("table");
         table.classList.add(...classList);
@@ -308,333 +377,6 @@ class TsGanttTable {
         this._htmlTableBody = tableBody;
         this._htmlTable = table;
         this.updateColumns();
-        this._htmlTableBody.innerHTML = ` 
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'>
-            <p style='width:20px;'></p>
-            <p style='width:20px;'>⯁</p>
-            <p style='width:20px;'>⯆</p>
-            <p style='width:20px;'>⯅</p>
-            <p class='tsg-cell-text'>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-            </p>
-        </div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>
-      <tr>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-        <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-        </p></div></td>
-      </tr>`;
     }
     get htmlTable() {
         return this._htmlTable;
@@ -648,12 +390,41 @@ class TsGanttTable {
             }
         }
         let headerRowHtml = "<tr>";
-        columns.forEach(x => headerRowHtml += x.columnHtml);
+        columns.forEach(x => headerRowHtml += x.html);
         headerRowHtml += "</tr>";
         this._tableColumns = columns;
         this._htmlTableHead.innerHTML = headerRowHtml;
     }
     updateRows(data) {
+        data.deleted.forEach(x => {
+            const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
+            if (index !== 1) {
+                this._tableRows.splice(index, 1);
+            }
+        });
+        data.changed.forEach(x => {
+            const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
+            if (index !== 1) {
+                this._tableRows[index] = new TsGanttTableRow(x, this._tableColumns);
+            }
+        });
+        data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns)));
+        this._htmlTableBody.innerHTML = this.getRowsHtmlRecursively(this._tableRows, null);
+    }
+    getRowsHtmlRecursively(rows, parentUuid) {
+        const rowsFiltered = rows.filter(x => x.task.parentUuid === parentUuid)
+            .sort((a, b) => a.task.compareTo(b.task));
+        let html = "";
+        for (const row of rowsFiltered) {
+            if (!row.shown) {
+                continue;
+            }
+            html += row.html;
+            if (row.expanded) {
+                html += this.getRowsHtmlRecursively(rows, row.task.uuid);
+            }
+        }
+        return html;
     }
 }
 

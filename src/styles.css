@@ -82,6 +82,9 @@
   height: calc(var(--tsg-row-height) - 2px);
   padding: 2px;
 }
+.tsg-cell-text-indent {
+  width: var(--tsg-row-nesting-indent) !important;
+}
 .tsg-cell-text {
   overflow: hidden;
   position: relative; 

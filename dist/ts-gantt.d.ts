@@ -42,6 +42,7 @@ export declare class TsGanttTask {
 	static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangesDetectionResult;
 	static getTasksIdsMap(tasks: TsGanttTask[]): Map<string, string>;
 	equals(another: TsGanttTask): boolean;
+	compareTo(another: TsGanttTask): number;
 }
 export declare class TsGanttTaskUpdateResult {
 	oldTasks: TsGanttTask[];
@@ -100,6 +101,27 @@ export declare class TsGanttChart {
 	constructor(classList: string[], options: TsGanttOptions);
 	updateRows(data: TsGanttTaskChangesDetectionResult): void;
 }
+declare class TsGanttTableColumn {
+	html: string;
+	minWidth: number;
+	header: string;
+	valueGetter: (a: TsGanttTask) => string;
+	constructor(minWidth: number, header: string, valueGetter: (a: TsGanttTask) => string);
+}
+declare class TsGanttTableRow {
+	private static readonly INDENT_TEMPLATE_EMPTY;
+	private static readonly INDENT_TEMPLATE_NON_EXPANDABLE;
+	private static readonly INDENT_TEMPLATE_EXPANDABLE;
+	private static readonly INDENT_TEMPLATE_EXPANDED;
+	private static readonly CELL_TEXT_WRAPPER_CLASS;
+	private static readonly CELL_TEXT_CLASS;
+	readonly task: TsGanttTask;
+	readonly html: string;
+	expanded: boolean;
+	shown: boolean;
+	constructor(task: TsGanttTask, columns: TsGanttTableColumn[]);
+	generateHtml(columns: TsGanttTableColumn[]): string;
+}
 export declare class TsGanttTable {
 	private _options;
 	private _htmlTable;
@@ -111,6 +133,7 @@ export declare class TsGanttTable {
 	constructor(classList: string[], options: TsGanttOptions);
 	updateColumns(): void;
 	updateRows(data: TsGanttTaskChangesDetectionResult): void;
+	getRowsHtmlRecursively(rows: TsGanttTableRow[], parentUuid: string): string;
 }
 export declare class TsGantt {
 	private static readonly WRAPPER_CLASS;
