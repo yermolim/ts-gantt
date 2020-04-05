@@ -1,6 +1,37 @@
 import { TsGanttTask, TsGanttTaskChangesDetectionResult } from "./ts-gantt-task";
 import { TsGanttOptions } from "./ts-gantt-options";
 
+class TsGanttTableColumn {
+  columnHtml: string;
+  minWidth: number;
+  header: string;
+  valueGetter: (a: TsGanttTask) => string;
+
+  constructor(minWidth: number, header: string, valueGetter: (a: TsGanttTask) => string) {
+    this.minWidth = minWidth;
+    this.header = header;
+    this.valueGetter = valueGetter;
+    this.columnHtml = `
+      <th style='min-width:${this.minWidth}px;'>
+        ${this.header}
+      </th>`;
+  }
+}
+
+class TsGanttTableRow {
+
+  shown = false;
+
+  private _htmlRow: HTMLTableRowElement;
+  get htmlRow(): HTMLTableRowElement {
+    return this._htmlRow;
+  }
+
+  constructor(task: TsGanttTask) {
+
+  }
+}
+
 class TsGanttTable {
   private _options: TsGanttOptions;
   
@@ -26,13 +57,8 @@ class TsGanttTable {
     this._htmlTableHead = tableHead;
     this._htmlTableBody = tableBody;
     this._htmlTable = table;
-
-    this._htmlTableHead.innerHTML = `
-      <tr>      
-        <th>Lorem ipsum</th>
-        <th>Lorem ipsum dolor sit amet</th>
-      </tr>`;
     
+    this.updateColumns();        
     this._htmlTableBody.innerHTML = ` 
       <tr>
         <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
@@ -363,31 +389,24 @@ class TsGanttTable {
   }
 
   updateColumns() {
-    
-  }
+    const columns: TsGanttTableColumn[] = [];
+    for (let i = 0; i < 9; i++) {
+      const minColumnWidth = this._options.columnsMinWidthPx[i];
+      if (minColumnWidth) {
+        columns.push(new TsGanttTableColumn(minColumnWidth, this._options.localeHeaders[this._options.locale][i] || "",
+          this._options.columnValueGetters[i] || ((task: TsGanttTask) => "")));
+      }
+    }
+
+    let headerRowHtml = "<tr>";
+    columns.forEach(x => headerRowHtml += x.columnHtml);
+    headerRowHtml += "</tr>";
+
+    this._tableColumns = columns;
+    this._htmlTableHead.innerHTML = headerRowHtml;    
+  }  
 
   updateRows(data: TsGanttTaskChangesDetectionResult) {
-    
-  }
-}
-
-class TsGanttTableColumn {
-  minWidth = 100;
-  
-
-}
-
-class TsGanttTableRow {
-
-  shown = false;
-
-  private _htmlRow: HTMLTableRowElement;
-  get htmlRow(): HTMLTableRowElement {
-    return this._htmlRow;
-  }
-
-  constructor(task: TsGanttTask) {
-
   }
 }
 

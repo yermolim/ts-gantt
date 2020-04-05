@@ -286,6 +286,17 @@ class TsGanttChart {
     }
 }
 
+class TsGanttTableColumn {
+    constructor(minWidth, header, valueGetter) {
+        this.minWidth = minWidth;
+        this.header = header;
+        this.valueGetter = valueGetter;
+        this.columnHtml = `
+      <th style='min-width:${this.minWidth}px;'>
+        ${this.header}
+      </th>`;
+    }
+}
 class TsGanttTable {
     constructor(classList, options) {
         this._options = options;
@@ -296,11 +307,7 @@ class TsGanttTable {
         this._htmlTableHead = tableHead;
         this._htmlTableBody = tableBody;
         this._htmlTable = table;
-        this._htmlTableHead.innerHTML = `
-      <tr>      
-        <th>Lorem ipsum</th>
-        <th>Lorem ipsum dolor sit amet</th>
-      </tr>`;
+        this.updateColumns();
         this._htmlTableBody.innerHTML = ` 
       <tr>
         <td><div class='tsg-cell-text-wrapper'><p class='tsg-cell-text'>
@@ -633,6 +640,18 @@ class TsGanttTable {
         return this._htmlTable;
     }
     updateColumns() {
+        const columns = [];
+        for (let i = 0; i < 9; i++) {
+            const minColumnWidth = this._options.columnsMinWidthPx[i];
+            if (minColumnWidth) {
+                columns.push(new TsGanttTableColumn(minColumnWidth, this._options.localeHeaders[this._options.locale][i] || "", this._options.columnValueGetters[i] || ((task) => "")));
+            }
+        }
+        let headerRowHtml = "<tr>";
+        columns.forEach(x => headerRowHtml += x.columnHtml);
+        headerRowHtml += "</tr>";
+        this._tableColumns = columns;
+        this._htmlTableHead.innerHTML = headerRowHtml;
     }
     updateRows(data) {
     }
