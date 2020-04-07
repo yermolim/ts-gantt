@@ -84,21 +84,17 @@ class TsGanttTask {
         const deleted = oldTasks.filter(x => !newUuids.includes(x.uuid));
         const added = [];
         const changed = [];
-        const unchanged = [];
         for (const newTask of newTasks) {
             if (!oldUuids.includes(newTask.uuid)) {
                 added.push(newTask);
                 continue;
             }
             const oldTask = oldTasks.find(x => x.uuid === newTask.uuid);
-            if (newTask.equals(oldTask)) {
-                unchanged.push(newTask);
-            }
-            else {
+            if (!newTask.equals(oldTask)) {
                 changed.push(newTask);
             }
         }
-        return { deleted, added, changed, unchanged };
+        return { deleted, added, changed };
     }
     static getTasksIdsMap(tasks) {
         const idsMap = new Map();
@@ -108,6 +104,17 @@ class TsGanttTask {
             }
         }
         return idsMap;
+    }
+    static checkPaternity(tasks, parent, child) {
+        var _a;
+        let parentUuid = child.parentUuid;
+        while (parentUuid) {
+            if (parentUuid === parent.uuid) {
+                return true;
+            }
+            parentUuid = (_a = tasks.find(x => x.uuid === parentUuid)) === null || _a === void 0 ? void 0 : _a.parentUuid;
+        }
+        return false;
     }
     equals(another) {
         var _a, _b, _c, _d, _e, _f, _g, _h;
@@ -473,7 +480,6 @@ class TsGantt {
     constructor(containerSelector, options) {
         this._tasks = [];
         this._htmlSeparatorDragActive = false;
-        this._dateFormat = "YYYY-MM-DD";
         this.onMouseDownOnSep = (e) => {
             if (e.target === this._htmlSeparator) {
                 this._htmlSeparatorDragActive = true;
@@ -579,7 +585,6 @@ class TsGantt {
     toggleTaskExpanded(uuid) {
         let targetTask;
         const targetChildren = [];
-        const otherTasks = [];
         for (const task of this._tasks) {
             if (!targetTask && task.uuid === uuid) {
                 targetTask = task;
@@ -587,22 +592,23 @@ class TsGantt {
             else if (task.parentUuid === uuid) {
                 targetChildren.push(task);
             }
-            else {
-                otherTasks.push(task);
-            }
         }
         if (!targetTask) {
             return;
         }
         targetTask.expanded = !targetTask.expanded;
-        targetChildren.forEach(x => {
-            x.shown = !x.shown;
-            if (!x.shown && x.selected) {
-                x.selected = false;
-                this._selectedTask = null;
+        targetChildren.forEach(x => x.shown = !x.shown);
+        const changedTasks = [targetTask, ...targetChildren];
+        const selectedTask = this._selectedTask;
+        if (selectedTask && selectedTask !== targetTask
+            && TsGanttTask.checkPaternity(this._tasks, targetTask, selectedTask)) {
+            selectedTask.selected = false;
+            this._selectedTask = null;
+            if (selectedTask.parentUuid !== targetTask.uuid) {
+                changedTasks.push(selectedTask);
             }
-        });
-        this.updateRows({ added: [], deleted: [], changed: [targetTask, ...targetChildren], unchanged: otherTasks });
+        }
+        this.updateRows({ added: [], deleted: [], changed: changedTasks });
     }
     selectTask(newSelectedTask) {
         const oldSelectedTask = this._selectedTask;
@@ -611,18 +617,17 @@ class TsGantt {
             return;
         }
         this._selectedTask = null;
-        const targetTasks = [];
+        const changedTasks = [];
         if (oldSelectedTask) {
             oldSelectedTask.selected = false;
-            targetTasks.push(oldSelectedTask);
+            changedTasks.push(oldSelectedTask);
         }
         if (newSelectedTask) {
             newSelectedTask.selected = true;
-            targetTasks.push(newSelectedTask);
+            changedTasks.push(newSelectedTask);
             this._selectedTask = newSelectedTask;
         }
-        const otherTasks = this._tasks.filter(x => x !== oldSelectedTask && x !== newSelectedTask);
-        this.updateRows({ added: [], deleted: [], changed: targetTasks, unchanged: otherTasks });
+        this.updateRows({ added: [], deleted: [], changed: changedTasks });
     }
     updateRows(data) {
         this._table.updateRows(data);

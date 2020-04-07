@@ -44,6 +44,7 @@ export declare class TsGanttTask {
 	static convertTasksToModels(tasks: TsGanttTask[]): TsGanttTaskModel[];
 	static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangesDetectionResult;
 	static getTasksIdsMap(tasks: TsGanttTask[]): Map<string, string>;
+	static checkPaternity(tasks: TsGanttTask[], parent: TsGanttTask, child: TsGanttTask): boolean;
 	equals(another: TsGanttTask): boolean;
 	compareTo(another: TsGanttTask): number;
 }
@@ -55,7 +56,6 @@ export declare class TsGanttTaskChangesDetectionResult {
 	added: TsGanttTask[];
 	deleted: TsGanttTask[];
 	changed: TsGanttTask[];
-	unchanged: TsGanttTask[];
 }
 export declare class TsGanttOptions {
 	enableChartEdit: boolean;
@@ -143,7 +143,6 @@ export declare class TsGantt {
 	private _chart;
 	private _locale;
 	set locale(value: string);
-	private _dateFormat;
 	constructor(containerSelector: string, options: TsGanttOptions);
 	destroy(): void;
 	onMouseDownOnSep: (e: MouseEvent) => void;

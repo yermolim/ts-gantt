@@ -151,7 +151,6 @@ class TsGanttTask {
     const deleted: TsGanttTask[] = oldTasks.filter(x => !newUuids.includes(x.uuid));
     const added: TsGanttTask[] = [];
     const changed: TsGanttTask[] = [];
-    const unchanged: TsGanttTask[] = [];
 
     for (const newTask of newTasks) {
       if (!oldUuids.includes(newTask.uuid)) {
@@ -159,14 +158,12 @@ class TsGanttTask {
         continue;
       }
       const oldTask = oldTasks.find(x => x.uuid === newTask.uuid);
-      if (newTask.equals(oldTask)) {
-        unchanged.push(newTask);
-      } else {
+      if (!newTask.equals(oldTask)) {
         changed.push(newTask);
       }
     }
 
-    return { deleted, added, changed, unchanged };
+    return { deleted, added, changed };
   }
 
   static getTasksIdsMap(tasks: TsGanttTask[]): Map<string, string> {
@@ -178,6 +175,17 @@ class TsGanttTask {
     }
     return idsMap;
   }  
+
+  static checkPaternity(tasks: TsGanttTask[], parent: TsGanttTask, child: TsGanttTask): boolean {
+    let parentUuid = child.parentUuid;
+    while(parentUuid) {
+      if (parentUuid === parent.uuid) {
+        return true;
+      }
+      parentUuid = tasks.find(x => x.uuid === parentUuid)?.parentUuid;
+    }
+    return false;
+  }
 
   equals(another: TsGanttTask): boolean {
     return this.uuid === another.uuid 
@@ -239,8 +247,7 @@ class TsGanttTaskUpdateResult {
 class TsGanttTaskChangesDetectionResult {
   added: TsGanttTask[]; 
   deleted: TsGanttTask[]; 
-  changed: TsGanttTask[]; 
-  unchanged: TsGanttTask[];
+  changed: TsGanttTask[];
 }
 
 export { TsGanttTask, TsGanttTaskModel, TsGanttTaskUpdateResult, 

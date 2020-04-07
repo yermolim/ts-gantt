@@ -53,7 +53,6 @@ class TsGantt {
     this._options.locale = value;
     this.updateLocale();
   }
-  private _dateFormat = "YYYY-MM-DD";
 
   constructor(containerSelector: string,
     options: TsGanttOptions) {
@@ -160,26 +159,32 @@ class TsGantt {
   private toggleTaskExpanded(uuid: string) {
     let targetTask: TsGanttTask;
     const targetChildren: TsGanttTask[] = [];
-    const otherTasks: TsGanttTask[] = [];
-
     for (const task of this._tasks) {
       if (!targetTask && task.uuid === uuid) {
         targetTask = task;
       } else if (task.parentUuid === uuid) {
         targetChildren.push(task);
-      } else {
-        otherTasks.push(task);
       }
     }
-
     if (!targetTask) {
       return;
     }
 
     targetTask.expanded = !targetTask.expanded;
     targetChildren.forEach(x => x.shown = !x.shown);
+    const changedTasks = [targetTask, ...targetChildren];
 
-    this.updateRows({added: [], deleted: [], changed: [targetTask, ...targetChildren], unchanged: otherTasks});
+    const selectedTask = this._selectedTask;
+    if (selectedTask && selectedTask !== targetTask
+        && TsGanttTask.checkPaternity(this._tasks, targetTask, selectedTask)) {
+      selectedTask.selected = false;
+      this._selectedTask = null;
+      if (selectedTask.parentUuid !== targetTask.uuid) {
+        changedTasks.push(selectedTask);
+      }
+    }
+
+    this.updateRows({added: [], deleted: [], changed: changedTasks});
   }
 
   private selectTask(newSelectedTask: TsGanttTask) {
@@ -191,21 +196,19 @@ class TsGantt {
 
     this._selectedTask = null;
 
-    const targetTasks: TsGanttTask[] = [];
+    const changedTasks: TsGanttTask[] = [];
 
     if (oldSelectedTask) {
       oldSelectedTask.selected = false;
-      targetTasks.push(oldSelectedTask);
+      changedTasks.push(oldSelectedTask);
     }        
     if (newSelectedTask) {
       newSelectedTask.selected = true;
-      targetTasks.push(newSelectedTask);
+      changedTasks.push(newSelectedTask);
       this._selectedTask = newSelectedTask;
     }
-    
-    const otherTasks = this._tasks.filter(x => x !== oldSelectedTask && x !== newSelectedTask);
 
-    this.updateRows({added: [], deleted: [], changed: targetTasks, unchanged: otherTasks});
+    this.updateRows({added: [], deleted: [], changed: changedTasks});
   }
 
   private updateRows(data: TsGanttTaskChangesDetectionResult) {

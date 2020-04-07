@@ -125,10 +125,5 @@ describe("TsGanttTask", () => {
     expect(changes.deleted.length).toEqual(2);
     expect(changes.added.length).toEqual(1);
     expect(changes.changed.length).toEqual(3);
-    expect(changes.unchanged.length).toEqual(2);
-    expect(tasks.length - changes.deleted.length 
-      - changes.changed.length - changes.unchanged.length).toEqual(0);
-    expect(changes.added.length + changes.changed.length 
-      + changes.unchanged.length).toEqual(tasksUpdated.length);
   });
 });
