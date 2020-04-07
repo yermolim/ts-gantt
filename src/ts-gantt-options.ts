@@ -7,7 +7,10 @@ class TsGanttOptions {
   tableMinWidth = 100;
   rowNestingMaxCount = 5;
   rowNestingIndentPx = 20;
-  columnsMinWidthPx: number[] = [200, 100, 100, 100, 100, 100, 100, 100]; // 0 to disable column
+  // 0 to disable column
+  columnsMinWidthPx: number[] = [200, 100, 100, 100, 100, 100, 100, 100];
+  // "start", "center", "end"
+  columnsContentAlign: string[] = ["start", "end", "center", "center", "center", "center", "center", "center"];
 
   defaultScale: "day" | "week" | "month" | "year" = "day";
 

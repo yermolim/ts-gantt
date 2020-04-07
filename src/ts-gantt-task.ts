@@ -46,7 +46,10 @@ class TsGanttTask {
   datePlannedStart: Date;
   datePlannedEnd: Date;
   dateActualStart: Date | null;
-  dateActualEnd: Date | null;
+  dateActualEnd: Date | null;  
+
+  expanded: boolean;
+  shown: boolean;
 
   private _progress = 0;
   set progress(value: number) {
@@ -83,6 +86,9 @@ class TsGanttTask {
     this.hasChildren = hasChildren;
     this.parentUuid = parentUuid;
     this.uuid = uuid || getRandomUuid();
+
+    this.shown = !parentUuid;
+    this.expanded = false;
   }
 
   static convertModelsToTasks(taskModels: TsGanttTaskModel[], 
@@ -181,7 +187,9 @@ class TsGanttTask {
       && this.datePlannedStart?.getTime() === another.datePlannedStart?.getTime()
       && this.datePlannedEnd?.getTime() === another.datePlannedEnd?.getTime()
       && this.dateActualStart?.getTime() === another.dateActualStart?.getTime()
-      && this.dateActualEnd?.getTime() === another.dateActualEnd?.getTime();
+      && this.dateActualEnd?.getTime() === another.dateActualEnd?.getTime()
+      && this.expanded === another.expanded
+      && this.shown === another.shown;
   }
 
   compareTo(another: TsGanttTask): number {    

@@ -31,6 +31,8 @@ class TsGanttTask {
         this.hasChildren = hasChildren;
         this.parentUuid = parentUuid;
         this.uuid = uuid || getRandomUuid();
+        this.shown = !parentUuid;
+        this.expanded = false;
     }
     set progress(value) {
         this._progress = value < 0 ? 0 : value > 100 ? 100 : value;
@@ -117,7 +119,9 @@ class TsGanttTask {
             && ((_a = this.datePlannedStart) === null || _a === void 0 ? void 0 : _a.getTime()) === ((_b = another.datePlannedStart) === null || _b === void 0 ? void 0 : _b.getTime())
             && ((_c = this.datePlannedEnd) === null || _c === void 0 ? void 0 : _c.getTime()) === ((_d = another.datePlannedEnd) === null || _d === void 0 ? void 0 : _d.getTime())
             && ((_e = this.dateActualStart) === null || _e === void 0 ? void 0 : _e.getTime()) === ((_f = another.dateActualStart) === null || _f === void 0 ? void 0 : _f.getTime())
-            && ((_g = this.dateActualEnd) === null || _g === void 0 ? void 0 : _g.getTime()) === ((_h = another.dateActualEnd) === null || _h === void 0 ? void 0 : _h.getTime());
+            && ((_g = this.dateActualEnd) === null || _g === void 0 ? void 0 : _g.getTime()) === ((_h = another.dateActualEnd) === null || _h === void 0 ? void 0 : _h.getTime())
+            && this.expanded === another.expanded
+            && this.shown === another.shown;
     }
     compareTo(another) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
@@ -176,6 +180,7 @@ class TsGanttOptions {
         this.rowNestingMaxCount = 5;
         this.rowNestingIndentPx = 20;
         this.columnsMinWidthPx = [200, 100, 100, 100, 100, 100, 100, 100];
+        this.columnsContentAlign = ["start", "end", "center", "center", "center", "center", "center", "center"];
         this.defaultScale = "day";
         this.locale = "en";
         this.localeDecimalSeparator = {
@@ -318,53 +323,69 @@ class TsGanttChart {
 }
 
 class TsGanttTableColumn {
-    constructor(minWidth, header, valueGetter) {
+    constructor(minWidth, textAlign, header, valueGetter) {
         this.minWidth = minWidth;
+        this.contentAlign = textAlign;
         this.header = header;
         this.valueGetter = valueGetter;
-        this.html = `
-      <th style='min-width:${this.minWidth}px;'>
-        ${this.header}
-      </th>`;
+        const headerCell = document.createElement("th");
+        headerCell.style.minWidth = this.minWidth + "px";
+        headerCell.innerHTML = this.header;
+        this.html = this.generateHtml();
+    }
+    generateHtml() {
+        const headerCell = document.createElement("th");
+        headerCell.style.minWidth = this.minWidth + "px";
+        headerCell.innerHTML = this.header;
+        return headerCell;
     }
 }
 class TsGanttTableRow {
     constructor(task, columns) {
-        this.expanded = true;
-        this.shown = false;
         this.task = task;
-        this.shown = true;
         this.html = this.generateHtml(columns);
     }
     generateHtml(columns) {
-        let html = "<tr>";
+        const row = document.createElement("tr");
+        row.setAttribute("data-tsg-row-uuid", this.task.uuid);
         columns.forEach((x, i) => {
-            html += `<td><div class='${TsGanttTableRow.CELL_TEXT_WRAPPER_CLASS}'>`;
+            const cell = document.createElement("td");
+            const cellInnerDiv = document.createElement("div");
+            cellInnerDiv.classList.add(TsGanttTableRow.CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
             if (i === 0) {
                 for (let j = 0; j < this.task.nestingLvl; j++) {
-                    html += TsGanttTableRow.INDENT_TEMPLATE_EMPTY;
+                    cellInnerDiv.append(this.createEmptyIndent());
                 }
-                html += !this.task.hasChildren
-                    ? TsGanttTableRow.INDENT_TEMPLATE_NON_EXPANDABLE
-                    : this.expanded
-                        ? TsGanttTableRow.INDENT_TEMPLATE_EXPANDED
-                        : TsGanttTableRow.INDENT_TEMPLATE_EXPANDABLE;
+                if (!this.task.hasChildren) {
+                    cellInnerDiv.append(this.createEmptyIndent());
+                }
+                else {
+                    const expander = document.createElement("p");
+                    expander.classList.add(TsGanttTableRow.CELL_EXPANDER_CLASS);
+                    expander.setAttribute("data-tsg-row-uuid", this.task.uuid);
+                    expander.innerHTML = this.task.expanded ? "▴" : "▾";
+                    cellInnerDiv.append(expander);
+                }
             }
-            html += `<p class='${TsGanttTableRow.CELL_TEXT_CLASS}'>
-        ${x.valueGetter(this.task)}
-      </p>`;
-            html += "</div></td>";
+            const cellText = document.createElement("p");
+            cellText.classList.add(TsGanttTableRow.CELL_TEXT_CLASS);
+            cellText.innerHTML = x.valueGetter(this.task);
+            cellInnerDiv.append(cellText);
+            cell.append(cellInnerDiv);
+            row.append(cell);
         });
-        html += "</tr>";
-        return html;
+        return row;
+    }
+    createEmptyIndent() {
+        const indent = document.createElement("p");
+        indent.classList.add(TsGanttTableRow.CELL_INDENT_CLASS);
+        return indent;
     }
 }
-TsGanttTableRow.INDENT_TEMPLATE_EMPTY = "<p class='tsg-cell-text-indent' style='width:20px;'></p>";
-TsGanttTableRow.INDENT_TEMPLATE_NON_EXPANDABLE = "<p class='tsg-cell-text-indent' style='width:20px;'>⯁</p>";
-TsGanttTableRow.INDENT_TEMPLATE_EXPANDABLE = "<p class='tsg-cell-text-indent' style='width:20px;'>⯆</p>";
-TsGanttTableRow.INDENT_TEMPLATE_EXPANDED = "<p class='tsg-cell-text-indent' style='width:20px;'>⯅</p>";
 TsGanttTableRow.CELL_TEXT_WRAPPER_CLASS = "tsg-cell-text-wrapper";
 TsGanttTableRow.CELL_TEXT_CLASS = "tsg-cell-text";
+TsGanttTableRow.CELL_INDENT_CLASS = "tsg-cell-text-indent";
+TsGanttTableRow.CELL_EXPANDER_CLASS = "tsg-cell-text-expander";
 class TsGanttTable {
     constructor(classList, options) {
         this._tableRows = [];
@@ -385,15 +406,19 @@ class TsGanttTable {
         const columns = [];
         for (let i = 0; i < 9; i++) {
             const minColumnWidth = this._options.columnsMinWidthPx[i];
+            const contentAlign = this._options.columnsContentAlign[i] === "center"
+                ? "center"
+                : this._options.columnsContentAlign[i] === "end"
+                    ? "end"
+                    : "start";
             if (minColumnWidth) {
-                columns.push(new TsGanttTableColumn(minColumnWidth, this._options.localeHeaders[this._options.locale][i] || "", this._options.columnValueGetters[i] || ((task) => "")));
+                columns.push(new TsGanttTableColumn(minColumnWidth, contentAlign, this._options.localeHeaders[this._options.locale][i] || "", this._options.columnValueGetters[i] || ((task) => "")));
             }
         }
-        let headerRowHtml = "<tr>";
-        columns.forEach(x => headerRowHtml += x.html);
-        headerRowHtml += "</tr>";
+        const headerRow = document.createElement("tr");
+        columns.forEach(x => headerRow.append(x.html));
         this._tableColumns = columns;
-        this._htmlTableHead.innerHTML = headerRowHtml;
+        this._htmlTableHead.innerHTML = headerRow.outerHTML;
     }
     updateRows(data) {
         data.deleted.forEach(x => {
@@ -416,11 +441,11 @@ class TsGanttTable {
             .sort((a, b) => a.task.compareTo(b.task));
         let html = "";
         for (const row of rowsFiltered) {
-            if (!row.shown) {
+            if (!row.task.shown) {
                 continue;
             }
-            html += row.html;
-            if (row.expanded) {
+            html += row.html.outerHTML;
+            if (row.task.expanded) {
                 html += this.getRowsHtmlRecursively(rows, row.task.uuid);
             }
         }
@@ -449,6 +474,14 @@ class TsGantt {
         this.onMouseUpOnSep = (e) => {
             this._htmlSeparatorDragActive = false;
         };
+        this.onRowExpanderClick = (e) => {
+            const target = e.target;
+            if (target.classList.contains(TsGantt.EXPANDER_CLASS)
+                && this._htmlTableWrapper.contains(target)) {
+                console.log(target.dataset.tsgRowUuid);
+                this.toggleRowExpanded("");
+            }
+        };
         this._options = new TsGanttOptions(options);
         this._htmlContainer = document.querySelector(containerSelector);
         if (!this._htmlContainer) {
@@ -470,14 +503,16 @@ class TsGantt {
     }
     destroy() {
         this.removeSepEventListeners();
-    }
-    setTableWrapperWidth(width) {
-        this._htmlTableWrapper.style.width = (Math.max(this._options.tableMinWidth, width)) + "px";
+        this.removeRowEventListeners();
+        this._htmlWrapper.remove();
     }
     removeSepEventListeners() {
         document.removeEventListener("mousedown", this.onMouseDownOnSep);
         document.removeEventListener("mousemove", this.onMouseMoveOnSep);
         document.removeEventListener("mouseup", this.onMouseUpOnSep);
+    }
+    removeRowEventListeners() {
+        document.removeEventListener("click", this.onRowExpanderClick);
     }
     createLayout() {
         const wrapper = document.createElement("div");
@@ -503,6 +538,7 @@ class TsGantt {
         document.addEventListener("mousedown", this.onMouseDownOnSep);
         document.addEventListener("mousemove", this.onMouseMoveOnSep);
         document.addEventListener("mouseup", this.onMouseUpOnSep);
+        document.addEventListener("click", this.onRowExpanderClick);
     }
     updateTasks(taskModels) {
         const oldTasks = this._tasks;
@@ -515,7 +551,12 @@ class TsGantt {
         this._table.updateRows(data);
         this._chart.updateRows(data);
     }
+    toggleRowExpanded(uuid) {
+    }
     updateLocale() {
+    }
+    setTableWrapperWidth(width) {
+        this._htmlTableWrapper.style.width = (Math.max(this._options.tableMinWidth, width)) + "px";
     }
 }
 TsGantt.WRAPPER_CLASS = "tsg-wrapper";
@@ -525,5 +566,6 @@ TsGantt.CHART_WRAPPER_CLASS = "tsg-chart-wrapper";
 TsGantt.TABLE_CLASS = "tsg-table";
 TsGantt.CHART_CLASS = "tsg-chart";
 TsGantt.SEPARATOR_CLASS = "tsg-separator";
+TsGantt.EXPANDER_CLASS = "tsg-cell-text-expander";
 
 export { TsGantt, TsGanttChart, TsGanttOptions, TsGanttTable, TsGanttTask, TsGanttTaskChangesDetectionResult, TsGanttTaskModel, TsGanttTaskUpdateResult };

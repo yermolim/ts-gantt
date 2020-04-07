@@ -2,65 +2,90 @@ import { TsGanttTask, TsGanttTaskChangesDetectionResult } from "./ts-gantt-task"
 import { TsGanttOptions } from "./ts-gantt-options";
 
 class TsGanttTableColumn {
-  html: string;
-  minWidth: number;
-  header: string;
+  readonly html: HTMLTableHeaderCellElement;
+  readonly minWidth: number;
+  readonly header: string;
+  readonly contentAlign: "start" | "center" | "end";
   valueGetter: (a: TsGanttTask) => string;
 
-  constructor(minWidth: number, header: string, valueGetter: (a: TsGanttTask) => string) {
+  constructor(minWidth: number, textAlign: "start" | "center" | "end", header: string, 
+    valueGetter: (a: TsGanttTask) => string) {
+
     this.minWidth = minWidth;
+    this.contentAlign = textAlign;
     this.header = header;
     this.valueGetter = valueGetter;
-    this.html = `
-      <th style='min-width:${this.minWidth}px;'>
-        ${this.header}
-      </th>`;
+
+    const headerCell = document.createElement("th");
+    headerCell.style.minWidth = this.minWidth + "px";
+    headerCell.innerHTML = this.header;
+
+    this.html = this.generateHtml();
+  }
+
+  private generateHtml(): HTMLTableHeaderCellElement {    
+    const headerCell = document.createElement("th");
+    headerCell.style.minWidth = this.minWidth + "px";
+    headerCell.innerHTML = this.header;
+    return headerCell;
   }
 }
 
 class TsGanttTableRow {
-  private static readonly INDENT_TEMPLATE_EMPTY = "<p class='tsg-cell-text-indent' style='width:20px;'></p>";
-  private static readonly INDENT_TEMPLATE_NON_EXPANDABLE = "<p class='tsg-cell-text-indent' style='width:20px;'>⯁</p>";
-  private static readonly INDENT_TEMPLATE_EXPANDABLE = "<p class='tsg-cell-text-indent' style='width:20px;'>⯆</p>";
-  private static readonly INDENT_TEMPLATE_EXPANDED = "<p class='tsg-cell-text-indent' style='width:20px;'>⯅</p>";
   private static readonly CELL_TEXT_WRAPPER_CLASS = "tsg-cell-text-wrapper";
   private static readonly CELL_TEXT_CLASS = "tsg-cell-text";
+  private static readonly CELL_INDENT_CLASS = "tsg-cell-text-indent";
+  private static readonly CELL_EXPANDER_CLASS = "tsg-cell-text-expander";
 
   readonly task: TsGanttTask;
-  readonly html: string;
-  expanded = true; // false;
-  shown = false;
+  readonly html: HTMLTableRowElement;
 
   constructor(task: TsGanttTask, columns: TsGanttTableColumn[]) {
     this.task = task;
-    this.shown = true; // !task.parentUuid;
     this.html = this.generateHtml(columns);
   }
 
-  generateHtml(columns: TsGanttTableColumn[]): string {
-    let html = "<tr>";
-    columns.forEach((x, i) => {
-      html += `<td><div class='${TsGanttTableRow.CELL_TEXT_WRAPPER_CLASS}'>`;   
+  private generateHtml(columns: TsGanttTableColumn[]): HTMLTableRowElement {
+
+    const row = document.createElement("tr");
+    row.setAttribute("data-tsg-row-uuid", this.task.uuid);
     
+    columns.forEach((x, i) => {
+      const cell = document.createElement("td");
+      const cellInnerDiv = document.createElement("div");
+      cellInnerDiv.classList.add(TsGanttTableRow.CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
+
       if (i === 0) {
         for (let j = 0; j < this.task.nestingLvl; j++) {
-          html += TsGanttTableRow.INDENT_TEMPLATE_EMPTY;
+          cellInnerDiv.append(this.createEmptyIndent());
         }
-        html += !this.task.hasChildren 
-          ? TsGanttTableRow.INDENT_TEMPLATE_NON_EXPANDABLE 
-          : this.expanded
-            ? TsGanttTableRow.INDENT_TEMPLATE_EXPANDED
-            : TsGanttTableRow.INDENT_TEMPLATE_EXPANDABLE;
+        if (!this.task.hasChildren) {          
+          cellInnerDiv.append(this.createEmptyIndent());
+        } else {
+          const expander = document.createElement("p");
+          expander.classList.add(TsGanttTableRow.CELL_EXPANDER_CLASS);
+          expander.setAttribute("data-tsg-row-uuid", this.task.uuid);
+          expander.innerHTML = this.task.expanded ? "▴" : "▾";
+          cellInnerDiv.append(expander);
+        }
       }
-  
-      html += `<p class='${TsGanttTableRow.CELL_TEXT_CLASS}'>
-        ${x.valueGetter(this.task)}
-      </p>`;
+
+      const cellText = document.createElement("p");
+      cellText.classList.add(TsGanttTableRow.CELL_TEXT_CLASS);
+      cellText.innerHTML = x.valueGetter(this.task);
+      cellInnerDiv.append(cellText);
         
-      html += "</div></td>";
+      cell.append(cellInnerDiv);
+      row.append(cell);
     });
-    html += "</tr>";
-    return html;
+
+    return row;
+  }
+
+  private createEmptyIndent(): HTMLParagraphElement {
+    const indent = document.createElement("p");
+    indent.classList.add(TsGanttTableRow.CELL_INDENT_CLASS);
+    return indent;
   }
 }
 
@@ -97,18 +122,22 @@ class TsGanttTable {
     const columns: TsGanttTableColumn[] = [];
     for (let i = 0; i < 9; i++) {
       const minColumnWidth = this._options.columnsMinWidthPx[i];
+      const contentAlign = this._options.columnsContentAlign[i] === "center"
+        ? "center"
+        : this._options.columnsContentAlign[i] === "end"
+          ? "end"
+          : "start";
       if (minColumnWidth) {
-        columns.push(new TsGanttTableColumn(minColumnWidth, this._options.localeHeaders[this._options.locale][i] || "",
+        columns.push(new TsGanttTableColumn(minColumnWidth, contentAlign, this._options.localeHeaders[this._options.locale][i] || "",
           this._options.columnValueGetters[i] || ((task: TsGanttTask) => "")));
       }
     }
 
-    let headerRowHtml = "<tr>";
-    columns.forEach(x => headerRowHtml += x.html);
-    headerRowHtml += "</tr>";
+    const headerRow = document.createElement("tr");
+    columns.forEach(x => headerRow.append(x.html));
 
     this._tableColumns = columns;
-    this._htmlTableHead.innerHTML = headerRowHtml;    
+    this._htmlTableHead.innerHTML = headerRow.outerHTML;    
   }  
 
   updateRows(data: TsGanttTaskChangesDetectionResult) {
@@ -125,25 +154,20 @@ class TsGanttTable {
       }
     });
     data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns)));
-    
-    // const expandedByUuid = this._tableRows.filter(x => x.expandable).map(x => ({ [x.uuid]: x.expanded }));
-    // this._tableRows.filter(x => x.parentUuid).forEach(x => {
-    //   x.shown = expandedByUuid[x.uuid] || false;
-    // });
 
     this._htmlTableBody.innerHTML = this.getRowsHtmlRecursively(this._tableRows, null);
   }
 
-  getRowsHtmlRecursively(rows: TsGanttTableRow[], parentUuid: string): string {
+  private getRowsHtmlRecursively(rows: TsGanttTableRow[], parentUuid: string): string {
     const rowsFiltered = rows.filter(x => x.task.parentUuid === parentUuid)
       .sort((a: TsGanttTableRow, b: TsGanttTableRow): number => a.task.compareTo(b.task));
     let html = "";
     for (const row of rowsFiltered) {
-      if (!row.shown) {
+      if (!row.task.shown) {
         continue;
       }
-      html += row.html;
-      if (row.expanded) {
+      html += row.html.outerHTML;
+      if (row.task.expanded) {
         html += this.getRowsHtmlRecursively(rows, row.task.uuid);
       }
     }

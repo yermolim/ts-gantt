@@ -31,6 +31,8 @@ export declare class TsGanttTask {
 	datePlannedEnd: Date;
 	dateActualStart: Date | null;
 	dateActualEnd: Date | null;
+	expanded: boolean;
+	shown: boolean;
 	private _progress;
 	set progress(value: number);
 	get progress(): number;
@@ -60,6 +62,7 @@ export declare class TsGanttOptions {
 	rowNestingMaxCount: number;
 	rowNestingIndentPx: number;
 	columnsMinWidthPx: number[];
+	columnsContentAlign: string[];
 	defaultScale: "day" | "week" | "month" | "year";
 	locale: string;
 	localeDecimalSeparator: {
@@ -101,27 +104,6 @@ export declare class TsGanttChart {
 	constructor(classList: string[], options: TsGanttOptions);
 	updateRows(data: TsGanttTaskChangesDetectionResult): void;
 }
-declare class TsGanttTableColumn {
-	html: string;
-	minWidth: number;
-	header: string;
-	valueGetter: (a: TsGanttTask) => string;
-	constructor(minWidth: number, header: string, valueGetter: (a: TsGanttTask) => string);
-}
-declare class TsGanttTableRow {
-	private static readonly INDENT_TEMPLATE_EMPTY;
-	private static readonly INDENT_TEMPLATE_NON_EXPANDABLE;
-	private static readonly INDENT_TEMPLATE_EXPANDABLE;
-	private static readonly INDENT_TEMPLATE_EXPANDED;
-	private static readonly CELL_TEXT_WRAPPER_CLASS;
-	private static readonly CELL_TEXT_CLASS;
-	readonly task: TsGanttTask;
-	readonly html: string;
-	expanded: boolean;
-	shown: boolean;
-	constructor(task: TsGanttTask, columns: TsGanttTableColumn[]);
-	generateHtml(columns: TsGanttTableColumn[]): string;
-}
 export declare class TsGanttTable {
 	private _options;
 	private _htmlTable;
@@ -133,7 +115,7 @@ export declare class TsGanttTable {
 	constructor(classList: string[], options: TsGanttOptions);
 	updateColumns(): void;
 	updateRows(data: TsGanttTaskChangesDetectionResult): void;
-	getRowsHtmlRecursively(rows: TsGanttTableRow[], parentUuid: string): string;
+	private getRowsHtmlRecursively;
 }
 export declare class TsGantt {
 	private static readonly WRAPPER_CLASS;
@@ -143,6 +125,7 @@ export declare class TsGantt {
 	private static readonly TABLE_CLASS;
 	private static readonly CHART_CLASS;
 	private static readonly SEPARATOR_CLASS;
+	private static readonly EXPANDER_CLASS;
 	private _options;
 	private _tasks;
 	get tasks(): TsGanttTaskModel[];
@@ -163,12 +146,15 @@ export declare class TsGantt {
 	onMouseDownOnSep: (e: MouseEvent) => void;
 	onMouseMoveOnSep: (e: MouseEvent) => boolean;
 	onMouseUpOnSep: (e: MouseEvent) => void;
-	private setTableWrapperWidth;
+	onRowExpanderClick: (e: MouseEvent) => void;
 	private removeSepEventListeners;
+	private removeRowEventListeners;
 	private createLayout;
 	private updateTasks;
 	private updateRows;
+	private toggleRowExpanded;
 	private updateLocale;
+	private setTableWrapperWidth;
 }
 
 export {};

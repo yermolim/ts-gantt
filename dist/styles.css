@@ -53,11 +53,11 @@
   box-sizing: border-box;
   height: var(--tsg-header-height) !important;
 }
-
 .tsg-table thead th {
   box-sizing: border-box;
   position: sticky;
   top: 0;
+  padding: 5px;
   background-color: var(--tsg-table-border-color);
   z-index: 5;
 }
@@ -69,10 +69,13 @@
   border-style: solid;
   border-color: var(--tsg-table-border-color);
 }
-
+.tsg-table tbody tr.selected td {
+  font-weight: bold;
+}
 .tsg-table tbody td {
   box-sizing: border-box;
   padding: 0;
+  cursor: default;
 }
 
 .tsg-cell-text-wrapper {
@@ -82,8 +85,23 @@
   height: calc(var(--tsg-row-height) - 2px);
   padding: 2px;
 }
+.tsg-cell-text-wrapper.start {
+  justify-content: flex-start;
+}
+.tsg-cell-text-wrapper.center {
+  justify-content: center;
+}
+.tsg-cell-text-wrapper.end {
+  justify-content: flex-end;
+}
 .tsg-cell-text-indent {
   width: var(--tsg-row-nesting-indent) !important;
+  text-align: center;
+}
+.tsg-cell-text-expander {
+  width: var(--tsg-row-nesting-indent) !important;
+  text-align: center;
+  cursor: pointer;
 }
 .tsg-cell-text {
   overflow: hidden;

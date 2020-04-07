@@ -13,6 +13,7 @@ class TsGantt {
   private static readonly TABLE_CLASS = "tsg-table";
   private static readonly CHART_CLASS = "tsg-chart";
   private static readonly SEPARATOR_CLASS = "tsg-separator";
+  private static readonly EXPANDER_CLASS = "tsg-cell-text-expander";
 
   private _options: TsGanttOptions;
   private _tasks: TsGanttTask[] = [];
@@ -58,37 +59,45 @@ class TsGantt {
 
   destroy() {
     this.removeSepEventListeners();
+    this.removeRowEventListeners();
+    this._htmlWrapper.remove();
   }
 
-  // #region separator event listeners
+  // #region event listeners
   onMouseDownOnSep = (e: MouseEvent) => {
     if (e.target === this._htmlSeparator) {
       this._htmlSeparatorDragActive = true;
     }
-  }; 
-        
+  };         
   onMouseMoveOnSep = (e: MouseEvent) => {
     if (!this._htmlSeparatorDragActive) {
       return false;
-    }
-  
+    }  
     const wrapperLeftOffset = this._htmlWrapper.offsetLeft;
     const pointerRelX = e.clientX - wrapperLeftOffset;
     this.setTableWrapperWidth(pointerRelX);
-  };
-        
+  };        
   onMouseUpOnSep = (e: MouseEvent) => {
     this._htmlSeparatorDragActive = false;
   }; 
-  
-  private setTableWrapperWidth(width: number) {    
-    this._htmlTableWrapper.style.width = (Math.max(this._options.tableMinWidth, width)) + "px";
-  }
+    
+  onRowExpanderClick = (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains(TsGantt.EXPANDER_CLASS) 
+      && this._htmlTableWrapper.contains(target)) {
+      console.log(target.dataset.tsgRowUuid);
+      this.toggleRowExpanded("");
+    }
+  };
 
   private removeSepEventListeners() {
     document.removeEventListener("mousedown", this.onMouseDownOnSep);
     document.removeEventListener("mousemove", this.onMouseMoveOnSep);
     document.removeEventListener("mouseup", this.onMouseUpOnSep);
+  }
+
+  private removeRowEventListeners() {
+    document.removeEventListener("click", this.onRowExpanderClick);
   }
   // #endregion
 
@@ -121,6 +130,7 @@ class TsGantt {
     document.addEventListener("mousedown", this.onMouseDownOnSep);
     document.addEventListener("mousemove", this.onMouseMoveOnSep);
     document.addEventListener("mouseup", this.onMouseUpOnSep);
+    document.addEventListener("click", this.onRowExpanderClick);
   }
 
   // #region task actions
@@ -137,12 +147,20 @@ class TsGantt {
     this._chart.updateRows(data);
   }
 
+  private toggleRowExpanded(uuid: string) {
+
+  }
+
   private updateLocale() {
 
   }
   // #endregion
-    
-
+   
+  // #region ui methods
+  private setTableWrapperWidth(width: number) {    
+    this._htmlTableWrapper.style.width = (Math.max(this._options.tableMinWidth, width)) + "px";
+  }
+  // #endregion
 }
 
 export { TsGantt, TsGanttOptions, TsGanttChart, TsGanttTable,
