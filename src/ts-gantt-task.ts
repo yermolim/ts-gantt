@@ -48,8 +48,9 @@ class TsGanttTask {
   dateActualStart: Date | null;
   dateActualEnd: Date | null;  
 
-  expanded: boolean;
   shown: boolean;
+  expanded: boolean;
+  selected: boolean;
 
   private _progress = 0;
   set progress(value: number) {
@@ -89,6 +90,7 @@ class TsGanttTask {
 
     this.shown = !parentUuid;
     this.expanded = false;
+    this.selected = false;
   }
 
   static convertModelsToTasks(taskModels: TsGanttTaskModel[], 
@@ -189,7 +191,8 @@ class TsGanttTask {
       && this.dateActualStart?.getTime() === another.dateActualStart?.getTime()
       && this.dateActualEnd?.getTime() === another.dateActualEnd?.getTime()
       && this.expanded === another.expanded
-      && this.shown === another.shown;
+      && this.shown === another.shown
+      && this.selected === another.selected;
   }
 
   compareTo(another: TsGanttTask): number {    

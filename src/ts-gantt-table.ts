@@ -46,9 +46,17 @@ class TsGanttTableRow {
   }
 
   private generateHtml(columns: TsGanttTableColumn[]): HTMLTableRowElement {
-
     const row = document.createElement("tr");
     row.setAttribute("data-tsg-row-uuid", this.task.uuid);
+    row.addEventListener("click", (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (!target.classList.contains(TsGanttTableRow.CELL_EXPANDER_CLASS)) {
+        row.dispatchEvent(new Event("tsgrowclick", {bubbles: true}));
+      }
+    });
+    if (this.task.selected) {
+      row.classList.add("selected");
+    }
     
     columns.forEach((x, i) => {
       const cell = document.createElement("td");
@@ -66,6 +74,9 @@ class TsGanttTableRow {
           expander.classList.add(TsGanttTableRow.CELL_EXPANDER_CLASS);
           expander.setAttribute("data-tsg-row-uuid", this.task.uuid);
           expander.innerHTML = this.task.expanded ? "▴" : "▾";
+          expander.addEventListener("click", (e: Event) => {
+            expander.dispatchEvent(new Event("tsgexpanderclick", {bubbles: true}));
+          });
           cellInnerDiv.append(expander);
         }
       }
@@ -137,7 +148,8 @@ class TsGanttTable {
     columns.forEach(x => headerRow.append(x.html));
 
     this._tableColumns = columns;
-    this._htmlTableHead.innerHTML = headerRow.outerHTML;    
+    this._htmlTableHead.innerHTML = "";    
+    this._htmlTableHead.append(headerRow);    
   }  
 
   updateRows(data: TsGanttTaskChangesDetectionResult) {
@@ -149,29 +161,30 @@ class TsGanttTable {
     });
     data.changed.forEach(x => {      
       const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
-      if (index !== 1) {
+      if (index !== -1) {
         this._tableRows[index] = new TsGanttTableRow(x, this._tableColumns);
       }
     });
     data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns)));
 
-    this._htmlTableBody.innerHTML = this.getRowsHtmlRecursively(this._tableRows, null);
+    this._htmlTableBody.innerHTML = "";
+    this._htmlTableBody.append(...this.getRowsHtmlRecursively(this._tableRows, null));
   }
 
-  private getRowsHtmlRecursively(rows: TsGanttTableRow[], parentUuid: string): string {
+  private getRowsHtmlRecursively(rows: TsGanttTableRow[], parentUuid: string): HTMLTableRowElement[] {
     const rowsFiltered = rows.filter(x => x.task.parentUuid === parentUuid)
       .sort((a: TsGanttTableRow, b: TsGanttTableRow): number => a.task.compareTo(b.task));
-    let html = "";
+    const rowsHtml: HTMLTableRowElement[] = [];
     for (const row of rowsFiltered) {
       if (!row.task.shown) {
         continue;
       }
-      html += row.html.outerHTML;
+      rowsHtml.push(row.html);
       if (row.task.expanded) {
-        html += this.getRowsHtmlRecursively(rows, row.task.uuid);
+        rowsHtml.push(...this.getRowsHtmlRecursively(rows, row.task.uuid));
       }
     }
-    return html;
+    return rowsHtml;
   }
 }
 

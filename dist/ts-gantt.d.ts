@@ -31,8 +31,9 @@ export declare class TsGanttTask {
 	datePlannedEnd: Date;
 	dateActualStart: Date | null;
 	dateActualEnd: Date | null;
-	expanded: boolean;
 	shown: boolean;
+	expanded: boolean;
+	selected: boolean;
 	private _progress;
 	set progress(value: number);
 	get progress(): number;
@@ -125,11 +126,13 @@ export declare class TsGantt {
 	private static readonly TABLE_CLASS;
 	private static readonly CHART_CLASS;
 	private static readonly SEPARATOR_CLASS;
-	private static readonly EXPANDER_CLASS;
 	private _options;
 	private _tasks;
 	get tasks(): TsGanttTaskModel[];
 	set tasks(models: TsGanttTaskModel[]);
+	private _selectedTask;
+	get selectedTask(): TsGanttTaskModel;
+	set selectedTask(model: TsGanttTaskModel);
 	private _htmlContainer;
 	private _htmlWrapper;
 	private _htmlTableWrapper;
@@ -146,13 +149,15 @@ export declare class TsGantt {
 	onMouseDownOnSep: (e: MouseEvent) => void;
 	onMouseMoveOnSep: (e: MouseEvent) => boolean;
 	onMouseUpOnSep: (e: MouseEvent) => void;
-	onRowExpanderClick: (e: MouseEvent) => void;
+	onRowClick: (e: Event) => void;
+	onRowExpanderClick: (e: Event) => void;
 	private removeSepEventListeners;
 	private removeRowEventListeners;
 	private createLayout;
 	private updateTasks;
+	private toggleTaskExpanded;
+	private selectTask;
 	private updateRows;
-	private toggleRowExpanded;
 	private updateLocale;
 	private setTableWrapperWidth;
 }

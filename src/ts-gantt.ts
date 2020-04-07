@@ -13,9 +13,9 @@ class TsGantt {
   private static readonly TABLE_CLASS = "tsg-table";
   private static readonly CHART_CLASS = "tsg-chart";
   private static readonly SEPARATOR_CLASS = "tsg-separator";
-  private static readonly EXPANDER_CLASS = "tsg-cell-text-expander";
 
   private _options: TsGanttOptions;
+
   private _tasks: TsGanttTask[] = [];
   get tasks(): TsGanttTaskModel[] {
     return TsGanttTask.convertTasksToModels(this._tasks);
@@ -24,6 +24,17 @@ class TsGantt {
     const updateResult = this.updateTasks(models);
     const changeDetectionResult = TsGanttTask.detectTaskChanges(updateResult);
     this.updateRows(changeDetectionResult);
+  }
+
+  private _selectedTask: TsGanttTask;
+  get selectedTask(): TsGanttTaskModel {
+    return this._selectedTask
+      ? TsGanttTask.convertTasksToModels([this._selectedTask])[0]
+      : null;
+  }
+  set selectedTask(model: TsGanttTaskModel) {
+    const targetTask = this._tasks.find(x => x.externalId === model.id);
+    this.selectTask(targetTask);
   }
 
   private _htmlContainer: HTMLElement;
@@ -80,14 +91,16 @@ class TsGantt {
   onMouseUpOnSep = (e: MouseEvent) => {
     this._htmlSeparatorDragActive = false;
   }; 
-    
-  onRowExpanderClick = (e: MouseEvent) => {
+  
+  onRowClick = (e: Event) => {
     const target = e.target as HTMLElement;
-    if (target.classList.contains(TsGantt.EXPANDER_CLASS) 
-      && this._htmlTableWrapper.contains(target)) {
-      console.log(target.dataset.tsgRowUuid);
-      this.toggleRowExpanded("");
-    }
+    const uuid = target.dataset.tsgRowUuid;
+    const newSelectedTask = this._tasks.find(x => x.uuid === uuid);
+    this.selectTask(newSelectedTask);
+  };    
+  onRowExpanderClick = (e: Event) => {
+    const target = e.target as HTMLElement;    
+    this.toggleTaskExpanded(target.dataset.tsgRowUuid);
   };
 
   private removeSepEventListeners() {
@@ -97,7 +110,8 @@ class TsGantt {
   }
 
   private removeRowEventListeners() {
-    document.removeEventListener("click", this.onRowExpanderClick);
+    document.removeEventListener("tsgrowclick", this.onRowClick);
+    document.removeEventListener("tsgexpanderclick", this.onRowExpanderClick);
   }
   // #endregion
 
@@ -130,7 +144,8 @@ class TsGantt {
     document.addEventListener("mousedown", this.onMouseDownOnSep);
     document.addEventListener("mousemove", this.onMouseMoveOnSep);
     document.addEventListener("mouseup", this.onMouseUpOnSep);
-    document.addEventListener("click", this.onRowExpanderClick);
+    document.addEventListener("tsgrowclick", this.onRowClick);
+    document.addEventListener("tsgexpanderclick", this.onRowExpanderClick);
   }
 
   // #region task actions
@@ -141,14 +156,61 @@ class TsGantt {
     this._tasks = newTasks;
     return { oldTasks, newTasks };
   }
+  
+  private toggleTaskExpanded(uuid: string) {
+    let targetTask: TsGanttTask;
+    const targetChildren: TsGanttTask[] = [];
+    const otherTasks: TsGanttTask[] = [];
+
+    for (const task of this._tasks) {
+      if (!targetTask && task.uuid === uuid) {
+        targetTask = task;
+      } else if (task.parentUuid === uuid) {
+        targetChildren.push(task);
+      } else {
+        otherTasks.push(task);
+      }
+    }
+
+    if (!targetTask) {
+      return;
+    }
+
+    targetTask.expanded = !targetTask.expanded;
+    targetChildren.forEach(x => x.shown = !x.shown);
+
+    this.updateRows({added: [], deleted: [], changed: [targetTask, ...targetChildren], unchanged: otherTasks});
+  }
+
+  private selectTask(newSelectedTask: TsGanttTask) {
+    const oldSelectedTask: TsGanttTask = this._selectedTask;
+    if ((!oldSelectedTask && !newSelectedTask) 
+        || oldSelectedTask === newSelectedTask) {
+      return;
+    }
+
+    this._selectedTask = null;
+
+    const targetTasks: TsGanttTask[] = [];
+
+    if (oldSelectedTask) {
+      oldSelectedTask.selected = false;
+      targetTasks.push(oldSelectedTask);
+    }        
+    if (newSelectedTask) {
+      newSelectedTask.selected = true;
+      targetTasks.push(newSelectedTask);
+      this._selectedTask = newSelectedTask;
+    }
+    
+    const otherTasks = this._tasks.filter(x => x !== oldSelectedTask && x !== newSelectedTask);
+
+    this.updateRows({added: [], deleted: [], changed: targetTasks, unchanged: otherTasks});
+  }
 
   private updateRows(data: TsGanttTaskChangesDetectionResult) {
     this._table.updateRows(data);
     this._chart.updateRows(data);
-  }
-
-  private toggleRowExpanded(uuid: string) {
-
   }
 
   private updateLocale() {

@@ -33,6 +33,7 @@ class TsGanttTask {
         this.uuid = uuid || getRandomUuid();
         this.shown = !parentUuid;
         this.expanded = false;
+        this.selected = false;
     }
     set progress(value) {
         this._progress = value < 0 ? 0 : value > 100 ? 100 : value;
@@ -121,7 +122,8 @@ class TsGanttTask {
             && ((_e = this.dateActualStart) === null || _e === void 0 ? void 0 : _e.getTime()) === ((_f = another.dateActualStart) === null || _f === void 0 ? void 0 : _f.getTime())
             && ((_g = this.dateActualEnd) === null || _g === void 0 ? void 0 : _g.getTime()) === ((_h = another.dateActualEnd) === null || _h === void 0 ? void 0 : _h.getTime())
             && this.expanded === another.expanded
-            && this.shown === another.shown;
+            && this.shown === another.shown
+            && this.selected === another.selected;
     }
     compareTo(another) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
@@ -348,6 +350,15 @@ class TsGanttTableRow {
     generateHtml(columns) {
         const row = document.createElement("tr");
         row.setAttribute("data-tsg-row-uuid", this.task.uuid);
+        row.addEventListener("click", (e) => {
+            const target = e.target;
+            if (!target.classList.contains(TsGanttTableRow.CELL_EXPANDER_CLASS)) {
+                row.dispatchEvent(new Event("tsgrowclick", { bubbles: true }));
+            }
+        });
+        if (this.task.selected) {
+            row.classList.add("selected");
+        }
         columns.forEach((x, i) => {
             const cell = document.createElement("td");
             const cellInnerDiv = document.createElement("div");
@@ -364,6 +375,9 @@ class TsGanttTableRow {
                     expander.classList.add(TsGanttTableRow.CELL_EXPANDER_CLASS);
                     expander.setAttribute("data-tsg-row-uuid", this.task.uuid);
                     expander.innerHTML = this.task.expanded ? "▴" : "▾";
+                    expander.addEventListener("click", (e) => {
+                        expander.dispatchEvent(new Event("tsgexpanderclick", { bubbles: true }));
+                    });
                     cellInnerDiv.append(expander);
                 }
             }
@@ -418,7 +432,8 @@ class TsGanttTable {
         const headerRow = document.createElement("tr");
         columns.forEach(x => headerRow.append(x.html));
         this._tableColumns = columns;
-        this._htmlTableHead.innerHTML = headerRow.outerHTML;
+        this._htmlTableHead.innerHTML = "";
+        this._htmlTableHead.append(headerRow);
     }
     updateRows(data) {
         data.deleted.forEach(x => {
@@ -429,27 +444,28 @@ class TsGanttTable {
         });
         data.changed.forEach(x => {
             const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
-            if (index !== 1) {
+            if (index !== -1) {
                 this._tableRows[index] = new TsGanttTableRow(x, this._tableColumns);
             }
         });
         data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns)));
-        this._htmlTableBody.innerHTML = this.getRowsHtmlRecursively(this._tableRows, null);
+        this._htmlTableBody.innerHTML = "";
+        this._htmlTableBody.append(...this.getRowsHtmlRecursively(this._tableRows, null));
     }
     getRowsHtmlRecursively(rows, parentUuid) {
         const rowsFiltered = rows.filter(x => x.task.parentUuid === parentUuid)
             .sort((a, b) => a.task.compareTo(b.task));
-        let html = "";
+        const rowsHtml = [];
         for (const row of rowsFiltered) {
             if (!row.task.shown) {
                 continue;
             }
-            html += row.html.outerHTML;
+            rowsHtml.push(row.html);
             if (row.task.expanded) {
-                html += this.getRowsHtmlRecursively(rows, row.task.uuid);
+                rowsHtml.push(...this.getRowsHtmlRecursively(rows, row.task.uuid));
             }
         }
-        return html;
+        return rowsHtml;
     }
 }
 
@@ -474,13 +490,15 @@ class TsGantt {
         this.onMouseUpOnSep = (e) => {
             this._htmlSeparatorDragActive = false;
         };
+        this.onRowClick = (e) => {
+            const target = e.target;
+            const uuid = target.dataset.tsgRowUuid;
+            const newSelectedTask = this._tasks.find(x => x.uuid === uuid);
+            this.selectTask(newSelectedTask);
+        };
         this.onRowExpanderClick = (e) => {
             const target = e.target;
-            if (target.classList.contains(TsGantt.EXPANDER_CLASS)
-                && this._htmlTableWrapper.contains(target)) {
-                console.log(target.dataset.tsgRowUuid);
-                this.toggleRowExpanded("");
-            }
+            this.toggleTaskExpanded(target.dataset.tsgRowUuid);
         };
         this._options = new TsGanttOptions(options);
         this._htmlContainer = document.querySelector(containerSelector);
@@ -497,6 +515,15 @@ class TsGantt {
         const changeDetectionResult = TsGanttTask.detectTaskChanges(updateResult);
         this.updateRows(changeDetectionResult);
     }
+    get selectedTask() {
+        return this._selectedTask
+            ? TsGanttTask.convertTasksToModels([this._selectedTask])[0]
+            : null;
+    }
+    set selectedTask(model) {
+        const targetTask = this._tasks.find(x => x.externalId === model.id);
+        this.selectTask(targetTask);
+    }
     set locale(value) {
         this._options.locale = value;
         this.updateLocale();
@@ -512,7 +539,8 @@ class TsGantt {
         document.removeEventListener("mouseup", this.onMouseUpOnSep);
     }
     removeRowEventListeners() {
-        document.removeEventListener("click", this.onRowExpanderClick);
+        document.removeEventListener("tsgrowclick", this.onRowClick);
+        document.removeEventListener("tsgexpanderclick", this.onRowExpanderClick);
     }
     createLayout() {
         const wrapper = document.createElement("div");
@@ -538,7 +566,8 @@ class TsGantt {
         document.addEventListener("mousedown", this.onMouseDownOnSep);
         document.addEventListener("mousemove", this.onMouseMoveOnSep);
         document.addEventListener("mouseup", this.onMouseUpOnSep);
-        document.addEventListener("click", this.onRowExpanderClick);
+        document.addEventListener("tsgrowclick", this.onRowClick);
+        document.addEventListener("tsgexpanderclick", this.onRowExpanderClick);
     }
     updateTasks(taskModels) {
         const oldTasks = this._tasks;
@@ -547,11 +576,57 @@ class TsGantt {
         this._tasks = newTasks;
         return { oldTasks, newTasks };
     }
+    toggleTaskExpanded(uuid) {
+        let targetTask;
+        const targetChildren = [];
+        const otherTasks = [];
+        for (const task of this._tasks) {
+            if (!targetTask && task.uuid === uuid) {
+                targetTask = task;
+            }
+            else if (task.parentUuid === uuid) {
+                targetChildren.push(task);
+            }
+            else {
+                otherTasks.push(task);
+            }
+        }
+        if (!targetTask) {
+            return;
+        }
+        targetTask.expanded = !targetTask.expanded;
+        targetChildren.forEach(x => {
+            x.shown = !x.shown;
+            if (!x.shown && x.selected) {
+                x.selected = false;
+                this._selectedTask = null;
+            }
+        });
+        this.updateRows({ added: [], deleted: [], changed: [targetTask, ...targetChildren], unchanged: otherTasks });
+    }
+    selectTask(newSelectedTask) {
+        const oldSelectedTask = this._selectedTask;
+        if ((!oldSelectedTask && !newSelectedTask)
+            || oldSelectedTask === newSelectedTask) {
+            return;
+        }
+        this._selectedTask = null;
+        const targetTasks = [];
+        if (oldSelectedTask) {
+            oldSelectedTask.selected = false;
+            targetTasks.push(oldSelectedTask);
+        }
+        if (newSelectedTask) {
+            newSelectedTask.selected = true;
+            targetTasks.push(newSelectedTask);
+            this._selectedTask = newSelectedTask;
+        }
+        const otherTasks = this._tasks.filter(x => x !== oldSelectedTask && x !== newSelectedTask);
+        this.updateRows({ added: [], deleted: [], changed: targetTasks, unchanged: otherTasks });
+    }
     updateRows(data) {
         this._table.updateRows(data);
         this._chart.updateRows(data);
-    }
-    toggleRowExpanded(uuid) {
     }
     updateLocale() {
     }
@@ -566,6 +641,5 @@ TsGantt.CHART_WRAPPER_CLASS = "tsg-chart-wrapper";
 TsGantt.TABLE_CLASS = "tsg-table";
 TsGantt.CHART_CLASS = "tsg-chart";
 TsGantt.SEPARATOR_CLASS = "tsg-separator";
-TsGantt.EXPANDER_CLASS = "tsg-cell-text-expander";
 
 export { TsGantt, TsGanttChart, TsGanttOptions, TsGanttTable, TsGanttTask, TsGanttTaskChangesDetectionResult, TsGanttTaskModel, TsGanttTaskUpdateResult };
