@@ -1,3 +1,4 @@
+import { TsGanttConst } from "./ts-gantt-const";
 import { TsGanttTask, TsGanttTaskChangesDetectionResult } from "./ts-gantt-task";
 import { TsGanttOptions } from "./ts-gantt-options";
 
@@ -32,10 +33,6 @@ class TsGanttTableColumn {
 }
 
 class TsGanttTableRow {
-  private static readonly CELL_TEXT_WRAPPER_CLASS = "tsg-cell-text-wrapper";
-  private static readonly CELL_TEXT_CLASS = "tsg-cell-text";
-  private static readonly CELL_INDENT_CLASS = "tsg-cell-text-indent";
-  private static readonly CELL_EXPANDER_CLASS = "tsg-cell-text-expander";
 
   readonly task: TsGanttTask;
   readonly html: HTMLTableRowElement;
@@ -47,42 +44,44 @@ class TsGanttTableRow {
 
   private generateHtml(columns: TsGanttTableColumn[]): HTMLTableRowElement {
     const row = document.createElement("tr");
-    row.setAttribute("data-tsg-row-uuid", this.task.uuid);
+    row.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
     row.addEventListener("click", (e: Event) => {
       const target = e.target as HTMLElement;
-      if (!target.classList.contains(TsGanttTableRow.CELL_EXPANDER_CLASS)) {
-        row.dispatchEvent(new Event("tsgrowclick", {bubbles: true}));
+      if (!target.classList.contains(TsGanttConst.CELL_EXPANDER_CLASS)) {
+        row.dispatchEvent(new Event(TsGanttConst.ROW_CLICK, {bubbles: true}));
       }
     });
     if (this.task.selected) {
-      row.classList.add("selected");
+      row.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
     }
     
     columns.forEach((x, i) => {
       const cell = document.createElement("td");
       const cellInnerDiv = document.createElement("div");
-      cellInnerDiv.classList.add(TsGanttTableRow.CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
+      cellInnerDiv.classList.add(TsGanttConst.CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
 
       if (i === 0) {
         for (let j = 0; j < this.task.nestingLvl; j++) {
-          cellInnerDiv.append(this.createEmptyIndent());
+          cellInnerDiv.append(this.createSimpleIndent());
         }
         if (!this.task.hasChildren) {          
-          cellInnerDiv.append(this.createEmptyIndent());
+          cellInnerDiv.append(this.createSimpleIndent(TsGanttConst.CELL_EXPANDER_SYMBOL));
         } else {
           const expander = document.createElement("p");
-          expander.classList.add(TsGanttTableRow.CELL_EXPANDER_CLASS);
-          expander.setAttribute("data-tsg-row-uuid", this.task.uuid);
-          expander.innerHTML = this.task.expanded ? "▴" : "▾";
+          expander.classList.add(TsGanttConst.CELL_EXPANDER_CLASS);
+          expander.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
+          expander.innerHTML = this.task.expanded 
+            ? TsGanttConst.CELL_EXPANDER_EXPANDED_SYMBOL 
+            : TsGanttConst.CELL_EXPANDER_EXPANDABLE_SYMBOL;
           expander.addEventListener("click", (e: Event) => {
-            expander.dispatchEvent(new Event("tsgexpanderclick", {bubbles: true}));
+            expander.dispatchEvent(new Event(TsGanttConst.CELL_EXPANDER_CLICK, {bubbles: true}));
           });
           cellInnerDiv.append(expander);
         }
       }
 
       const cellText = document.createElement("p");
-      cellText.classList.add(TsGanttTableRow.CELL_TEXT_CLASS);
+      cellText.classList.add(TsGanttConst.CELL_TEXT_CLASS);
       cellText.innerHTML = x.valueGetter(this.task);
       cellInnerDiv.append(cellText);
         
@@ -93,9 +92,10 @@ class TsGanttTableRow {
     return row;
   }
 
-  private createEmptyIndent(): HTMLParagraphElement {
+  private createSimpleIndent(innerHtml = ""): HTMLParagraphElement {
     const indent = document.createElement("p");
-    indent.classList.add(TsGanttTableRow.CELL_INDENT_CLASS);
+    indent.classList.add(TsGanttConst.CELL_INDENT_CLASS);
+    indent.innerHTML = innerHtml;
     return indent;
   }
 }
@@ -133,11 +133,7 @@ class TsGanttTable {
     const columns: TsGanttTableColumn[] = [];
     for (let i = 0; i < 9; i++) {
       const minColumnWidth = this._options.columnsMinWidthPx[i];
-      const contentAlign = this._options.columnsContentAlign[i] === "center"
-        ? "center"
-        : this._options.columnsContentAlign[i] === "end"
-          ? "end"
-          : "start";
+      const contentAlign = this._options.columnsContentAlign[i];
       if (minColumnWidth) {
         columns.push(new TsGanttTableColumn(minColumnWidth, contentAlign, this._options.localeHeaders[this._options.locale][i] || "",
           this._options.columnValueGetters[i] || ((task: TsGanttTask) => "")));
@@ -188,4 +184,4 @@ class TsGanttTable {
   }
 }
 
-export { TsGanttTable, TsGanttTableRow, TsGanttTableColumn };
+export { TsGanttTable };

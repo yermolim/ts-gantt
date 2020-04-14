@@ -3,16 +3,26 @@ import { TsGanttTask } from "./ts-gantt-task";
 
 class TsGanttOptions {
 
-  enableChartEdit = true;
-  tableMinWidth = 100;
-  rowNestingMaxCount = 5;
-  rowNestingIndentPx = 20;
+  enableChartEdit = false;
+  enablePlannedDatesEdit = true;
+  enableActualDatesEdit = true;
+  bindParentDatesToChild = true;
+  enableProgressEdit = true;
+
   // 0 to disable column
   columnsMinWidthPx: number[] = [200, 100, 100, 100, 100, 100, 100, 100];
-  // "start", "center", "end"
-  columnsContentAlign: string[] = ["start", "end", "center", "center", "center", "center", "center", "center"];
+  columnsContentAlign: ("start" | "center" | "end")[] = ["start", "end", "center", "center", "center", "center", "center", "center"];
 
-  defaultScale: "day" | "week" | "month" | "year" = "day";
+  chartHeaderHeightPx = 80; // change in conjuction with css styles for grid
+  chartRowHeightPx = 40; // change in conjuction with css styles for grid
+  chartBarHeightPx = 16;
+  chartBarFontSizePx = 12; 
+  chartScale: "week" | "month" | "year" = "month";
+  chartDayWidthPx: {[key: string]: number} = {
+    "week": 30,
+    "month": 10,
+    "year": 1,
+  };
 
   locale = "en";
   localeDecimalSeparator: {[key: string]: string} = {
@@ -43,10 +53,15 @@ class TsGanttOptions {
     uk: ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"],
     ru: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
   };
+  localeDateDaysShort: {[key: string]: string[]} = {
+    en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    uk: ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"],
+    ru: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
+  };
   localeDateScale: {[key: string]: string[]} = {
-    en: ["Hours", "Days", "Weeks", "Months"],
-    uk: ["Години", "Дні", "Тижні", "Місяці"],
-    ru: ["Часы", "Дни", "Недели", "Месяцы"],
+    en: ["Weeks", "Months", "Years"],
+    uk: ["Тижні", "Місяці", "Роки"],
+    ru: ["Недели", "Месяцы", "Годы"],
   };
   localeFooters: {[key: string]: string[]} = {
     en: ["Total tasks", "Completed"],

@@ -59,12 +59,18 @@ export declare class TsGanttTaskChangesDetectionResult {
 }
 export declare class TsGanttOptions {
 	enableChartEdit: boolean;
-	tableMinWidth: number;
-	rowNestingMaxCount: number;
-	rowNestingIndentPx: number;
+	enablePlannedDatesEdit: boolean;
+	enableActualDatesEdit: boolean;
+	bindParentDatesToChild: boolean;
+	enableProgressEdit: boolean;
 	columnsMinWidthPx: number[];
-	columnsContentAlign: string[];
-	defaultScale: "day" | "week" | "month" | "year";
+	columnsContentAlign: ("start" | "center" | "end")[];
+	chartHeaderHeightPx: number;
+	chartRowHeightPx: number;
+	chartScale: "week" | "month" | "year";
+	chartDayWidthPx: {
+		[key: string]: number;
+	};
 	locale: string;
 	localeDecimalSeparator: {
 		[key: string]: string;
@@ -79,6 +85,9 @@ export declare class TsGanttOptions {
 		[key: string]: string[];
 	};
 	localeDateDays: {
+		[key: string]: string[];
+	};
+	localeDateDaysShort: {
 		[key: string]: string[];
 	};
 	localeDateScale: {
@@ -101,9 +110,9 @@ export declare class TsGanttChart {
 	private _chartColumns;
 	private _chartRows;
 	private _htmlSvg;
-	get htmlSvg(): SVGElement;
+	get htmlSvg(): SVGSVGElement;
 	constructor(classList: string[], options: TsGanttOptions);
-	updateRows(data: TsGanttTaskChangesDetectionResult): void;
+	update(data: TsGanttTaskChangesDetectionResult): void;
 }
 export declare class TsGanttTable {
 	private _options;
@@ -119,13 +128,6 @@ export declare class TsGanttTable {
 	private getRowsHtmlRecursively;
 }
 export declare class TsGantt {
-	private static readonly WRAPPER_CLASS;
-	private static readonly FOOTER_CLASS;
-	private static readonly TABLE_WRAPPER_CLASS;
-	private static readonly CHART_WRAPPER_CLASS;
-	private static readonly TABLE_CLASS;
-	private static readonly CHART_CLASS;
-	private static readonly SEPARATOR_CLASS;
 	private _options;
 	private _tasks;
 	get tasks(): TsGanttTaskModel[];
@@ -143,6 +145,8 @@ export declare class TsGantt {
 	private _chart;
 	private _locale;
 	set locale(value: string);
+	private _scale;
+	set scale(value: "week" | "month" | "year");
 	constructor(containerSelector: string, options: TsGanttOptions);
 	destroy(): void;
 	onMouseDownOnSep: (e: MouseEvent) => void;
@@ -158,6 +162,7 @@ export declare class TsGantt {
 	private selectTask;
 	private updateRows;
 	private updateLocale;
+	private updateScale;
 	private setTableWrapperWidth;
 }
 

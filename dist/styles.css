@@ -1,7 +1,9 @@
 :root {
   --tsg-font-family: 'Calibri', sans-serif;
-  --tsg-table-border-color: lightgray;
-  --tsg-header-height: 60px;
+  --tsg-table-min-width: 100px;
+  --tsg-table-border-color: rgb(190, 190, 190);
+  --tsg-table-selection-color: rgb(230, 230, 230);
+  --tsg-header-height: 80px;
   --tsg-row-height: 40px;
   --tsg-row-nesting-indent: 20px;
   --tsg-max-cell-text-rows: 2;
@@ -38,6 +40,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-width: var(--tsg-table-min-width);
   overflow-y: auto;
   overflow-x: auto;
 }
@@ -68,6 +71,9 @@
   border-width: 1px 0;
   border-style: solid;
   border-color: var(--tsg-table-border-color);
+}
+.tsg-table tbody tr.selected {
+  background-color: var(--tsg-table-selection-color);
 }
 .tsg-table tbody tr.selected td {
   font-weight: bold;
@@ -128,6 +134,15 @@
   margin-top: 3px;
   background-color: white;
 }
+tr.selected .tsg-cell-text:after {
+  content: '';
+  position: absolute;
+  right: 0;
+  width: var(--tsg-line-height);
+  height: var(--tsg-line-height);
+  margin-top: 3px;
+  background-color: var(--tsg-table-selection-color);
+}
 
 .tsg-chart-wrapper {
   position: relative;
@@ -141,5 +156,4 @@
 
 .tsg-chart {
   box-sizing: border-box;
-  flex: 1 1 auto;
 }

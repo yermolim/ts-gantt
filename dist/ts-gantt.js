@@ -1,3 +1,26 @@
+class TsGanttConst {
+}
+TsGanttConst.SVG_NS = "http://www.w3.org/2000/svg";
+TsGanttConst.WRAPPER_CLASS = "tsg-wrapper";
+TsGanttConst.FOOTER_CLASS = "tsg-footer";
+TsGanttConst.TABLE_WRAPPER_CLASS = "tsg-table-wrapper";
+TsGanttConst.CHART_WRAPPER_CLASS = "tsg-chart-wrapper";
+TsGanttConst.TABLE_CLASS = "tsg-table";
+TsGanttConst.CHART_CLASS = "tsg-chart";
+TsGanttConst.SEPARATOR_CLASS = "tsg-separator";
+TsGanttConst.ROW_UUID_ATTRIBUTE = "data-tsg-row-uuid";
+TsGanttConst.ROW_UUID_DATASET_KEY = "tsgRowUuid";
+TsGanttConst.ROW_SELECTED_CLASS = "selected";
+TsGanttConst.ROW_CLICK = "tsgrowclick";
+TsGanttConst.CELL_TEXT_WRAPPER_CLASS = "tsg-cell-text-wrapper";
+TsGanttConst.CELL_TEXT_CLASS = "tsg-cell-text";
+TsGanttConst.CELL_INDENT_CLASS = "tsg-cell-text-indent";
+TsGanttConst.CELL_EXPANDER_CLASS = "tsg-cell-text-expander";
+TsGanttConst.CELL_EXPANDER_CLICK = "tsgexpanderclick";
+TsGanttConst.CELL_EXPANDER_SYMBOL = "◆";
+TsGanttConst.CELL_EXPANDER_EXPANDABLE_SYMBOL = "⬘";
+TsGanttConst.CELL_EXPANDER_EXPANDED_SYMBOL = "⬙";
+
 function getRandomUuid() {
     return crypto.getRandomValues(new Uint32Array(4)).join("-");
 }
@@ -184,13 +207,21 @@ var dayjs_min = createCommonjsModule(function (module, exports) {
 
 class TsGanttOptions {
     constructor(item = null) {
-        this.enableChartEdit = true;
-        this.tableMinWidth = 100;
-        this.rowNestingMaxCount = 5;
-        this.rowNestingIndentPx = 20;
+        this.enableChartEdit = false;
+        this.enablePlannedDatesEdit = true;
+        this.enableActualDatesEdit = true;
+        this.bindParentDatesToChild = true;
+        this.enableProgressEdit = true;
         this.columnsMinWidthPx = [200, 100, 100, 100, 100, 100, 100, 100];
         this.columnsContentAlign = ["start", "end", "center", "center", "center", "center", "center", "center"];
-        this.defaultScale = "day";
+        this.chartHeaderHeightPx = 80;
+        this.chartRowHeightPx = 40;
+        this.chartScale = "month";
+        this.chartDayWidthPx = {
+            "week": 30,
+            "month": 10,
+            "year": 1,
+        };
         this.locale = "en";
         this.localeDecimalSeparator = {
             en: ".",
@@ -220,10 +251,15 @@ class TsGanttOptions {
             uk: ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"],
             ru: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
         };
+        this.localeDateDaysShort = {
+            en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+            uk: ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"],
+            ru: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
+        };
         this.localeDateScale = {
-            en: ["Hours", "Days", "Weeks", "Months"],
-            uk: ["Години", "Дні", "Тижні", "Місяці"],
-            ru: ["Часы", "Дни", "Недели", "Месяцы"],
+            en: ["Weeks", "Months", "Years"],
+            uk: ["Тижні", "Місяці", "Роки"],
+            ru: ["Недели", "Месяцы", "Годы"],
         };
         this.localeFooters = {
             en: ["Total tasks", "Completed"],
@@ -320,14 +356,14 @@ class TsGanttOptions {
 class TsGanttChart {
     constructor(classList, options) {
         this._options = options;
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        const svg = document.createElementNS(TsGanttConst.SVG_NS, "svg");
         svg.classList.add(...classList);
         this._htmlSvg = svg;
     }
     get htmlSvg() {
         return this._htmlSvg;
     }
-    updateRows(data) {
+    update(data) {
     }
 }
 
@@ -356,40 +392,42 @@ class TsGanttTableRow {
     }
     generateHtml(columns) {
         const row = document.createElement("tr");
-        row.setAttribute("data-tsg-row-uuid", this.task.uuid);
+        row.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
         row.addEventListener("click", (e) => {
             const target = e.target;
-            if (!target.classList.contains(TsGanttTableRow.CELL_EXPANDER_CLASS)) {
-                row.dispatchEvent(new Event("tsgrowclick", { bubbles: true }));
+            if (!target.classList.contains(TsGanttConst.CELL_EXPANDER_CLASS)) {
+                row.dispatchEvent(new Event(TsGanttConst.ROW_CLICK, { bubbles: true }));
             }
         });
         if (this.task.selected) {
-            row.classList.add("selected");
+            row.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
         }
         columns.forEach((x, i) => {
             const cell = document.createElement("td");
             const cellInnerDiv = document.createElement("div");
-            cellInnerDiv.classList.add(TsGanttTableRow.CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
+            cellInnerDiv.classList.add(TsGanttConst.CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
             if (i === 0) {
                 for (let j = 0; j < this.task.nestingLvl; j++) {
-                    cellInnerDiv.append(this.createEmptyIndent());
+                    cellInnerDiv.append(this.createSimpleIndent());
                 }
                 if (!this.task.hasChildren) {
-                    cellInnerDiv.append(this.createEmptyIndent());
+                    cellInnerDiv.append(this.createSimpleIndent(TsGanttConst.CELL_EXPANDER_SYMBOL));
                 }
                 else {
                     const expander = document.createElement("p");
-                    expander.classList.add(TsGanttTableRow.CELL_EXPANDER_CLASS);
-                    expander.setAttribute("data-tsg-row-uuid", this.task.uuid);
-                    expander.innerHTML = this.task.expanded ? "▴" : "▾";
+                    expander.classList.add(TsGanttConst.CELL_EXPANDER_CLASS);
+                    expander.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
+                    expander.innerHTML = this.task.expanded
+                        ? TsGanttConst.CELL_EXPANDER_EXPANDED_SYMBOL
+                        : TsGanttConst.CELL_EXPANDER_EXPANDABLE_SYMBOL;
                     expander.addEventListener("click", (e) => {
-                        expander.dispatchEvent(new Event("tsgexpanderclick", { bubbles: true }));
+                        expander.dispatchEvent(new Event(TsGanttConst.CELL_EXPANDER_CLICK, { bubbles: true }));
                     });
                     cellInnerDiv.append(expander);
                 }
             }
             const cellText = document.createElement("p");
-            cellText.classList.add(TsGanttTableRow.CELL_TEXT_CLASS);
+            cellText.classList.add(TsGanttConst.CELL_TEXT_CLASS);
             cellText.innerHTML = x.valueGetter(this.task);
             cellInnerDiv.append(cellText);
             cell.append(cellInnerDiv);
@@ -397,16 +435,13 @@ class TsGanttTableRow {
         });
         return row;
     }
-    createEmptyIndent() {
+    createSimpleIndent(innerHtml = "") {
         const indent = document.createElement("p");
-        indent.classList.add(TsGanttTableRow.CELL_INDENT_CLASS);
+        indent.classList.add(TsGanttConst.CELL_INDENT_CLASS);
+        indent.innerHTML = innerHtml;
         return indent;
     }
 }
-TsGanttTableRow.CELL_TEXT_WRAPPER_CLASS = "tsg-cell-text-wrapper";
-TsGanttTableRow.CELL_TEXT_CLASS = "tsg-cell-text";
-TsGanttTableRow.CELL_INDENT_CLASS = "tsg-cell-text-indent";
-TsGanttTableRow.CELL_EXPANDER_CLASS = "tsg-cell-text-expander";
 class TsGanttTable {
     constructor(classList, options) {
         this._tableRows = [];
@@ -427,11 +462,7 @@ class TsGanttTable {
         const columns = [];
         for (let i = 0; i < 9; i++) {
             const minColumnWidth = this._options.columnsMinWidthPx[i];
-            const contentAlign = this._options.columnsContentAlign[i] === "center"
-                ? "center"
-                : this._options.columnsContentAlign[i] === "end"
-                    ? "end"
-                    : "start";
+            const contentAlign = this._options.columnsContentAlign[i];
             if (minColumnWidth) {
                 columns.push(new TsGanttTableColumn(minColumnWidth, contentAlign, this._options.localeHeaders[this._options.locale][i] || "", this._options.columnValueGetters[i] || ((task) => "")));
             }
@@ -498,13 +529,13 @@ class TsGantt {
         };
         this.onRowClick = (e) => {
             const target = e.target;
-            const uuid = target.dataset.tsgRowUuid;
+            const uuid = target.dataset[TsGanttConst.ROW_UUID_DATASET_KEY];
             const newSelectedTask = this._tasks.find(x => x.uuid === uuid);
             this.selectTask(newSelectedTask);
         };
         this.onRowExpanderClick = (e) => {
             const target = e.target;
-            this.toggleTaskExpanded(target.dataset.tsgRowUuid);
+            this.toggleTaskExpanded(target.dataset[TsGanttConst.ROW_UUID_DATASET_KEY]);
         };
         this._options = new TsGanttOptions(options);
         this._htmlContainer = document.querySelector(containerSelector);
@@ -528,11 +559,21 @@ class TsGantt {
     }
     set selectedTask(model) {
         const targetTask = this._tasks.find(x => x.externalId === model.id);
-        this.selectTask(targetTask);
+        if (targetTask !== this._selectedTask) {
+            this.selectTask(targetTask);
+        }
     }
     set locale(value) {
-        this._options.locale = value;
-        this.updateLocale();
+        if (value !== this._options.locale) {
+            this._options.locale = value;
+            this.updateLocale();
+        }
+    }
+    set scale(value) {
+        if (value !== this._options.chartScale) {
+            this._options.chartScale = value;
+            this.updateScale();
+        }
     }
     destroy() {
         this.removeSepEventListeners();
@@ -545,20 +586,20 @@ class TsGantt {
         document.removeEventListener("mouseup", this.onMouseUpOnSep);
     }
     removeRowEventListeners() {
-        document.removeEventListener("tsgrowclick", this.onRowClick);
-        document.removeEventListener("tsgexpanderclick", this.onRowExpanderClick);
+        document.removeEventListener(TsGanttConst.ROW_CLICK, this.onRowClick);
+        document.removeEventListener(TsGanttConst.CELL_EXPANDER_CLICK, this.onRowExpanderClick);
     }
     createLayout() {
         const wrapper = document.createElement("div");
-        wrapper.classList.add(TsGantt.WRAPPER_CLASS);
+        wrapper.classList.add(TsGanttConst.WRAPPER_CLASS);
         const tableWrapper = document.createElement("div");
-        tableWrapper.classList.add(TsGantt.TABLE_WRAPPER_CLASS);
+        tableWrapper.classList.add(TsGanttConst.TABLE_WRAPPER_CLASS);
         const chartWrapper = document.createElement("div");
-        chartWrapper.classList.add(TsGantt.CHART_WRAPPER_CLASS);
+        chartWrapper.classList.add(TsGanttConst.CHART_WRAPPER_CLASS);
         const separator = document.createElement("div");
-        separator.classList.add(TsGantt.SEPARATOR_CLASS);
-        this._table = new TsGanttTable([TsGantt.TABLE_CLASS], this._options);
-        this._chart = new TsGanttChart([TsGantt.CHART_CLASS], this._options);
+        separator.classList.add(TsGanttConst.SEPARATOR_CLASS);
+        this._table = new TsGanttTable([TsGanttConst.TABLE_CLASS], this._options);
+        this._chart = new TsGanttChart([TsGanttConst.CHART_CLASS], this._options);
         wrapper.append(tableWrapper);
         wrapper.append(separator);
         wrapper.append(chartWrapper);
@@ -572,8 +613,8 @@ class TsGantt {
         document.addEventListener("mousedown", this.onMouseDownOnSep);
         document.addEventListener("mousemove", this.onMouseMoveOnSep);
         document.addEventListener("mouseup", this.onMouseUpOnSep);
-        document.addEventListener("tsgrowclick", this.onRowClick);
-        document.addEventListener("tsgexpanderclick", this.onRowExpanderClick);
+        document.addEventListener(TsGanttConst.ROW_CLICK, this.onRowClick);
+        document.addEventListener(TsGanttConst.CELL_EXPANDER_CLICK, this.onRowExpanderClick);
     }
     updateTasks(taskModels) {
         const oldTasks = this._tasks;
@@ -631,20 +672,15 @@ class TsGantt {
     }
     updateRows(data) {
         this._table.updateRows(data);
-        this._chart.updateRows(data);
+        this._chart.update(data);
     }
     updateLocale() {
     }
+    updateScale() {
+    }
     setTableWrapperWidth(width) {
-        this._htmlTableWrapper.style.width = (Math.max(this._options.tableMinWidth, width)) + "px";
+        this._htmlTableWrapper.style.width = width + "px";
     }
 }
-TsGantt.WRAPPER_CLASS = "tsg-wrapper";
-TsGantt.FOOTER_CLASS = "tsg-footer";
-TsGantt.TABLE_WRAPPER_CLASS = "tsg-table-wrapper";
-TsGantt.CHART_WRAPPER_CLASS = "tsg-chart-wrapper";
-TsGantt.TABLE_CLASS = "tsg-table";
-TsGantt.CHART_CLASS = "tsg-chart";
-TsGantt.SEPARATOR_CLASS = "tsg-separator";
 
 export { TsGantt, TsGanttChart, TsGanttOptions, TsGanttTable, TsGanttTask, TsGanttTaskChangesDetectionResult, TsGanttTaskModel, TsGanttTaskUpdateResult };

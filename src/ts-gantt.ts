@@ -1,18 +1,13 @@
 import "./styles.css";
+import { TsGanttConst } from "./ts-gantt-const";
 import { TsGanttTask, TsGanttTaskModel, TsGanttTaskUpdateResult, 
   TsGanttTaskChangesDetectionResult } from "./ts-gantt-task";
 import { TsGanttOptions } from "./ts-gantt-options";
-import { TsGanttChartRow, TsGanttChartColumn, TsGanttChart } from "./ts-gantt-chart";
-import { TsGanttTableColumn, TsGanttTableRow, TsGanttTable } from "./ts-gantt-table";
+import { TsGanttChart } from "./ts-gantt-chart";
+import { TsGanttTable } from "./ts-gantt-table";
+
 
 class TsGantt {  
-  private static readonly WRAPPER_CLASS = "tsg-wrapper";
-  private static readonly FOOTER_CLASS = "tsg-footer";
-  private static readonly TABLE_WRAPPER_CLASS = "tsg-table-wrapper";
-  private static readonly CHART_WRAPPER_CLASS = "tsg-chart-wrapper";
-  private static readonly TABLE_CLASS = "tsg-table";
-  private static readonly CHART_CLASS = "tsg-chart";
-  private static readonly SEPARATOR_CLASS = "tsg-separator";
 
   private _options: TsGanttOptions;
 
@@ -34,7 +29,9 @@ class TsGantt {
   }
   set selectedTask(model: TsGanttTaskModel) {
     const targetTask = this._tasks.find(x => x.externalId === model.id);
-    this.selectTask(targetTask);
+    if (targetTask !== this._selectedTask) {
+      this.selectTask(targetTask);
+    }
   }
 
   private _htmlContainer: HTMLElement;
@@ -50,8 +47,18 @@ class TsGantt {
 
   private _locale: string;
   set locale(value: string) {
-    this._options.locale = value;
-    this.updateLocale();
+    if (value !== this._options.locale) {
+      this._options.locale = value;
+      this.updateLocale();
+    }
+  }
+  
+  private _scale: string;
+  set scale(value: "week" | "month" | "year") {
+    if (value !== this._options.chartScale) {
+      this._options.chartScale = value;
+      this.updateScale();
+    }
   }
 
   constructor(containerSelector: string,
@@ -93,13 +100,13 @@ class TsGantt {
   
   onRowClick = (e: Event) => {
     const target = e.target as HTMLElement;
-    const uuid = target.dataset.tsgRowUuid;
+    const uuid = target.dataset[TsGanttConst.ROW_UUID_DATASET_KEY];
     const newSelectedTask = this._tasks.find(x => x.uuid === uuid);
     this.selectTask(newSelectedTask);
   };    
   onRowExpanderClick = (e: Event) => {
     const target = e.target as HTMLElement;    
-    this.toggleTaskExpanded(target.dataset.tsgRowUuid);
+    this.toggleTaskExpanded(target.dataset[TsGanttConst.ROW_UUID_DATASET_KEY]);
   };
 
   private removeSepEventListeners() {
@@ -109,24 +116,24 @@ class TsGantt {
   }
 
   private removeRowEventListeners() {
-    document.removeEventListener("tsgrowclick", this.onRowClick);
-    document.removeEventListener("tsgexpanderclick", this.onRowExpanderClick);
+    document.removeEventListener(TsGanttConst.ROW_CLICK, this.onRowClick);
+    document.removeEventListener(TsGanttConst.CELL_EXPANDER_CLICK, this.onRowExpanderClick);
   }
   // #endregion
 
   private createLayout() {
     const wrapper = document.createElement("div");
-    wrapper.classList.add(TsGantt.WRAPPER_CLASS);    
+    wrapper.classList.add(TsGanttConst.WRAPPER_CLASS);    
     const tableWrapper = document.createElement("div");
-    tableWrapper.classList.add(TsGantt.TABLE_WRAPPER_CLASS);
+    tableWrapper.classList.add(TsGanttConst.TABLE_WRAPPER_CLASS);
     const chartWrapper = document.createElement("div");
-    chartWrapper.classList.add(TsGantt.CHART_WRAPPER_CLASS);
+    chartWrapper.classList.add(TsGanttConst.CHART_WRAPPER_CLASS);
 
     const separator = document.createElement("div");
-    separator.classList.add(TsGantt.SEPARATOR_CLASS);  
+    separator.classList.add(TsGanttConst.SEPARATOR_CLASS);  
     
-    this._table = new TsGanttTable([TsGantt.TABLE_CLASS], this._options);
-    this._chart = new TsGanttChart([TsGantt.CHART_CLASS], this._options);      
+    this._table = new TsGanttTable([TsGanttConst.TABLE_CLASS], this._options);
+    this._chart = new TsGanttChart([TsGanttConst.CHART_CLASS], this._options);      
  
     wrapper.append(tableWrapper);
     wrapper.append(separator);
@@ -143,8 +150,8 @@ class TsGantt {
     document.addEventListener("mousedown", this.onMouseDownOnSep);
     document.addEventListener("mousemove", this.onMouseMoveOnSep);
     document.addEventListener("mouseup", this.onMouseUpOnSep);
-    document.addEventListener("tsgrowclick", this.onRowClick);
-    document.addEventListener("tsgexpanderclick", this.onRowExpanderClick);
+    document.addEventListener(TsGanttConst.ROW_CLICK, this.onRowClick);
+    document.addEventListener(TsGanttConst.CELL_EXPANDER_CLICK, this.onRowExpanderClick);
   }
 
   // #region task actions
@@ -213,17 +220,21 @@ class TsGantt {
 
   private updateRows(data: TsGanttTaskChangesDetectionResult) {
     this._table.updateRows(data);
-    this._chart.updateRows(data);
+    this._chart.update(data);
   }
 
   private updateLocale() {
+
+  }
+  
+  private updateScale() {
 
   }
   // #endregion
    
   // #region ui methods
   private setTableWrapperWidth(width: number) {    
-    this._htmlTableWrapper.style.width = (Math.max(this._options.tableMinWidth, width)) + "px";
+    this._htmlTableWrapper.style.width = width + "px";
   }
   // #endregion
 }
