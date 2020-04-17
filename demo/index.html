@@ -11,11 +11,13 @@
             margin: 0;
         }        
         #gantt-container {
+            box-sizing: border-box;
             position: relative;
             width: 100%;
-            height: 100%;
+            height: 80%;
             padding: 0;
             margin: 0;
+            border: 5px solid black;
         }   
     </style>
     <link rel="stylesheet" href="../dist/styles.css">
@@ -28,7 +30,16 @@
     <title>TsGantt test</title>
 </head>
     <body>  
-      <div id="gantt-container"></div>
+        <div id="gantt-container"></div>
+                
+        <button id="btn-locale-en">En</button>
+        <button id="btn-locale-uk">Uk</button>
+        <button id="btn-locale-ru">Ru</button>
+
+        <button id="btn-scale-day">Day</button>
+        <button id="btn-scale-week">Week</button>
+        <button id="btn-scale-month">Month</button>
+        <button id="btn-scale-year">Year</button>
       
         <script type="module">
             import { TsGantt, TsGanttTaskModel } from "../dist/ts-gantt.js";
@@ -53,6 +64,22 @@
             const ganttChart = new TsGantt("#gantt-container");
             ganttChart.tasks = inputModels;
 
-        </script>    
+            function setLocale(locale) {
+                ganttChart.locale = locale;
+            }
+            function setScale(scale) {
+                ganttChart.chartScale = scale;
+            }
+
+            document.getElementById("btn-locale-en").addEventListener("click", () => setLocale("en"));
+            document.getElementById("btn-locale-uk").addEventListener("click", () => setLocale("uk"));
+            document.getElementById("btn-locale-ru").addEventListener("click", () => setLocale("ru"));
+
+            document.getElementById("btn-scale-day").addEventListener("click", () => setScale("day"));
+            document.getElementById("btn-scale-week").addEventListener("click", () => setScale("week"));
+            document.getElementById("btn-scale-month").addEventListener("click", () => setScale("month"));
+            document.getElementById("btn-scale-year").addEventListener("click", () => setScale("year"));
+
+        </script>  
     </body>
 </html>

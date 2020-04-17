@@ -232,12 +232,23 @@ class TsGantt {
   }
 
   private updateLocale() {    
-    this._table.update(true, null);
-    this._chart.update(true, null);
+    const data = <TsGanttTaskChangesDetectionResult>{
+      deleted: [],
+      added: [],
+      changed: this._tasks,
+      all: this._tasks,
+    };
+    this._table.update(true, data);
+    this._chart.update(true, data);
   }
   
   private updateChartScale() {
-    this._chart.update(true, null);
+    this._chart.update(true, <TsGanttTaskChangesDetectionResult>{
+      deleted: [],
+      added: [],
+      changed: this._tasks,
+      all: this._tasks,
+    });
   }  
 
   private updateChartBarMode() {

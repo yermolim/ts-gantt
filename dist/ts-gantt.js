@@ -334,36 +334,36 @@ class TsGanttOptions {
             uk: (duration) => {
                 let d = duration % 100;
                 if (d > 10 && d < 20) {
-                    return d + " днів";
+                    return duration + " днів";
                 }
                 else {
                     d = d % 10;
                     if (d === 1) {
-                        return d + " день";
+                        return duration + " день";
                     }
-                    else if (d < 5) {
-                        return d + " дні";
+                    else if (d < 5 && d > 0) {
+                        return duration + " дні";
                     }
                     else {
-                        return d + " днів";
+                        return duration + " днів";
                     }
                 }
             },
             ru: (duration) => {
                 let d = duration % 100;
                 if (d > 10 && d < 20) {
-                    return d + " дней";
+                    return duration + " дней";
                 }
                 else {
                     d = d % 10;
                     if (d === 1) {
-                        return d + " день";
+                        return duration + " день";
                     }
-                    else if (d < 5) {
-                        return d + " дня";
+                    else if (d < 5 && d > 0) {
+                        return duration + " дня";
                     }
                     else {
-                        return d + " дней";
+                        return duration + " дней";
                     }
                 }
             },
@@ -1027,11 +1027,22 @@ class TsGantt {
         this._chart.update(false, data);
     }
     updateLocale() {
-        this._table.update(true, null);
-        this._chart.update(true, null);
+        const data = {
+            deleted: [],
+            added: [],
+            changed: this._tasks,
+            all: this._tasks,
+        };
+        this._table.update(true, data);
+        this._chart.update(true, data);
     }
     updateChartScale() {
-        this._chart.update(true, null);
+        this._chart.update(true, {
+            deleted: [],
+            added: [],
+            changed: this._tasks,
+            all: this._tasks,
+        });
     }
     updateChartBarMode() {
         this._chart.update(true, null);

@@ -95,30 +95,30 @@ class TsGanttOptions {
     uk: (duration: number) => {     
       let d = duration % 100;
       if (d > 10 && d < 20) {
-        return d + " днів";
+        return duration + " днів";
       } else {
         d = d % 10;
         if (d === 1) {
-          return d + " день";
-        } else if (d < 5) {
-          return d + " дні";
+          return duration + " день";
+        } else if (d < 5 && d > 0) {
+          return duration + " дні";
         } else {
-          return d + " днів";
+          return duration + " днів";
         }
       }
     },
     ru: (duration: number) => {      
       let d = duration % 100;
       if (d > 10 && d < 20) {
-        return d + " дней";
+        return duration + " дней";
       } else {
         d = d % 10;
         if (d === 1) {
-          return d + " день";
-        } else if (d < 5) {
-          return d + " дня";
+          return duration + " день";
+        } else if (d < 5 && d > 0) {
+          return duration + " дня";
         } else {
-          return d + " дней";
+          return duration + " дней";
         }
       }
     },
