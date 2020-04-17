@@ -1045,7 +1045,12 @@ class TsGantt {
         });
     }
     updateChartBarMode() {
-        this._chart.update(true, null);
+        this._chart.update(false, {
+            deleted: [],
+            added: [],
+            changed: this._tasks,
+            all: this._tasks,
+        });
     }
 }
 

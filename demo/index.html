@@ -30,6 +30,7 @@
     <title>TsGantt test</title>
 </head>
     <body>  
+        
         <div id="gantt-container"></div>
                 
         <button id="btn-locale-en">En</button>
@@ -40,8 +41,13 @@
         <button id="btn-scale-week">Week</button>
         <button id="btn-scale-month">Month</button>
         <button id="btn-scale-year">Year</button>
+        
+        <button id="btn-bar-both">Planned and actual</button>
+        <button id="btn-bar-planned">Planned only</button>
+        <button id="btn-bar-actual">Actual only</button>
       
         <script type="module">
+
             import { TsGantt, TsGanttTaskModel } from "../dist/ts-gantt.js";
 
             const inputModels = [
@@ -70,6 +76,9 @@
             function setScale(scale) {
                 ganttChart.chartScale = scale;
             }
+            function setBarMode(mode) {
+                ganttChart.chartBarMode = mode;
+            }
 
             document.getElementById("btn-locale-en").addEventListener("click", () => setLocale("en"));
             document.getElementById("btn-locale-uk").addEventListener("click", () => setLocale("uk"));
@@ -80,6 +89,11 @@
             document.getElementById("btn-scale-month").addEventListener("click", () => setScale("month"));
             document.getElementById("btn-scale-year").addEventListener("click", () => setScale("year"));
 
-        </script>  
+            document.getElementById("btn-bar-both").addEventListener("click", () => setBarMode("both"));
+            document.getElementById("btn-bar-planned").addEventListener("click", () => setBarMode("planned"));
+            document.getElementById("btn-bar-actual").addEventListener("click", () => setBarMode("actual"));
+
+        </script> 
+
     </body>
 </html>

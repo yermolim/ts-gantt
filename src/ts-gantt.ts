@@ -252,7 +252,12 @@ class TsGantt {
   }  
 
   private updateChartBarMode() {
-    this._chart.update(true, null);
+    this._chart.update(false, <TsGanttTaskChangesDetectionResult>{
+      deleted: [],
+      added: [],
+      changed: this._tasks,
+      all: this._tasks,
+    });
   }
   // #endregion
 }
