@@ -13,14 +13,28 @@ class TsGanttOptions {
   columnsMinWidthPx: number[] = [200, 100, 100, 100, 100, 100, 100, 100];
   columnsContentAlign: ("start" | "center" | "end")[] = ["start", "end", "center", "center", "center", "center", "center", "center"];
 
-  chartHeaderHeightPx = 80; // change in conjuction with css styles for grid
+  chartHeaderHeightPx = 90; // change in conjuction with css styles for grid
   chartRowHeightPx = 40; // change in conjuction with css styles for grid
-  chartBarHeightPx = 16;
   chartBarFontSizePx = 12; 
-  chartScale: "week" | "month" | "year" = "month";
-  chartDayWidthPx: {[key: string]: number} = {
+  chartBarHeightPx = 16; // *2 used if any of singlebar modes selected
+  chartBarMode: "planned" | "actual" | "both" = "both";
+  chartScale: "day" | "week" | "month" | "year" = "month";
+  chartDateOffsetDays: {[key: string]: number} = {
+    "day": 14,
+    "week": 60,
+    "month": 240,
+    "year": 730,
+  };
+  chartDateOffsetDaysMin: {[key: string]: number} = {
+    "day": 7,
     "week": 30,
-    "month": 10,
+    "month": 120,
+    "year": 365,
+  };
+  chartDayWidthPx: {[key: string]: number} = {
+    "day": 60,
+    "week": 20,
+    "month": 3,
     "year": 1,
   };
 
@@ -54,9 +68,9 @@ class TsGanttOptions {
     ru: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
   };
   localeDateDaysShort: {[key: string]: string[]} = {
-    en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-    uk: ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"],
-    ru: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
+    en: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+    uk: ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+    ru: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
   };
   localeDateScale: {[key: string]: string[]} = {
     en: ["Weeks", "Months", "Years"],

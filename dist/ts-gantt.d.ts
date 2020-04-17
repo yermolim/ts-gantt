@@ -56,6 +56,7 @@ export declare class TsGanttTaskChangesDetectionResult {
 	added: TsGanttTask[];
 	deleted: TsGanttTask[];
 	changed: TsGanttTask[];
+	all: TsGanttTask[];
 }
 export declare class TsGanttOptions {
 	enableChartEdit: boolean;
@@ -67,7 +68,16 @@ export declare class TsGanttOptions {
 	columnsContentAlign: ("start" | "center" | "end")[];
 	chartHeaderHeightPx: number;
 	chartRowHeightPx: number;
-	chartScale: "week" | "month" | "year";
+	chartBarFontSizePx: number;
+	chartBarHeightPx: number;
+	chartBarMode: "planned" | "actual" | "both";
+	chartScale: "day" | "week" | "month" | "year";
+	chartDateOffsetDays: {
+		[key: string]: number;
+	};
+	chartDateOffsetDaysMin: {
+		[key: string]: number;
+	};
 	chartDayWidthPx: {
 		[key: string]: number;
 	};
@@ -107,24 +117,39 @@ export declare class TsGanttOptions {
 }
 export declare class TsGanttChart {
 	private _options;
-	private _chartColumns;
+	private _html;
+	get html(): SVGElement;
+	private _htmlHeader;
+	private _htmlBody;
+	private _chartBarGroups;
+	private _chartBarGroupsShown;
 	private _chartRows;
-	private _htmlSvg;
-	get htmlSvg(): SVGSVGElement;
-	constructor(classList: string[], options: TsGanttOptions);
-	update(data: TsGanttTaskChangesDetectionResult): void;
+	private _dateMin;
+	private _dateMax;
+	private _dateMinOffset;
+	private _dateMaxOffset;
+	private _width;
+	private _headerHeight;
+	private _bodyHeight;
+	constructor(options: TsGanttOptions);
+	update(forceRedraw: boolean, data: TsGanttTaskChangesDetectionResult): void;
+	private checkDates;
+	private refreshHeader;
+	private refreshBody;
+	private redraw;
 }
 export declare class TsGanttTable {
 	private _options;
-	private _htmlTable;
-	get htmlTable(): HTMLTableElement;
-	private _htmlTableHead;
-	private _htmlTableBody;
+	private _html;
+	get html(): HTMLTableElement;
+	private _htmlHead;
+	private _htmlBody;
 	private _tableColumns;
 	private _tableRows;
-	constructor(classList: string[], options: TsGanttOptions);
-	updateColumns(): void;
-	updateRows(data: TsGanttTaskChangesDetectionResult): void;
+	constructor(options: TsGanttOptions);
+	update(updateColumns: boolean, data: TsGanttTaskChangesDetectionResult): void;
+	private updateColumns;
+	private updateRows;
 	private getRowsHtmlRecursively;
 }
 export declare class TsGantt {
@@ -143,10 +168,9 @@ export declare class TsGantt {
 	private _htmlSeparatorDragActive;
 	private _table;
 	private _chart;
-	private _locale;
 	set locale(value: string);
-	private _scale;
-	set scale(value: "week" | "month" | "year");
+	set chartScale(value: "day" | "week" | "month" | "year");
+	set chartBarMode(value: "planned" | "actual" | "both");
 	constructor(containerSelector: string, options: TsGanttOptions);
 	destroy(): void;
 	onMouseDownOnSep: (e: MouseEvent) => void;
@@ -160,10 +184,10 @@ export declare class TsGantt {
 	private updateTasks;
 	private toggleTaskExpanded;
 	private selectTask;
-	private updateRows;
+	private update;
 	private updateLocale;
-	private updateScale;
-	private setTableWrapperWidth;
+	private updateChartScale;
+	private updateChartBarMode;
 }
 
 export {};

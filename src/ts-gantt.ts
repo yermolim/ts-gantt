@@ -18,7 +18,7 @@ class TsGantt {
   set tasks(models: TsGanttTaskModel[]) {
     const updateResult = this.updateTasks(models);
     const changeDetectionResult = TsGanttTask.detectTaskChanges(updateResult);
-    this.updateRows(changeDetectionResult);
+    this.update(changeDetectionResult);
   }
 
   private _selectedTask: TsGanttTask;
@@ -45,7 +45,6 @@ class TsGantt {
   private _table: TsGanttTable;
   private _chart: TsGanttChart;  
 
-  private _locale: string;
   set locale(value: string) {
     if (value !== this._options.locale) {
       this._options.locale = value;
@@ -53,11 +52,17 @@ class TsGantt {
     }
   }
   
-  private _scale: string;
-  set scale(value: "week" | "month" | "year") {
+  set chartScale(value: "day" | "week" | "month" | "year") {
     if (value !== this._options.chartScale) {
       this._options.chartScale = value;
-      this.updateScale();
+      this.updateChartScale();
+    }
+  }
+    
+  set chartBarMode(value: "planned" | "actual" | "both") {
+    if (value !== this._options.chartBarMode) {
+      this._options.chartBarMode = value;
+      this.updateChartBarMode();
     }
   }
 
@@ -91,8 +96,11 @@ class TsGantt {
       return false;
     }  
     const wrapperLeftOffset = this._htmlWrapper.offsetLeft;
-    const pointerRelX = e.clientX - wrapperLeftOffset;
-    this.setTableWrapperWidth(pointerRelX);
+    const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
+    const userDefinedWidth = e.clientX - wrapperLeftOffset;
+
+    this._htmlTableWrapper.style.width = (userDefinedWidth - 5) + "px";
+    this._htmlChartWrapper.style.width = (wrapperWidth - userDefinedWidth) + "px";
   };        
   onMouseUpOnSep = (e: MouseEvent) => {
     this._htmlSeparatorDragActive = false;
@@ -132,14 +140,14 @@ class TsGantt {
     const separator = document.createElement("div");
     separator.classList.add(TsGanttConst.SEPARATOR_CLASS);  
     
-    this._table = new TsGanttTable([TsGanttConst.TABLE_CLASS], this._options);
-    this._chart = new TsGanttChart([TsGanttConst.CHART_CLASS], this._options);      
+    this._table = new TsGanttTable(this._options);
+    this._chart = new TsGanttChart(this._options);      
  
     wrapper.append(tableWrapper);
     wrapper.append(separator);
     wrapper.append(chartWrapper);
-    tableWrapper.append(this._table.htmlTable);
-    chartWrapper.append(this._chart.htmlSvg);
+    tableWrapper.append(this._table.html);
+    chartWrapper.append(this._chart.html);
      
     this._htmlContainer.append(wrapper);     
     this._htmlWrapper = wrapper;
@@ -191,7 +199,7 @@ class TsGantt {
       }
     }
 
-    this.updateRows({added: [], deleted: [], changed: changedTasks});
+    this.update({added: [], deleted: [], changed: changedTasks, all: this._tasks});
   }
 
   private selectTask(newSelectedTask: TsGanttTask) {
@@ -215,26 +223,25 @@ class TsGantt {
       this._selectedTask = newSelectedTask;
     }
 
-    this.updateRows({added: [], deleted: [], changed: changedTasks});
+    this.update({added: [], deleted: [], changed: changedTasks, all: this._tasks});
   }
 
-  private updateRows(data: TsGanttTaskChangesDetectionResult) {
-    this._table.updateRows(data);
-    this._chart.update(data);
+  private update(data: TsGanttTaskChangesDetectionResult) {
+    this._table.update(false, data);
+    this._chart.update(false, data);
   }
 
-  private updateLocale() {
-
+  private updateLocale() {    
+    this._table.update(true, null);
+    this._chart.update(true, null);
   }
   
-  private updateScale() {
+  private updateChartScale() {
+    this._chart.update(true, null);
+  }  
 
-  }
-  // #endregion
-   
-  // #region ui methods
-  private setTableWrapperWidth(width: number) {    
-    this._htmlTableWrapper.style.width = width + "px";
+  private updateChartBarMode() {
+    this._chart.update(true, null);
   }
   // #endregion
 }

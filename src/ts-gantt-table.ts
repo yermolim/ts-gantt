@@ -47,7 +47,7 @@ class TsGanttTableRow {
     row.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
     row.addEventListener("click", (e: Event) => {
       const target = e.target as HTMLElement;
-      if (!target.classList.contains(TsGanttConst.CELL_EXPANDER_CLASS)) {
+      if (!target.classList.contains(TsGanttConst.TABLE_CELL_EXPANDER_CLASS)) {
         row.dispatchEvent(new Event(TsGanttConst.ROW_CLICK, {bubbles: true}));
       }
     });
@@ -58,7 +58,7 @@ class TsGanttTableRow {
     columns.forEach((x, i) => {
       const cell = document.createElement("td");
       const cellInnerDiv = document.createElement("div");
-      cellInnerDiv.classList.add(TsGanttConst.CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
+      cellInnerDiv.classList.add(TsGanttConst.TABLE_CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
 
       if (i === 0) {
         for (let j = 0; j < this.task.nestingLvl; j++) {
@@ -68,7 +68,7 @@ class TsGanttTableRow {
           cellInnerDiv.append(this.createSimpleIndent(TsGanttConst.CELL_EXPANDER_SYMBOL));
         } else {
           const expander = document.createElement("p");
-          expander.classList.add(TsGanttConst.CELL_EXPANDER_CLASS);
+          expander.classList.add(TsGanttConst.TABLE_CELL_EXPANDER_CLASS);
           expander.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
           expander.innerHTML = this.task.expanded 
             ? TsGanttConst.CELL_EXPANDER_EXPANDED_SYMBOL 
@@ -81,7 +81,7 @@ class TsGanttTableRow {
       }
 
       const cellText = document.createElement("p");
-      cellText.classList.add(TsGanttConst.CELL_TEXT_CLASS);
+      cellText.classList.add(TsGanttConst.TABLE_CELL_TEXT_CLASS);
       cellText.innerHTML = x.valueGetter(this.task);
       cellInnerDiv.append(cellText);
         
@@ -94,7 +94,7 @@ class TsGanttTableRow {
 
   private createSimpleIndent(innerHtml = ""): HTMLParagraphElement {
     const indent = document.createElement("p");
-    indent.classList.add(TsGanttConst.CELL_INDENT_CLASS);
+    indent.classList.add(TsGanttConst.TABLE_CELL_INDENT_CLASS);
     indent.innerHTML = innerHtml;
     return indent;
   }
@@ -103,33 +103,42 @@ class TsGanttTableRow {
 class TsGanttTable {
   private _options: TsGanttOptions;
   
-  private _htmlTable: HTMLTableElement;
-  get htmlTable(): HTMLTableElement {
-    return this._htmlTable;
+  private _html: HTMLTableElement;
+  get html(): HTMLTableElement {
+    return this._html;
   }  
 
-  private _htmlTableHead: HTMLTableSectionElement;
-  private _htmlTableBody: HTMLTableSectionElement;
+  private _htmlHead: HTMLTableSectionElement;
+  private _htmlBody: HTMLTableSectionElement;
 
   private _tableColumns: TsGanttTableColumn[];
   private _tableRows: TsGanttTableRow[] = [];
 
-  constructor(classList: string[], options: TsGanttOptions) {    
+  constructor(options: TsGanttOptions) {    
     this._options = options;
     
     const table = document.createElement("table");
-    table.classList.add(...classList);
+    table.classList.add(TsGanttConst.TABLE_CLASS);
     const tableHead = table.createTHead();
     const tableBody = table.createTBody();
 
-    this._htmlTableHead = tableHead;
-    this._htmlTableBody = tableBody;
-    this._htmlTable = table;
+    this._htmlHead = tableHead;
+    this._htmlBody = tableBody;
+    this._html = table;
     
     this.updateColumns();
   }
 
-  updateColumns() {
+  update(updateColumns: boolean, data: TsGanttTaskChangesDetectionResult ) {
+    if (updateColumns) {
+      this.updateColumns();
+    }
+    if (data) {
+      this.updateRows(data);
+    }
+  }
+
+  private updateColumns() {
     const columns: TsGanttTableColumn[] = [];
     for (let i = 0; i < 9; i++) {
       const minColumnWidth = this._options.columnsMinWidthPx[i];
@@ -144,11 +153,11 @@ class TsGanttTable {
     columns.forEach(x => headerRow.append(x.html));
 
     this._tableColumns = columns;
-    this._htmlTableHead.innerHTML = "";    
-    this._htmlTableHead.append(headerRow);    
+    this._htmlHead.innerHTML = "";    
+    this._htmlHead.append(headerRow);    
   }  
 
-  updateRows(data: TsGanttTaskChangesDetectionResult) {
+  private updateRows(data: TsGanttTaskChangesDetectionResult) {
     data.deleted.forEach(x => {
       const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
       if (index !== 1) {
@@ -163,8 +172,8 @@ class TsGanttTable {
     });
     data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns)));
 
-    this._htmlTableBody.innerHTML = "";
-    this._htmlTableBody.append(...this.getRowsHtmlRecursively(this._tableRows, null));
+    this._htmlBody.innerHTML = "";
+    this._htmlBody.append(...this.getRowsHtmlRecursively(this._tableRows, null));
   }
 
   private getRowsHtmlRecursively(rows: TsGanttTableRow[], parentUuid: string): HTMLTableRowElement[] {

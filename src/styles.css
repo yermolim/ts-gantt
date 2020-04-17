@@ -1,9 +1,11 @@
 :root {
   --tsg-font-family: 'Calibri', sans-serif;
   --tsg-table-min-width: 100px;
+  --tsg-chart-min-width: 100px;
+  --tsg-table-header-color: rgb(210, 210, 210);
   --tsg-table-border-color: rgb(190, 190, 190);
   --tsg-table-selection-color: rgb(230, 230, 230);
-  --tsg-header-height: 80px;
+  --tsg-header-height: 90px;
   --tsg-row-height: 40px;
   --tsg-row-nesting-indent: 20px;
   --tsg-max-cell-text-rows: 2;
@@ -16,8 +18,8 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: row;
-  justify-content: stretch;
-  align-items: stretch;
+  justify-content: flex-start;
+  align-items: flex-start;
   width: 100%;
   height: 100%;
   overflow-y: auto;
@@ -29,6 +31,7 @@
   display: flex;
   flex: 0 0 auto;
   width: 5px;
+  height: 100%;
   padding: 0;
   cursor: ew-resize;
   background-color: black;
@@ -39,6 +42,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  width: calc(50% - 5px);
   height: 100%;
   min-width: var(--tsg-table-min-width);
   overflow-y: auto;
@@ -61,16 +65,16 @@
   position: sticky;
   top: 0;
   padding: 5px;
-  background-color: var(--tsg-table-border-color);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--tsg-table-border-color);
+  background-color: var(--tsg-table-header-color);
   z-index: 5;
 }
 
 .tsg-table tbody tr {
   box-sizing: border-box;
   height: var(--tsg-row-height) !important;
-  border-width: 1px 0;
-  border-style: solid;
-  border-color: var(--tsg-table-border-color);
 }
 .tsg-table tbody tr.selected {
   background-color: var(--tsg-table-selection-color);
@@ -82,6 +86,9 @@
   box-sizing: border-box;
   padding: 0;
   cursor: default;
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--tsg-table-border-color);
 }
 
 .tsg-cell-text-wrapper {
@@ -149,11 +156,29 @@ tr.selected .tsg-cell-text:after {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
-  overflow-y: hidden;
+  width: 50%;
+  height: 100%;
+  min-width: var(--tsg-chart-min-width);
+  overflow-y: auto;
   overflow-x: auto;
 }
 
 .tsg-chart {
   box-sizing: border-box;
+}
+
+.tsg-chart-header-bg {
+  fill: var(--tsg-table-header-color);
+  stroke-width: 1px;
+  stroke: var(--tsg-table-border-color);
+}
+
+.tsg-chart-header-text {
+  font-family: var(--tsg-font-family);
+  font-weight: bold;
+}
+
+.tsg-chart-header-gl {  
+  stroke-width: 1px;
+  stroke: var(--tsg-table-border-color);
 }

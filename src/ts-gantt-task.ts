@@ -163,7 +163,7 @@ class TsGanttTask {
       }
     }
 
-    return { deleted, added, changed };
+    return { deleted, added, changed, all: newTasks };
   }
 
   static getTasksIdsMap(tasks: TsGanttTask[]): Map<string, string> {
@@ -248,6 +248,7 @@ class TsGanttTaskChangesDetectionResult {
   added: TsGanttTask[]; 
   deleted: TsGanttTask[]; 
   changed: TsGanttTask[];
+  all: TsGanttTask[];
 }
 
 export { TsGanttTask, TsGanttTaskModel, TsGanttTaskUpdateResult, 

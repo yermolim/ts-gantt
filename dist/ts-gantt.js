@@ -1,6 +1,5 @@
 class TsGanttConst {
 }
-TsGanttConst.SVG_NS = "http://www.w3.org/2000/svg";
 TsGanttConst.WRAPPER_CLASS = "tsg-wrapper";
 TsGanttConst.FOOTER_CLASS = "tsg-footer";
 TsGanttConst.TABLE_WRAPPER_CLASS = "tsg-table-wrapper";
@@ -12,17 +11,57 @@ TsGanttConst.ROW_UUID_ATTRIBUTE = "data-tsg-row-uuid";
 TsGanttConst.ROW_UUID_DATASET_KEY = "tsgRowUuid";
 TsGanttConst.ROW_SELECTED_CLASS = "selected";
 TsGanttConst.ROW_CLICK = "tsgrowclick";
-TsGanttConst.CELL_TEXT_WRAPPER_CLASS = "tsg-cell-text-wrapper";
-TsGanttConst.CELL_TEXT_CLASS = "tsg-cell-text";
-TsGanttConst.CELL_INDENT_CLASS = "tsg-cell-text-indent";
-TsGanttConst.CELL_EXPANDER_CLASS = "tsg-cell-text-expander";
+TsGanttConst.TABLE_CELL_TEXT_WRAPPER_CLASS = "tsg-cell-text-wrapper";
+TsGanttConst.TABLE_CELL_TEXT_CLASS = "tsg-cell-text";
+TsGanttConst.TABLE_CELL_INDENT_CLASS = "tsg-cell-text-indent";
+TsGanttConst.TABLE_CELL_EXPANDER_CLASS = "tsg-cell-text-expander";
 TsGanttConst.CELL_EXPANDER_CLICK = "tsgexpanderclick";
 TsGanttConst.CELL_EXPANDER_SYMBOL = "◆";
 TsGanttConst.CELL_EXPANDER_EXPANDABLE_SYMBOL = "⬘";
 TsGanttConst.CELL_EXPANDER_EXPANDED_SYMBOL = "⬙";
+TsGanttConst.CHART_HEADER_CLASS = "tsg-chart-header";
+TsGanttConst.CHART_HEADER_BACKGROUND_CLASS = "tsg-chart-header-bg";
+TsGanttConst.CHART_HEADER_GRIDLINES_CLASS = "tsg-chart-header-gl";
+TsGanttConst.CHART_HEADER_TEXT_CLASS = "tsg-chart-header-text";
+TsGanttConst.CHART_BODY_CLASS = "tsg-chart-body";
+TsGanttConst.CHART_BODY_BACKGROUND_CLASS = "tsg-chart-body-bg";
+TsGanttConst.CHART_BODY_GRIDLINES_CLASS = "tsg-chart-body-gl";
 
 function getRandomUuid() {
     return crypto.getRandomValues(new Uint32Array(4)).join("-");
+}
+function createSvgElement(elementTag, classList = [], attributes = [], parent = null, innerHtml = null) {
+    const element = document.createElementNS("http://www.w3.org/2000/svg", elementTag);
+    for (const attribute of attributes) {
+        element.setAttribute(attribute[0], attribute[1]);
+    }
+    if (classList.length !== 0) {
+        element.classList.add(...classList);
+    }
+    if (innerHtml) {
+        element.innerHTML = innerHtml;
+    }
+    if (parent) {
+        parent.append(element);
+    }
+    return element;
+}
+function getAllDatesBetweenTwoDates(start, end) {
+    const dateStart = start.startOf("day");
+    const dateEnd = end.startOf("day");
+    if (!dateStart || !dateEnd || dateEnd.diff(dateStart) < 0) {
+        return [];
+    }
+    if (dateEnd.diff(dateStart) === 0) {
+        return [dateStart];
+    }
+    const dates = [];
+    let currentDate = dateStart;
+    while (currentDate.isBefore(dateEnd) || currentDate.isSame(dateEnd)) {
+        dates.push(currentDate);
+        currentDate = currentDate.add(1, "day");
+    }
+    return dates;
 }
 
 class TsGanttTaskModel {
@@ -117,7 +156,7 @@ class TsGanttTask {
                 changed.push(newTask);
             }
         }
-        return { deleted, added, changed };
+        return { deleted, added, changed, all: newTasks };
     }
     static getTasksIdsMap(tasks) {
         const idsMap = new Map();
@@ -214,12 +253,28 @@ class TsGanttOptions {
         this.enableProgressEdit = true;
         this.columnsMinWidthPx = [200, 100, 100, 100, 100, 100, 100, 100];
         this.columnsContentAlign = ["start", "end", "center", "center", "center", "center", "center", "center"];
-        this.chartHeaderHeightPx = 80;
+        this.chartHeaderHeightPx = 90;
         this.chartRowHeightPx = 40;
+        this.chartBarFontSizePx = 12;
+        this.chartBarHeightPx = 16;
+        this.chartBarMode = "both";
         this.chartScale = "month";
-        this.chartDayWidthPx = {
+        this.chartDateOffsetDays = {
+            "day": 14,
+            "week": 60,
+            "month": 240,
+            "year": 730,
+        };
+        this.chartDateOffsetDaysMin = {
+            "day": 7,
             "week": 30,
-            "month": 10,
+            "month": 120,
+            "year": 365,
+        };
+        this.chartDayWidthPx = {
+            "day": 60,
+            "week": 20,
+            "month": 3,
             "year": 1,
         };
         this.locale = "en";
@@ -252,9 +307,9 @@ class TsGanttOptions {
             ru: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
         };
         this.localeDateDaysShort = {
-            en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-            uk: ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"],
-            ru: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
+            en: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+            uk: ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+            ru: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
         };
         this.localeDateScale = {
             en: ["Weeks", "Months", "Years"],
@@ -354,16 +409,297 @@ class TsGanttOptions {
 }
 
 class TsGanttChart {
-    constructor(classList, options) {
+    constructor(options) {
+        this._chartBarGroups = [];
+        this._chartBarGroupsShown = [];
+        this._chartRows = [];
         this._options = options;
-        const svg = document.createElementNS(TsGanttConst.SVG_NS, "svg");
-        svg.classList.add(...classList);
-        this._htmlSvg = svg;
+        const svg = createSvgElement("svg", [TsGanttConst.CHART_CLASS]);
+        this._html = svg;
     }
-    get htmlSvg() {
-        return this._htmlSvg;
+    get html() {
+        return this._html;
     }
-    update(data) {
+    update(forceRedraw, data) {
+        const datesCheckResult = this.checkDates(data.all);
+        if (!datesCheckResult || forceRedraw) {
+            this.refreshHeader();
+        }
+        this.refreshBody();
+        this.redraw();
+    }
+    checkDates(tasks) {
+        const currentDateMin = this._dateMinOffset;
+        const currentDateMax = this._dateMaxOffset;
+        const chartScale = this._options.chartScale;
+        const dateOffsetMin = this._options.chartDateOffsetDaysMin[chartScale];
+        const dateOffset = this._options.chartDateOffsetDays[chartScale];
+        let dateMin = dayjs_min();
+        let dateMax = dayjs_min();
+        for (const task of tasks) {
+            const plannedStart = dayjs_min(task.datePlannedStart);
+            const plannedEnd = dayjs_min(task.datePlannedEnd);
+            const actualStart = task.dateActualStart ? dayjs_min(task.dateActualStart) : null;
+            const actualEnd = task.dateActualEnd ? dayjs_min(task.dateActualEnd) : null;
+            if (plannedStart.isBefore(dateMin)) {
+                dateMin = plannedStart;
+            }
+            if (plannedEnd.isAfter(dateMax)) {
+                dateMax = plannedEnd;
+            }
+            if (actualStart && actualStart.isBefore(dateMin)) {
+                dateMin = actualStart;
+            }
+            if (actualEnd && actualEnd.isAfter(dateMax)) {
+                dateMax = actualEnd;
+            }
+        }
+        this._dateMin = dateMin;
+        this._dateMax = dateMax;
+        if (!currentDateMin
+            || currentDateMin.isAfter(dateMin)
+            || dateMin.diff(currentDateMin, "day") < dateOffsetMin) {
+            this._dateMinOffset = dateMin.subtract(dateOffset, "day");
+        }
+        if (!currentDateMax
+            || currentDateMax.isBefore(dateMax)
+            || currentDateMax.diff(dateMax, "day") < dateOffsetMin) {
+            this._dateMaxOffset = dateMax.add(dateOffset, "day");
+        }
+        return this._dateMinOffset === currentDateMin && this._dateMaxOffset === currentDateMax;
+    }
+    refreshHeader() {
+        const scale = this._options.chartScale;
+        const dayWidth = this._options.chartDayWidthPx[scale];
+        const height = this._options.chartHeaderHeightPx;
+        const minDate = this._dateMinOffset;
+        const maxDate = this._dateMaxOffset;
+        const dates = getAllDatesBetweenTwoDates(this._dateMinOffset, this._dateMaxOffset);
+        const width = dates.length * dayWidth;
+        const locale = this._options.locale;
+        const months = this._options.localeDateMonths[locale];
+        const daysShort = this._options.localeDateDaysShort[locale];
+        const days = this._options.localeDateDays[locale];
+        const header = createSvgElement("svg", [TsGanttConst.CHART_HEADER_CLASS], [
+            ["width", width + ""],
+            ["height", height + ""],
+        ]);
+        const headerBg = createSvgElement("rect", [TsGanttConst.CHART_HEADER_BACKGROUND_CLASS], [
+            ["width", width + ""],
+            ["height", height + ""],
+        ], header);
+        let currentDayOffset = 0;
+        let monthStartOffset = 0;
+        let yearStartOffset = 0;
+        if (scale === "year") {
+            for (const date of dates) {
+                const nextDayOffset = currentDayOffset + dayWidth;
+                if (date.isSame(date.endOf("year").startOf("day")) || date.isSame(maxDate)) {
+                    const yearWidth = nextDayOffset - yearStartOffset;
+                    const yearSvg = createSvgElement("svg", [], [
+                        ["x", yearStartOffset + ""],
+                        ["y", "0"],
+                        ["width", yearWidth + ""],
+                        ["height", height + ""],
+                    ], header);
+                    if (yearWidth >= 60) {
+                        const yearText = createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+                            ["x", "50%"],
+                            ["y", "50%"],
+                            ["dominant-baseline", "middle"],
+                            ["text-anchor", "middle"],
+                        ], yearSvg, date.year() + "");
+                    }
+                    const rightBorder = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                        ["x1", nextDayOffset + ""],
+                        ["y1", 0 + ""],
+                        ["x2", nextDayOffset + ""],
+                        ["y2", height + ""],
+                    ], header);
+                    yearStartOffset = nextDayOffset;
+                }
+                currentDayOffset = nextDayOffset;
+            }
+        }
+        else if (scale === "month") {
+            const rowHeight = height / 2;
+            const y0 = 0;
+            const y1 = rowHeight;
+            const rowBottomBorder = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                ["x1", 0 + ""],
+                ["y1", y1 + ""],
+                ["x2", width + ""],
+                ["y2", y1 + ""],
+            ], header);
+            for (const date of dates) {
+                const nextDayOffset = currentDayOffset + dayWidth;
+                if (date.isSame(date.endOf("year").startOf("day")) || date.isSame(maxDate)) {
+                    const yearWidth = nextDayOffset - yearStartOffset;
+                    const yearSvg = createSvgElement("svg", [], [
+                        ["x", yearStartOffset + ""],
+                        ["y", y0 + ""],
+                        ["width", yearWidth + ""],
+                        ["height", rowHeight + ""],
+                    ], header);
+                    if (yearWidth >= 60) {
+                        const yearText = createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+                            ["x", "50%"],
+                            ["y", "50%"],
+                            ["dominant-baseline", "middle"],
+                            ["text-anchor", "middle"],
+                        ], yearSvg, date.year() + "");
+                    }
+                    const yearRightBorder = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                        ["x1", nextDayOffset + ""],
+                        ["y1", y0 + ""],
+                        ["x2", nextDayOffset + ""],
+                        ["y2", y1 + ""],
+                    ], header);
+                    yearStartOffset = nextDayOffset;
+                }
+                if (date.isSame(date.endOf("month").startOf("day")) || date.isSame(maxDate)) {
+                    const monthWidth = nextDayOffset - monthStartOffset;
+                    const monthSvg = createSvgElement("svg", [], [
+                        ["x", monthStartOffset + ""],
+                        ["y", y1 + ""],
+                        ["width", monthWidth + ""],
+                        ["height", rowHeight + ""],
+                    ], header);
+                    if (monthWidth >= 60) {
+                        const monthName = months[date.month()];
+                        const monthText = createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+                            ["x", "50%"],
+                            ["y", "50%"],
+                            ["dominant-baseline", "middle"],
+                            ["text-anchor", "middle"],
+                        ], monthSvg, monthName);
+                    }
+                    const monthRightBorder = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                        ["x1", nextDayOffset + ""],
+                        ["y1", y1 + ""],
+                        ["x2", nextDayOffset + ""],
+                        ["y2", height + ""],
+                    ], header);
+                    monthStartOffset = nextDayOffset;
+                }
+                currentDayOffset = nextDayOffset;
+            }
+        }
+        else if (scale === "week" || scale === "day") {
+            const rowHeight = height / 3;
+            const y0 = 0;
+            const y1 = rowHeight;
+            const y2 = rowHeight * 2;
+            const rowBottomBorder1 = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                ["x1", 0 + ""],
+                ["y1", y1 + ""],
+                ["x2", width + ""],
+                ["y2", y1 + ""],
+            ], header);
+            const rowBottomBorder2 = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                ["x1", 0 + ""],
+                ["y1", y2 + ""],
+                ["x2", width + ""],
+                ["y2", y2 + ""],
+            ], header);
+            for (const date of dates) {
+                const nextDayOffset = currentDayOffset + dayWidth;
+                if (date.isSame(date.endOf("year").startOf("day")) || date.isSame(maxDate)) {
+                    const yearWidth = nextDayOffset - yearStartOffset;
+                    const yearSvg = createSvgElement("svg", [], [
+                        ["x", yearStartOffset + ""],
+                        ["y", y0 + ""],
+                        ["width", yearWidth + ""],
+                        ["height", rowHeight + ""],
+                    ], header);
+                    if (yearWidth >= 60) {
+                        const yearText = createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+                            ["x", "50%"],
+                            ["y", "50%"],
+                            ["dominant-baseline", "middle"],
+                            ["text-anchor", "middle"],
+                        ], yearSvg, date.year() + "");
+                    }
+                    const yearRightBorder = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                        ["x1", nextDayOffset + ""],
+                        ["y1", y0 + ""],
+                        ["x2", nextDayOffset + ""],
+                        ["y2", y1 + ""],
+                    ], header);
+                    yearStartOffset = nextDayOffset;
+                }
+                if (date.isSame(date.endOf("month").startOf("day")) || date.isSame(maxDate)) {
+                    const monthWidth = nextDayOffset - monthStartOffset;
+                    const monthSvg = createSvgElement("svg", [], [
+                        ["x", monthStartOffset + ""],
+                        ["y", y1 + ""],
+                        ["width", monthWidth + ""],
+                        ["height", rowHeight + ""],
+                    ], header);
+                    if (monthWidth >= 60) {
+                        const monthName = months[date.month()];
+                        const monthText = createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+                            ["x", "50%"],
+                            ["y", "50%"],
+                            ["dominant-baseline", "middle"],
+                            ["text-anchor", "middle"],
+                        ], monthSvg, monthName);
+                    }
+                    const monthRightBorder = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                        ["x1", nextDayOffset + ""],
+                        ["y1", y1 + ""],
+                        ["x2", nextDayOffset + ""],
+                        ["y2", y2 + ""],
+                    ], header);
+                    monthStartOffset = nextDayOffset;
+                }
+                const daySvg = createSvgElement("svg", [], [
+                    ["x", currentDayOffset + ""],
+                    ["y", y2 + ""],
+                    ["width", dayWidth + ""],
+                    ["height", rowHeight + ""],
+                ], header);
+                const dayName = dayWidth < 30
+                    ? date.date() + ""
+                    : daysShort[date.day()] + " " + date.date();
+                const dayText = createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+                    ["x", "50%"],
+                    ["y", "50%"],
+                    ["dominant-baseline", "middle"],
+                    ["text-anchor", "middle"],
+                ], daySvg, dayName);
+                const dayRightBorder = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                    ["x1", nextDayOffset + ""],
+                    ["y1", y2 + ""],
+                    ["x2", nextDayOffset + ""],
+                    ["y2", height + ""],
+                ], header);
+                currentDayOffset = nextDayOffset;
+            }
+        }
+        this._width = width;
+        this._headerHeight = height;
+        this._htmlHeader = header;
+    }
+    refreshBody() {
+        const scale = this._options.chartScale;
+        const dayWidthPx = this._options.chartDayWidthPx[scale];
+        const widthPx = this._width;
+        const heightPx = 0;
+        const body = createSvgElement("svg", [TsGanttConst.CHART_BODY_CLASS]);
+        this._bodyHeight = heightPx;
+        this._htmlBody = body;
+    }
+    redraw() {
+        const height = this._headerHeight + this._bodyHeight;
+        const oldHtml = this._html;
+        const newHtml = createSvgElement("svg", [TsGanttConst.CHART_CLASS], [
+            ["width", this._width + ""],
+            ["height", height + ""],
+        ]);
+        newHtml.append(this._htmlHeader, this._htmlBody);
+        oldHtml.replaceWith(newHtml);
+        this._html = newHtml;
     }
 }
 
@@ -395,7 +731,7 @@ class TsGanttTableRow {
         row.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
         row.addEventListener("click", (e) => {
             const target = e.target;
-            if (!target.classList.contains(TsGanttConst.CELL_EXPANDER_CLASS)) {
+            if (!target.classList.contains(TsGanttConst.TABLE_CELL_EXPANDER_CLASS)) {
                 row.dispatchEvent(new Event(TsGanttConst.ROW_CLICK, { bubbles: true }));
             }
         });
@@ -405,7 +741,7 @@ class TsGanttTableRow {
         columns.forEach((x, i) => {
             const cell = document.createElement("td");
             const cellInnerDiv = document.createElement("div");
-            cellInnerDiv.classList.add(TsGanttConst.CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
+            cellInnerDiv.classList.add(TsGanttConst.TABLE_CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
             if (i === 0) {
                 for (let j = 0; j < this.task.nestingLvl; j++) {
                     cellInnerDiv.append(this.createSimpleIndent());
@@ -415,7 +751,7 @@ class TsGanttTableRow {
                 }
                 else {
                     const expander = document.createElement("p");
-                    expander.classList.add(TsGanttConst.CELL_EXPANDER_CLASS);
+                    expander.classList.add(TsGanttConst.TABLE_CELL_EXPANDER_CLASS);
                     expander.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
                     expander.innerHTML = this.task.expanded
                         ? TsGanttConst.CELL_EXPANDER_EXPANDED_SYMBOL
@@ -427,7 +763,7 @@ class TsGanttTableRow {
                 }
             }
             const cellText = document.createElement("p");
-            cellText.classList.add(TsGanttConst.CELL_TEXT_CLASS);
+            cellText.classList.add(TsGanttConst.TABLE_CELL_TEXT_CLASS);
             cellText.innerHTML = x.valueGetter(this.task);
             cellInnerDiv.append(cellText);
             cell.append(cellInnerDiv);
@@ -437,26 +773,34 @@ class TsGanttTableRow {
     }
     createSimpleIndent(innerHtml = "") {
         const indent = document.createElement("p");
-        indent.classList.add(TsGanttConst.CELL_INDENT_CLASS);
+        indent.classList.add(TsGanttConst.TABLE_CELL_INDENT_CLASS);
         indent.innerHTML = innerHtml;
         return indent;
     }
 }
 class TsGanttTable {
-    constructor(classList, options) {
+    constructor(options) {
         this._tableRows = [];
         this._options = options;
         const table = document.createElement("table");
-        table.classList.add(...classList);
+        table.classList.add(TsGanttConst.TABLE_CLASS);
         const tableHead = table.createTHead();
         const tableBody = table.createTBody();
-        this._htmlTableHead = tableHead;
-        this._htmlTableBody = tableBody;
-        this._htmlTable = table;
+        this._htmlHead = tableHead;
+        this._htmlBody = tableBody;
+        this._html = table;
         this.updateColumns();
     }
-    get htmlTable() {
-        return this._htmlTable;
+    get html() {
+        return this._html;
+    }
+    update(updateColumns, data) {
+        if (updateColumns) {
+            this.updateColumns();
+        }
+        if (data) {
+            this.updateRows(data);
+        }
     }
     updateColumns() {
         const columns = [];
@@ -470,8 +814,8 @@ class TsGanttTable {
         const headerRow = document.createElement("tr");
         columns.forEach(x => headerRow.append(x.html));
         this._tableColumns = columns;
-        this._htmlTableHead.innerHTML = "";
-        this._htmlTableHead.append(headerRow);
+        this._htmlHead.innerHTML = "";
+        this._htmlHead.append(headerRow);
     }
     updateRows(data) {
         data.deleted.forEach(x => {
@@ -487,8 +831,8 @@ class TsGanttTable {
             }
         });
         data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns)));
-        this._htmlTableBody.innerHTML = "";
-        this._htmlTableBody.append(...this.getRowsHtmlRecursively(this._tableRows, null));
+        this._htmlBody.innerHTML = "";
+        this._htmlBody.append(...this.getRowsHtmlRecursively(this._tableRows, null));
     }
     getRowsHtmlRecursively(rows, parentUuid) {
         const rowsFiltered = rows.filter(x => x.task.parentUuid === parentUuid)
@@ -521,8 +865,10 @@ class TsGantt {
                 return false;
             }
             const wrapperLeftOffset = this._htmlWrapper.offsetLeft;
-            const pointerRelX = e.clientX - wrapperLeftOffset;
-            this.setTableWrapperWidth(pointerRelX);
+            const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
+            const userDefinedWidth = e.clientX - wrapperLeftOffset;
+            this._htmlTableWrapper.style.width = (userDefinedWidth - 5) + "px";
+            this._htmlChartWrapper.style.width = (wrapperWidth - userDefinedWidth) + "px";
         };
         this.onMouseUpOnSep = (e) => {
             this._htmlSeparatorDragActive = false;
@@ -550,7 +896,7 @@ class TsGantt {
     set tasks(models) {
         const updateResult = this.updateTasks(models);
         const changeDetectionResult = TsGanttTask.detectTaskChanges(updateResult);
-        this.updateRows(changeDetectionResult);
+        this.update(changeDetectionResult);
     }
     get selectedTask() {
         return this._selectedTask
@@ -569,10 +915,16 @@ class TsGantt {
             this.updateLocale();
         }
     }
-    set scale(value) {
+    set chartScale(value) {
         if (value !== this._options.chartScale) {
             this._options.chartScale = value;
-            this.updateScale();
+            this.updateChartScale();
+        }
+    }
+    set chartBarMode(value) {
+        if (value !== this._options.chartBarMode) {
+            this._options.chartBarMode = value;
+            this.updateChartBarMode();
         }
     }
     destroy() {
@@ -598,13 +950,13 @@ class TsGantt {
         chartWrapper.classList.add(TsGanttConst.CHART_WRAPPER_CLASS);
         const separator = document.createElement("div");
         separator.classList.add(TsGanttConst.SEPARATOR_CLASS);
-        this._table = new TsGanttTable([TsGanttConst.TABLE_CLASS], this._options);
-        this._chart = new TsGanttChart([TsGanttConst.CHART_CLASS], this._options);
+        this._table = new TsGanttTable(this._options);
+        this._chart = new TsGanttChart(this._options);
         wrapper.append(tableWrapper);
         wrapper.append(separator);
         wrapper.append(chartWrapper);
-        tableWrapper.append(this._table.htmlTable);
-        chartWrapper.append(this._chart.htmlSvg);
+        tableWrapper.append(this._table.html);
+        chartWrapper.append(this._chart.html);
         this._htmlContainer.append(wrapper);
         this._htmlWrapper = wrapper;
         this._htmlTableWrapper = tableWrapper;
@@ -649,7 +1001,7 @@ class TsGantt {
                 changedTasks.push(selectedTask);
             }
         }
-        this.updateRows({ added: [], deleted: [], changed: changedTasks });
+        this.update({ added: [], deleted: [], changed: changedTasks, all: this._tasks });
     }
     selectTask(newSelectedTask) {
         const oldSelectedTask = this._selectedTask;
@@ -668,18 +1020,21 @@ class TsGantt {
             changedTasks.push(newSelectedTask);
             this._selectedTask = newSelectedTask;
         }
-        this.updateRows({ added: [], deleted: [], changed: changedTasks });
+        this.update({ added: [], deleted: [], changed: changedTasks, all: this._tasks });
     }
-    updateRows(data) {
-        this._table.updateRows(data);
-        this._chart.update(data);
+    update(data) {
+        this._table.update(false, data);
+        this._chart.update(false, data);
     }
     updateLocale() {
+        this._table.update(true, null);
+        this._chart.update(true, null);
     }
-    updateScale() {
+    updateChartScale() {
+        this._chart.update(true, null);
     }
-    setTableWrapperWidth(width) {
-        this._htmlTableWrapper.style.width = width + "px";
+    updateChartBarMode() {
+        this._chart.update(true, null);
     }
 }
 
