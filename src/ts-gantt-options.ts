@@ -15,8 +15,6 @@ class TsGanttOptions {
 
   chartHeaderHeightPx = 90; // change in conjuction with css styles for grid
   chartRowHeightPx = 40; // change in conjuction with css styles for grid
-  chartBarFontSizePx = 12; 
-  chartBarHeightPx = 16; // *2 used if any of singlebar modes selected
   chartBarMode: "planned" | "actual" | "both" = "both";
   chartScale: "day" | "week" | "month" | "year" = "month";
   chartDateOffsetDays: {[key: string]: number} = {
@@ -125,28 +123,28 @@ class TsGanttOptions {
   };
 
   columnValueGetters: ((a: TsGanttTask) => string)[] = [
-    ((task: TsGanttTask) => task.localizedNames[this.locale] || task.name).bind(this),
-    ((task: TsGanttTask) => (+task.progress.toFixed(2)).toLocaleString("en-US")
-      .replace(".", this.localeDecimalSeparator[this.locale] || ".")).bind(this),
-    ((task: TsGanttTask) => dayjs(task.datePlannedStart)
-      .format(this.localeDateFormat[this.locale] || "L")).bind(this),
-    ((task: TsGanttTask) => dayjs(task.datePlannedEnd)
-      .format(this.localeDateFormat[this.locale] || "L")).bind(this),
-    ((task: TsGanttTask) => task.dateActualStart 
+    (task: TsGanttTask) => task.localizedNames[this.locale] || task.name,
+    (task: TsGanttTask) => (+task.progress.toFixed(2)).toLocaleString("en-US")
+      .replace(".", this.localeDecimalSeparator[this.locale] || ".") + " %",
+    (task: TsGanttTask) => dayjs(task.datePlannedStart)
+      .format(this.localeDateFormat[this.locale] || "L"),
+    (task: TsGanttTask) => dayjs(task.datePlannedEnd)
+      .format(this.localeDateFormat[this.locale] || "L"),
+    (task: TsGanttTask) => task.dateActualStart 
       ? dayjs(task.dateActualStart).format(this.localeDateFormat[this.locale] || "L")
-      : "").bind(this),
-    ((task: TsGanttTask) => task.dateActualEnd 
+      : "",
+    (task: TsGanttTask) => task.dateActualEnd 
       ? dayjs(task.dateActualEnd).format(this.localeDateFormat[this.locale] || "L")
-      : "").bind(this),
-    ((task: TsGanttTask) => {
+      : "",
+    (task: TsGanttTask) => {
       const end = dayjs(task.datePlannedEnd);
       const start = dayjs(task.datePlannedStart);
       const duration = end.diff(start, "day") + 1;
       return this.localeDurationFormatters[this.locale]
         ? this.localeDurationFormatters[this.locale](duration) 
         : duration.toString();
-    }).bind(this),
-    ((task: TsGanttTask) => {
+    },
+    (task: TsGanttTask) => {
       if (!task.dateActualEnd || !task.dateActualStart) {
         return "";
       }
@@ -156,7 +154,7 @@ class TsGanttOptions {
       return this.localeDurationFormatters[this.locale]
         ? this.localeDurationFormatters[this.locale](duration) 
         : duration.toString();
-    }).bind(this),
+    },
   ];
   
   constructor(item: object = null) {

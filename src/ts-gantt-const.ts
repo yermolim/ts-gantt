@@ -28,7 +28,8 @@ class TsGanttConst {
   static readonly CHART_HEADER_TEXT_CLASS = "tsg-chart-header-text";
   static readonly CHART_BODY_CLASS = "tsg-chart-body";
   static readonly CHART_BODY_BACKGROUND_CLASS = "tsg-chart-body-bg";
-  static readonly CHART_BODY_GRIDLINES_CLASS = "tsg-chart-body-gl";
+  static readonly CHART_BODY_GRIDLINES_CLASS = "tsg-chart-body-gl";  
+  static readonly CHART_BODY_ROW_BACKGROUND_CLASS = "tsg-chart-body-row-bg";
 }
 
 export { TsGanttConst };

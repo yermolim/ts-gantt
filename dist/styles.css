@@ -1,5 +1,4 @@
 :root {
-  --tsg-font-family: 'Calibri', sans-serif;
   --tsg-table-min-width: 100px;
   --tsg-chart-min-width: 100px;
   --tsg-table-header-color: rgb(210, 210, 210);
@@ -9,8 +8,9 @@
   --tsg-row-height: 40px;
   --tsg-row-nesting-indent: 20px;
   --tsg-max-cell-text-rows: 2;
-  --tsg-line-height: 16px;
+  --tsg-font-family: 'Calibri', sans-serif;
   --tsg-font-size: 14px;
+  --tsg-line-height: 16px;
 }
 
 .tsg-wrapper {  
@@ -52,7 +52,7 @@
 .tsg-table {
   box-sizing: border-box;
   width: 100%;
-  border-collapse: collapse;
+  border-spacing: 0;
   font-family: var(--tsg-font-family);
 }
 
@@ -65,7 +65,7 @@
   position: sticky;
   top: 0;
   padding: 5px;
-  border-width: 1px;
+  border-width: 0 1px 1px 0;
   border-style: solid;
   border-color: var(--tsg-table-border-color);
   background-color: var(--tsg-table-header-color);
@@ -86,7 +86,7 @@
   box-sizing: border-box;
   padding: 0;
   cursor: default;
-  border-width: 1px;
+  border-width: 0 1px 1px 0;
   border-style: solid;
   border-color: var(--tsg-table-border-color);
 }
@@ -175,10 +175,26 @@ tr.selected .tsg-cell-text:after {
 
 .tsg-chart-header-text {
   font-family: var(--tsg-font-family);
+  font-size: var(--tsg-font-size);
   font-weight: bold;
 }
 
 .tsg-chart-header-gl {  
   stroke-width: 1px;
   stroke: var(--tsg-table-border-color);
+  shape-rendering: crispEdges;
+}
+
+.tsg-chart-body-bg {
+  fill: white;
+}
+
+.tsg-chart-body-gl {  
+  stroke-width: 1px;
+  stroke: var(--tsg-table-border-color);
+  shape-rendering: crispEdges;
+}
+
+.tsg-chart-body-row-bg.selected {
+  fill: var(--tsg-table-selection-color);
 }

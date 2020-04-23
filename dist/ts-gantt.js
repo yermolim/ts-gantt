@@ -26,6 +26,7 @@ TsGanttConst.CHART_HEADER_TEXT_CLASS = "tsg-chart-header-text";
 TsGanttConst.CHART_BODY_CLASS = "tsg-chart-body";
 TsGanttConst.CHART_BODY_BACKGROUND_CLASS = "tsg-chart-body-bg";
 TsGanttConst.CHART_BODY_GRIDLINES_CLASS = "tsg-chart-body-gl";
+TsGanttConst.CHART_BODY_ROW_BACKGROUND_CLASS = "tsg-chart-body-row-bg";
 
 function getRandomUuid() {
     return crypto.getRandomValues(new Uint32Array(4)).join("-");
@@ -255,8 +256,6 @@ class TsGanttOptions {
         this.columnsContentAlign = ["start", "end", "center", "center", "center", "center", "center", "center"];
         this.chartHeaderHeightPx = 90;
         this.chartRowHeightPx = 40;
-        this.chartBarFontSizePx = 12;
-        this.chartBarHeightPx = 16;
         this.chartBarMode = "both";
         this.chartScale = "month";
         this.chartDateOffsetDays = {
@@ -369,28 +368,28 @@ class TsGanttOptions {
             },
         };
         this.columnValueGetters = [
-            ((task) => task.localizedNames[this.locale] || task.name).bind(this),
-            ((task) => (+task.progress.toFixed(2)).toLocaleString("en-US")
-                .replace(".", this.localeDecimalSeparator[this.locale] || ".")).bind(this),
-            ((task) => dayjs_min(task.datePlannedStart)
-                .format(this.localeDateFormat[this.locale] || "L")).bind(this),
-            ((task) => dayjs_min(task.datePlannedEnd)
-                .format(this.localeDateFormat[this.locale] || "L")).bind(this),
-            ((task) => task.dateActualStart
+            (task) => task.localizedNames[this.locale] || task.name,
+            (task) => (+task.progress.toFixed(2)).toLocaleString("en-US")
+                .replace(".", this.localeDecimalSeparator[this.locale] || ".") + " %",
+            (task) => dayjs_min(task.datePlannedStart)
+                .format(this.localeDateFormat[this.locale] || "L"),
+            (task) => dayjs_min(task.datePlannedEnd)
+                .format(this.localeDateFormat[this.locale] || "L"),
+            (task) => task.dateActualStart
                 ? dayjs_min(task.dateActualStart).format(this.localeDateFormat[this.locale] || "L")
-                : "").bind(this),
-            ((task) => task.dateActualEnd
+                : "",
+            (task) => task.dateActualEnd
                 ? dayjs_min(task.dateActualEnd).format(this.localeDateFormat[this.locale] || "L")
-                : "").bind(this),
-            ((task) => {
+                : "",
+            (task) => {
                 const end = dayjs_min(task.datePlannedEnd);
                 const start = dayjs_min(task.datePlannedStart);
                 const duration = end.diff(start, "day") + 1;
                 return this.localeDurationFormatters[this.locale]
                     ? this.localeDurationFormatters[this.locale](duration)
                     : duration.toString();
-            }).bind(this),
-            ((task) => {
+            },
+            (task) => {
                 if (!task.dateActualEnd || !task.dateActualStart) {
                     return "";
                 }
@@ -400,7 +399,7 @@ class TsGanttOptions {
                 return this.localeDurationFormatters[this.locale]
                     ? this.localeDurationFormatters[this.locale](duration)
                     : duration.toString();
-            }).bind(this),
+            },
         ];
         if (item != null) {
             Object.assign(this, item);
@@ -408,10 +407,19 @@ class TsGanttOptions {
     }
 }
 
+class TsGanttChartBarGroup {
+    constructor(task, mode, dayWidth, height, y0, y1) {
+        this.task = task;
+    }
+}
+class TsGanttChartRow {
+    constructor(barGroup, rowWidth, rowHeight) {
+        this.barGroup = barGroup;
+    }
+}
 class TsGanttChart {
     constructor(options) {
         this._chartBarGroups = [];
-        this._chartBarGroupsShown = [];
         this._chartRows = [];
         this._options = options;
         const svg = createSvgElement("svg", [TsGanttConst.CHART_CLASS]);
@@ -425,6 +433,10 @@ class TsGanttChart {
         if (!datesCheckResult || forceRedraw) {
             this.refreshHeader();
         }
+        if (data) {
+            this.refreshBarGroups(data);
+        }
+        this.refreshRows();
         this.refreshBody();
         this.redraw();
     }
@@ -468,6 +480,41 @@ class TsGanttChart {
         }
         return this._dateMinOffset === currentDateMin && this._dateMaxOffset === currentDateMax;
     }
+    refreshBarGroups(data) {
+        const mode = this._options.chartBarMode;
+        const rowHeight = this._options.chartRowHeightPx;
+        data.deleted.forEach(x => {
+            const index = this._chartBarGroups.findIndex(y => y.task.uuid === x.uuid);
+            if (index !== 1) {
+                this._chartBarGroups.splice(index, 1);
+            }
+        });
+        data.changed.forEach(x => {
+            const index = this._chartBarGroups.findIndex(y => y.task.uuid === x.uuid);
+            if (index !== -1) {
+                this._chartBarGroups[index] = new TsGanttChartBarGroup(x, mode, 0, 0, 0, 0);
+            }
+        });
+        data.added.forEach(x => this._chartBarGroups.push(new TsGanttChartBarGroup(x, mode, 0, 0, 0, 0)));
+    }
+    refreshRows() {
+        this._chartRows = this.getChartRowsRecursively(this._chartBarGroups, null, this._width, this._options.chartRowHeightPx);
+    }
+    getChartRowsRecursively(barGroups, parentUuid, rowWidth, rowHeight) {
+        const barGroupsFiltered = barGroups.filter(x => x.task.parentUuid === parentUuid)
+            .sort((a, b) => a.task.compareTo(b.task));
+        const rows = [];
+        for (const barGroup of barGroupsFiltered) {
+            if (!barGroup.task.shown) {
+                continue;
+            }
+            rows.push(new TsGanttChartRow(barGroup, rowWidth, rowHeight));
+            if (barGroup.task.expanded) {
+                rows.push(...this.getChartRowsRecursively(barGroups, barGroup.task.uuid, rowWidth, rowHeight));
+            }
+        }
+        return rows;
+    }
     refreshHeader() {
         const scale = this._options.chartScale;
         const dayWidth = this._options.chartDayWidthPx[scale];
@@ -491,6 +538,7 @@ class TsGanttChart {
         let currentDayOffset = 0;
         let monthStartOffset = 0;
         let yearStartOffset = 0;
+        const verticalLinesXCoords = [];
         if (scale === "year") {
             for (const date of dates) {
                 const nextDayOffset = currentDayOffset + dayWidth;
@@ -516,6 +564,7 @@ class TsGanttChart {
                         ["x2", nextDayOffset + ""],
                         ["y2", height + ""],
                     ], header);
+                    verticalLinesXCoords.push(nextDayOffset);
                     yearStartOffset = nextDayOffset;
                 }
                 currentDayOffset = nextDayOffset;
@@ -580,6 +629,7 @@ class TsGanttChart {
                         ["x2", nextDayOffset + ""],
                         ["y2", height + ""],
                     ], header);
+                    verticalLinesXCoords.push(nextDayOffset);
                     monthStartOffset = nextDayOffset;
                 }
                 currentDayOffset = nextDayOffset;
@@ -674,20 +724,57 @@ class TsGanttChart {
                     ["x2", nextDayOffset + ""],
                     ["y2", height + ""],
                 ], header);
+                verticalLinesXCoords.push(nextDayOffset);
                 currentDayOffset = nextDayOffset;
             }
         }
         this._width = width;
         this._headerHeight = height;
+        this._verticalLinesXCoords = verticalLinesXCoords;
         this._htmlHeader = header;
     }
     refreshBody() {
         const scale = this._options.chartScale;
-        const dayWidthPx = this._options.chartDayWidthPx[scale];
-        const widthPx = this._width;
-        const heightPx = 0;
-        const body = createSvgElement("svg", [TsGanttConst.CHART_BODY_CLASS]);
-        this._bodyHeight = heightPx;
+        const width = this._width;
+        const rowHeight = this._options.chartRowHeightPx;
+        const rows = this._chartRows;
+        const height = rowHeight * rows.length;
+        const y0 = this._headerHeight;
+        const body = createSvgElement("svg", [TsGanttConst.CHART_BODY_CLASS], [
+            ["y", y0 + ""],
+            ["width", width + ""],
+            ["height", height + ""],
+        ]);
+        const bodyBg = createSvgElement("rect", [TsGanttConst.CHART_BODY_BACKGROUND_CLASS], [
+            ["width", width + ""],
+            ["height", height + ""],
+        ], body);
+        const selectedRowIndex = rows.findIndex(x => x.barGroup.task.selected);
+        if (selectedRowIndex !== -1) {
+            const selectedRowBg = createSvgElement("rect", [TsGanttConst.CHART_BODY_ROW_BACKGROUND_CLASS, TsGanttConst.ROW_SELECTED_CLASS], [
+                ["y", (selectedRowIndex * rowHeight) + ""],
+                ["width", width + ""],
+                ["height", rowHeight + ""],
+            ], body);
+        }
+        for (let i = 0; i < rows.length;) {
+            const lineY = ++i * rowHeight - 0.5;
+            const horizontalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
+                ["x1", 0 + ""],
+                ["y1", lineY + ""],
+                ["x2", width + ""],
+                ["y2", lineY + ""],
+            ], body);
+        }
+        this._verticalLinesXCoords.forEach(x => {
+            const verticalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
+                ["x1", x + ""],
+                ["y1", 0 + ""],
+                ["x2", x + ""],
+                ["y2", height + ""],
+            ], body);
+        });
+        this._bodyHeight = height;
         this._htmlBody = body;
     }
     redraw() {

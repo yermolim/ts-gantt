@@ -68,8 +68,6 @@ export declare class TsGanttOptions {
 	columnsContentAlign: ("start" | "center" | "end")[];
 	chartHeaderHeightPx: number;
 	chartRowHeightPx: number;
-	chartBarFontSizePx: number;
-	chartBarHeightPx: number;
 	chartBarMode: "planned" | "actual" | "both";
 	chartScale: "day" | "week" | "month" | "year";
 	chartDateOffsetDays: {
@@ -122,7 +120,6 @@ export declare class TsGanttChart {
 	private _htmlHeader;
 	private _htmlBody;
 	private _chartBarGroups;
-	private _chartBarGroupsShown;
 	private _chartRows;
 	private _dateMin;
 	private _dateMax;
@@ -131,9 +128,13 @@ export declare class TsGanttChart {
 	private _width;
 	private _headerHeight;
 	private _bodyHeight;
+	private _verticalLinesXCoords;
 	constructor(options: TsGanttOptions);
 	update(forceRedraw: boolean, data: TsGanttTaskChangesDetectionResult): void;
 	private checkDates;
+	private refreshBarGroups;
+	private refreshRows;
+	private getChartRowsRecursively;
 	private refreshHeader;
 	private refreshBody;
 	private redraw;
