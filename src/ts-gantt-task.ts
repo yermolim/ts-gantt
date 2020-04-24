@@ -142,8 +142,8 @@ class TsGanttTask {
   static convertTasksToModels(tasks: TsGanttTask[]): TsGanttTaskModel[] {
     return tasks.map(x => new TsGanttTaskModel(x.externalId, x.parentExternalId, 
       x.name, x.progress, 
-      x.datePlannedStart.toDate(), x.datePlannedEnd.toDate(), 
-      x.dateActualStart.toDate(), x.dateActualEnd.toDate(), 
+      x.datePlannedStart?.toDate(), x.datePlannedEnd?.toDate(), 
+      x.dateActualStart?.toDate(), x.dateActualEnd?.toDate(), 
       x.localizedNames));
   }
     
