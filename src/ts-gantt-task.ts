@@ -239,12 +239,12 @@ class TsGanttTask {
   }
 }
 
-class TsGanttTaskUpdateResult {
+interface TsGanttTaskUpdateResult {
   oldTasks: TsGanttTask[]; 
   newTasks: TsGanttTask[];
 }
 
-class TsGanttTaskChangesDetectionResult {
+interface TsGanttTaskChangesDetectionResult {
   added: TsGanttTask[]; 
   deleted: TsGanttTask[]; 
   changed: TsGanttTask[];

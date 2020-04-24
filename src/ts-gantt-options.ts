@@ -15,6 +15,7 @@ class TsGanttOptions {
 
   chartHeaderHeightPx = 90; // change in conjuction with css styles for grid
   chartRowHeightPx = 40; // change in conjuction with css styles for grid
+  chartBarMarginPx = 2; // change in conjuction with css styles for grid
   chartBarMode: "planned" | "actual" | "both" = "both";
   chartScale: "day" | "week" | "month" | "year" = "month";
   chartDateOffsetDays: {[key: string]: number} = {

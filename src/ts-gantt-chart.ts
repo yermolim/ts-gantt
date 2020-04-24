@@ -4,26 +4,24 @@ import { TsGanttTask, TsGanttTaskChangesDetectionResult } from "./ts-gantt-task"
 import { TsGanttOptions } from "./ts-gantt-options";
 import { createSvgElement, getAllDatesBetweenTwoDates } from "./ts-gantt-common";
 
+interface TsGanttChartBarGroupOptions {
+  mode: "planned" | "actual" | "both";
+  dayWidth: number;
+  barHeight: number; 
+  y0: number; 
+  y1: number;
+}
+
 class TsGanttChartBarGroup {
   
   readonly task: TsGanttTask;
   readonly barSvg: SVGElement;
 
-  constructor(task: TsGanttTask, mode: "planned" | "actual" | "both",
-    dayWidth: number, height: number, y0: number, y1: number) {
+  constructor(task: TsGanttTask, options: TsGanttChartBarGroupOptions) {
     this.task = task;
     // IMPLEMENT
-  }
-}
 
-class TsGanttChartRow {
 
-  readonly barGroup: TsGanttChartBarGroup;
-  readonly rowSvg: SVGElement;
-
-  constructor(barGroup: TsGanttChartBarGroup, rowWidth: number, rowHeight: number) {
-    this.barGroup = barGroup;
-    // IMPLEMENT
   }
 }
 
@@ -44,10 +42,8 @@ class TsGanttChart {
   private _htmlBody: SVGElement;
 
   private _chartBarGroups: TsGanttChartBarGroup[] = [];
-  private _chartRows: TsGanttChartRow[] = [];
+  private _chartBarGroupsShown: TsGanttChartBarGroup[] = [];
   
-  private _dateMin: dayjs.Dayjs;
-  private _dateMax: dayjs.Dayjs;
   private _dateMinOffset: dayjs.Dayjs;
   private _dateMaxOffset: dayjs.Dayjs;
 
@@ -71,8 +67,8 @@ class TsGanttChart {
     }
     if (data) {
       this.refreshBarGroups(data);
+      this.refreshBarGroupsShown();
     } 
-    this.refreshRows();
     this.refreshBody();
     this.redraw();
   }
@@ -104,8 +100,6 @@ class TsGanttChart {
         dateMax = actualEnd;
       }
     }
-    this._dateMin = dateMin;
-    this._dateMax = dateMax;
 
     if (!currentDateMin 
       || currentDateMin.isAfter(dateMin) 
@@ -122,9 +116,7 @@ class TsGanttChart {
   }
 
   private refreshBarGroups(data: TsGanttTaskChangesDetectionResult) {
-    const mode = this._options.chartBarMode;
-    const rowHeight = this._options.chartRowHeightPx;
-    // IMPLEMENT calculations
+    const barGroupOptions = this.getBarGroupOptions();
 
     data.deleted.forEach(x => {
       const index = this._chartBarGroups.findIndex(y => y.task.uuid === x.uuid);
@@ -135,33 +127,61 @@ class TsGanttChart {
     data.changed.forEach(x => {      
       const index = this._chartBarGroups.findIndex(y => y.task.uuid === x.uuid);
       if (index !== -1) {
-        this._chartBarGroups[index] = new TsGanttChartBarGroup(x, mode, 0, 0, 0, 0);
+        this._chartBarGroups[index] = new TsGanttChartBarGroup(x, barGroupOptions);
       }
     });
-    data.added.forEach(x => this._chartBarGroups.push(new TsGanttChartBarGroup(x, mode, 0, 0, 0, 0)));
+    data.added.forEach(x => this._chartBarGroups.push(new TsGanttChartBarGroup(x, barGroupOptions)));
   }
 
-  private refreshRows() {
-    this._chartRows = this.getChartRowsRecursively(this._chartBarGroups, null,
-      this._width, this._options.chartRowHeightPx);
+  private getBarGroupOptions(): TsGanttChartBarGroupOptions {
+    const mode = this._options.chartBarMode;
+    const dayWidth = this._options.chartDayWidthPx[mode];
+    const rowHeight = this._options.chartRowHeightPx;
+    const barMargin = this._options.chartBarMarginPx;
+
+    const y0 = barMargin;
+    let barHeight: number;
+    let y1: number;
+    switch (mode) {
+      case "both":
+        barHeight = (rowHeight - 3 * barMargin)/2;
+        y1 = barHeight + 2 * barMargin;
+        break;
+      case "planned":
+      case "actual":
+        barHeight = rowHeight - 2 * barMargin;
+        break;
+    }
+
+    return {
+      mode,
+      dayWidth,
+      barHeight,
+      y0,
+      y1,
+    };
+  }
+
+  private refreshBarGroupsShown() {
+    this._chartBarGroupsShown = this.getBarGroupsShownRecursively(this._chartBarGroups, null);
   }
     
-  private getChartRowsRecursively(barGroups: TsGanttChartBarGroup[], 
-    parentUuid: string, rowWidth: number, rowHeight: number): TsGanttChartRow[] {
+  private getBarGroupsShownRecursively(barGroups: TsGanttChartBarGroup[], 
+    parentUuid: string): TsGanttChartBarGroup[] {
       
     const barGroupsFiltered = barGroups.filter(x => x.task.parentUuid === parentUuid)
       .sort((a: TsGanttChartBarGroup, b: TsGanttChartBarGroup): number => a.task.compareTo(b.task));
-    const rows: TsGanttChartRow[] = [];
+    const barGroupsShown: TsGanttChartBarGroup[] = [];
     for (const barGroup of barGroupsFiltered) {
       if (!barGroup.task.shown) {
         continue;
       }
-      rows.push(new TsGanttChartRow(barGroup, rowWidth, rowHeight));
+      barGroupsShown.push(barGroup);
       if (barGroup.task.expanded) {
-        rows.push(...this.getChartRowsRecursively(barGroups, barGroup.task.uuid, rowWidth, rowHeight));
+        barGroupsShown.push(...this.getBarGroupsShownRecursively(barGroups, barGroup.task.uuid));
       }
     }
-    return rows;
+    return barGroupsShown;
   }
 
   private refreshHeader() {
@@ -404,8 +424,8 @@ class TsGanttChart {
     const scale = this._options.chartScale;
     const width = this._width;
     const rowHeight = this._options.chartRowHeightPx;
-    const rows = this._chartRows;
-    const height = rowHeight * rows.length;
+    const barGroups = this._chartBarGroupsShown;
+    const height = rowHeight * barGroups.length;
     const y0 = this._headerHeight;
     
     const body = createSvgElement("svg", [TsGanttConst.CHART_BODY_CLASS], [
@@ -418,18 +438,18 @@ class TsGanttChart {
       ["height", height + ""],
     ], body);
 
-    const selectedRowIndex = rows.findIndex(x => x.barGroup.task.selected);
+    const selectedRowIndex = barGroups.findIndex(x => x.task.selected);
     if (selectedRowIndex !== -1) {
       const selectedRowBg = createSvgElement("rect", 
-        [TsGanttConst.CHART_BODY_ROW_BACKGROUND_CLASS, TsGanttConst.ROW_SELECTED_CLASS], [
+        [TsGanttConst.CHART_ROW_BACKGROUND_CLASS, TsGanttConst.ROW_SELECTED_CLASS], [
           ["y", (selectedRowIndex * rowHeight) + ""],
           ["width", width + ""],
           ["height", rowHeight + ""],
         ], body); 
     }
 
-    for (let i = 0; i < rows.length;) {
-      const lineY = ++i * rowHeight - 0.5;
+    for (let i = 0; i < barGroups.length;) {
+      const lineY = ++i * rowHeight - 0.5; // REMOVE USING FIXED VALUE 0.5
       const horizontalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
         ["x1", 0 + ""],
         ["y1", lineY + ""],
@@ -447,7 +467,28 @@ class TsGanttChart {
       ], body);    
     });
 
-    // IMPLEMENT adding bars
+    // IMPLEMENT adding rows
+    barGroups.forEach((x, i) => {     
+      const rowWrapper = createSvgElement("svg", [TsGanttConst.CHART_ROW_CLASS], [
+        ["y", (i * rowHeight) + ""],
+        ["width", width + ""],
+        ["height", rowHeight + ""],
+        ["data-tsg-row-uuid", x.task.uuid],
+      ], body);
+      rowWrapper.addEventListener("click", (e: Event) => {
+        rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
+          bubbles: true,
+          detail: x.task.uuid,
+        }));
+      });
+
+      const row = createSvgElement("rect", [TsGanttConst.CHART_ROW_CLASS], [
+        ["width", width + ""],
+        ["height", rowHeight + ""],
+      ], rowWrapper);
+
+
+    });
 
     this._bodyHeight = height;
     this._htmlBody = body;

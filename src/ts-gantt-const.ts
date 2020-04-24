@@ -29,7 +29,11 @@ class TsGanttConst {
   static readonly CHART_BODY_CLASS = "tsg-chart-body";
   static readonly CHART_BODY_BACKGROUND_CLASS = "tsg-chart-body-bg";
   static readonly CHART_BODY_GRIDLINES_CLASS = "tsg-chart-body-gl";  
-  static readonly CHART_BODY_ROW_BACKGROUND_CLASS = "tsg-chart-body-row-bg";
+  static readonly CHART_ROW_WRAPPER_CLASS = "tsg-chart-row-wrapper";
+  static readonly CHART_ROW_CLASS = "tsg-chart-row";
+  static readonly CHART_ROW_BACKGROUND_CLASS = "tsg-chart-row-bg";
+  static readonly CHART_BAR_PLANNED_CLASS = "tsg-chart-bar-planned";
+  static readonly CHART_BAR_ACTUAL_CLASS = "tsg-chart-bar-actual";
 }
 
 export { TsGanttConst };

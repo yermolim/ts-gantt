@@ -26,7 +26,11 @@ TsGanttConst.CHART_HEADER_TEXT_CLASS = "tsg-chart-header-text";
 TsGanttConst.CHART_BODY_CLASS = "tsg-chart-body";
 TsGanttConst.CHART_BODY_BACKGROUND_CLASS = "tsg-chart-body-bg";
 TsGanttConst.CHART_BODY_GRIDLINES_CLASS = "tsg-chart-body-gl";
-TsGanttConst.CHART_BODY_ROW_BACKGROUND_CLASS = "tsg-chart-body-row-bg";
+TsGanttConst.CHART_ROW_WRAPPER_CLASS = "tsg-chart-row-wrapper";
+TsGanttConst.CHART_ROW_CLASS = "tsg-chart-row";
+TsGanttConst.CHART_ROW_BACKGROUND_CLASS = "tsg-chart-row-bg";
+TsGanttConst.CHART_BAR_PLANNED_CLASS = "tsg-chart-bar-planned";
+TsGanttConst.CHART_BAR_ACTUAL_CLASS = "tsg-chart-bar-actual";
 
 function getRandomUuid() {
     return crypto.getRandomValues(new Uint32Array(4)).join("-");
@@ -230,10 +234,6 @@ class TsGanttTask {
         return 0;
     }
 }
-class TsGanttTaskUpdateResult {
-}
-class TsGanttTaskChangesDetectionResult {
-}
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -256,6 +256,7 @@ class TsGanttOptions {
         this.columnsContentAlign = ["start", "end", "center", "center", "center", "center", "center", "center"];
         this.chartHeaderHeightPx = 90;
         this.chartRowHeightPx = 40;
+        this.chartBarMarginPx = 2;
         this.chartBarMode = "both";
         this.chartScale = "month";
         this.chartDateOffsetDays = {
@@ -408,19 +409,14 @@ class TsGanttOptions {
 }
 
 class TsGanttChartBarGroup {
-    constructor(task, mode, dayWidth, height, y0, y1) {
+    constructor(task, options) {
         this.task = task;
-    }
-}
-class TsGanttChartRow {
-    constructor(barGroup, rowWidth, rowHeight) {
-        this.barGroup = barGroup;
     }
 }
 class TsGanttChart {
     constructor(options) {
         this._chartBarGroups = [];
-        this._chartRows = [];
+        this._chartBarGroupsShown = [];
         this._options = options;
         const svg = createSvgElement("svg", [TsGanttConst.CHART_CLASS]);
         this._html = svg;
@@ -435,8 +431,8 @@ class TsGanttChart {
         }
         if (data) {
             this.refreshBarGroups(data);
+            this.refreshBarGroupsShown();
         }
-        this.refreshRows();
         this.refreshBody();
         this.redraw();
     }
@@ -466,8 +462,6 @@ class TsGanttChart {
                 dateMax = actualEnd;
             }
         }
-        this._dateMin = dateMin;
-        this._dateMax = dateMax;
         if (!currentDateMin
             || currentDateMin.isAfter(dateMin)
             || dateMin.diff(currentDateMin, "day") < dateOffsetMin) {
@@ -481,8 +475,7 @@ class TsGanttChart {
         return this._dateMinOffset === currentDateMin && this._dateMaxOffset === currentDateMax;
     }
     refreshBarGroups(data) {
-        const mode = this._options.chartBarMode;
-        const rowHeight = this._options.chartRowHeightPx;
+        const barGroupOptions = this.getBarGroupOptions();
         data.deleted.forEach(x => {
             const index = this._chartBarGroups.findIndex(y => y.task.uuid === x.uuid);
             if (index !== 1) {
@@ -492,28 +485,54 @@ class TsGanttChart {
         data.changed.forEach(x => {
             const index = this._chartBarGroups.findIndex(y => y.task.uuid === x.uuid);
             if (index !== -1) {
-                this._chartBarGroups[index] = new TsGanttChartBarGroup(x, mode, 0, 0, 0, 0);
+                this._chartBarGroups[index] = new TsGanttChartBarGroup(x, barGroupOptions);
             }
         });
-        data.added.forEach(x => this._chartBarGroups.push(new TsGanttChartBarGroup(x, mode, 0, 0, 0, 0)));
+        data.added.forEach(x => this._chartBarGroups.push(new TsGanttChartBarGroup(x, barGroupOptions)));
     }
-    refreshRows() {
-        this._chartRows = this.getChartRowsRecursively(this._chartBarGroups, null, this._width, this._options.chartRowHeightPx);
+    getBarGroupOptions() {
+        const mode = this._options.chartBarMode;
+        const dayWidth = this._options.chartDayWidthPx[mode];
+        const rowHeight = this._options.chartRowHeightPx;
+        const barMargin = this._options.chartBarMarginPx;
+        const y0 = barMargin;
+        let barHeight;
+        let y1;
+        switch (mode) {
+            case "both":
+                barHeight = (rowHeight - 3 * barMargin) / 2;
+                y1 = barHeight + 2 * barMargin;
+                break;
+            case "planned":
+            case "actual":
+                barHeight = rowHeight - 2 * barMargin;
+                break;
+        }
+        return {
+            mode,
+            dayWidth,
+            barHeight,
+            y0,
+            y1,
+        };
     }
-    getChartRowsRecursively(barGroups, parentUuid, rowWidth, rowHeight) {
+    refreshBarGroupsShown() {
+        this._chartBarGroupsShown = this.getBarGroupsShownRecursively(this._chartBarGroups, null);
+    }
+    getBarGroupsShownRecursively(barGroups, parentUuid) {
         const barGroupsFiltered = barGroups.filter(x => x.task.parentUuid === parentUuid)
             .sort((a, b) => a.task.compareTo(b.task));
-        const rows = [];
+        const barGroupsShown = [];
         for (const barGroup of barGroupsFiltered) {
             if (!barGroup.task.shown) {
                 continue;
             }
-            rows.push(new TsGanttChartRow(barGroup, rowWidth, rowHeight));
+            barGroupsShown.push(barGroup);
             if (barGroup.task.expanded) {
-                rows.push(...this.getChartRowsRecursively(barGroups, barGroup.task.uuid, rowWidth, rowHeight));
+                barGroupsShown.push(...this.getBarGroupsShownRecursively(barGroups, barGroup.task.uuid));
             }
         }
-        return rows;
+        return barGroupsShown;
     }
     refreshHeader() {
         const scale = this._options.chartScale;
@@ -737,8 +756,8 @@ class TsGanttChart {
         const scale = this._options.chartScale;
         const width = this._width;
         const rowHeight = this._options.chartRowHeightPx;
-        const rows = this._chartRows;
-        const height = rowHeight * rows.length;
+        const barGroups = this._chartBarGroupsShown;
+        const height = rowHeight * barGroups.length;
         const y0 = this._headerHeight;
         const body = createSvgElement("svg", [TsGanttConst.CHART_BODY_CLASS], [
             ["y", y0 + ""],
@@ -749,15 +768,15 @@ class TsGanttChart {
             ["width", width + ""],
             ["height", height + ""],
         ], body);
-        const selectedRowIndex = rows.findIndex(x => x.barGroup.task.selected);
+        const selectedRowIndex = barGroups.findIndex(x => x.task.selected);
         if (selectedRowIndex !== -1) {
-            const selectedRowBg = createSvgElement("rect", [TsGanttConst.CHART_BODY_ROW_BACKGROUND_CLASS, TsGanttConst.ROW_SELECTED_CLASS], [
+            const selectedRowBg = createSvgElement("rect", [TsGanttConst.CHART_ROW_BACKGROUND_CLASS, TsGanttConst.ROW_SELECTED_CLASS], [
                 ["y", (selectedRowIndex * rowHeight) + ""],
                 ["width", width + ""],
                 ["height", rowHeight + ""],
             ], body);
         }
-        for (let i = 0; i < rows.length;) {
+        for (let i = 0; i < barGroups.length;) {
             const lineY = ++i * rowHeight - 0.5;
             const horizontalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
                 ["x1", 0 + ""],
@@ -773,6 +792,24 @@ class TsGanttChart {
                 ["x2", x + ""],
                 ["y2", height + ""],
             ], body);
+        });
+        barGroups.forEach((x, i) => {
+            const rowWrapper = createSvgElement("svg", [TsGanttConst.CHART_ROW_CLASS], [
+                ["y", (i * rowHeight) + ""],
+                ["width", width + ""],
+                ["height", rowHeight + ""],
+                ["data-tsg-row-uuid", x.task.uuid],
+            ], body);
+            rowWrapper.addEventListener("click", (e) => {
+                rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
+                    bubbles: true,
+                    detail: x.task.uuid,
+                }));
+            });
+            const row = createSvgElement("rect", [TsGanttConst.CHART_ROW_CLASS], [
+                ["width", width + ""],
+                ["height", rowHeight + ""],
+            ], rowWrapper);
         });
         this._bodyHeight = height;
         this._htmlBody = body;
@@ -819,7 +856,10 @@ class TsGanttTableRow {
         row.addEventListener("click", (e) => {
             const target = e.target;
             if (!target.classList.contains(TsGanttConst.TABLE_CELL_EXPANDER_CLASS)) {
-                row.dispatchEvent(new Event(TsGanttConst.ROW_CLICK, { bubbles: true }));
+                row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
+                    bubbles: true,
+                    detail: this.task.uuid,
+                }));
             }
         });
         if (this.task.selected) {
@@ -844,7 +884,10 @@ class TsGanttTableRow {
                         ? TsGanttConst.CELL_EXPANDER_EXPANDED_SYMBOL
                         : TsGanttConst.CELL_EXPANDER_EXPANDABLE_SYMBOL;
                     expander.addEventListener("click", (e) => {
-                        expander.dispatchEvent(new Event(TsGanttConst.CELL_EXPANDER_CLICK, { bubbles: true }));
+                        expander.dispatchEvent(new CustomEvent(TsGanttConst.CELL_EXPANDER_CLICK, {
+                            bubbles: true,
+                            detail: this.task.uuid,
+                        }));
                     });
                     cellInnerDiv.append(expander);
                 }
@@ -960,16 +1003,13 @@ class TsGantt {
         this.onMouseUpOnSep = (e) => {
             this._htmlSeparatorDragActive = false;
         };
-        this.onRowClick = (e) => {
-            const target = e.target;
-            const uuid = target.dataset[TsGanttConst.ROW_UUID_DATASET_KEY];
-            const newSelectedTask = this._tasks.find(x => x.uuid === uuid);
+        this.onRowClick = ((e) => {
+            const newSelectedTask = this._tasks.find(x => x.uuid === e.detail);
             this.selectTask(newSelectedTask);
-        };
-        this.onRowExpanderClick = (e) => {
-            const target = e.target;
-            this.toggleTaskExpanded(target.dataset[TsGanttConst.ROW_UUID_DATASET_KEY]);
-        };
+        });
+        this.onRowExpanderClick = ((e) => {
+            this.toggleTaskExpanded(e.detail);
+        });
         this._options = new TsGanttOptions(options);
         this._htmlContainer = document.querySelector(containerSelector);
         if (!this._htmlContainer) {
@@ -1141,4 +1181,4 @@ class TsGantt {
     }
 }
 
-export { TsGantt, TsGanttChart, TsGanttOptions, TsGanttTable, TsGanttTask, TsGanttTaskChangesDetectionResult, TsGanttTaskModel, TsGanttTaskUpdateResult };
+export { TsGantt, TsGanttChart, TsGanttOptions, TsGanttTable, TsGanttTask, TsGanttTaskModel };

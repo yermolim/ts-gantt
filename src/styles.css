@@ -195,6 +195,26 @@ tr.selected .tsg-cell-text:after {
   shape-rendering: crispEdges;
 }
 
-.tsg-chart-body-row-bg.selected {
+.tsg-chart-row-bg {
+  fill: none;
+}
+
+.tsg-chart-row-bg.selected {
   fill: var(--tsg-table-selection-color);
+}
+
+.tsg-chart-row {
+  fill: transparent;
+}
+
+.tsg-chart-bar-planned {
+  fill: blue;
+  stroke-width: 1px;
+  stroke: black;
+}
+
+.tsg-chart-bar-actual {
+  fill: green;
+  stroke-width: 1px;
+  stroke: black;
 }

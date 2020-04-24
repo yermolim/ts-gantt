@@ -48,7 +48,10 @@ class TsGanttTableRow {
     row.addEventListener("click", (e: Event) => {
       const target = e.target as HTMLElement;
       if (!target.classList.contains(TsGanttConst.TABLE_CELL_EXPANDER_CLASS)) {
-        row.dispatchEvent(new Event(TsGanttConst.ROW_CLICK, {bubbles: true}));
+        row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
+          bubbles: true,
+          detail: this.task.uuid,
+        }));
       }
     });
     if (this.task.selected) {
@@ -74,7 +77,10 @@ class TsGanttTableRow {
             ? TsGanttConst.CELL_EXPANDER_EXPANDED_SYMBOL 
             : TsGanttConst.CELL_EXPANDER_EXPANDABLE_SYMBOL;
           expander.addEventListener("click", (e: Event) => {
-            expander.dispatchEvent(new Event(TsGanttConst.CELL_EXPANDER_CLICK, {bubbles: true}));
+            expander.dispatchEvent(new CustomEvent(TsGanttConst.CELL_EXPANDER_CLICK, {
+              bubbles: true,
+              detail: this.task.uuid,
+            }));
           });
           cellInnerDiv.append(expander);
         }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 import "./styles.css";
 import { TsGanttConst } from "./ts-gantt-const";
 import { TsGanttTask, TsGanttTaskModel, TsGanttTaskUpdateResult, 
@@ -106,16 +107,13 @@ class TsGantt {
     this._htmlSeparatorDragActive = false;
   }; 
   
-  onRowClick = (e: Event) => {
-    const target = e.target as HTMLElement;
-    const uuid = target.dataset[TsGanttConst.ROW_UUID_DATASET_KEY];
-    const newSelectedTask = this._tasks.find(x => x.uuid === uuid);
+  onRowClick = <EventListener>((e: CustomEvent) => {
+    const newSelectedTask = this._tasks.find(x => x.uuid === e.detail);
     this.selectTask(newSelectedTask);
-  };    
-  onRowExpanderClick = (e: Event) => {
-    const target = e.target as HTMLElement;    
-    this.toggleTaskExpanded(target.dataset[TsGanttConst.ROW_UUID_DATASET_KEY]);
-  };
+  });    
+  onRowExpanderClick = <EventListener>((e: CustomEvent) => {
+    this.toggleTaskExpanded(e.detail);
+  });
 
   private removeSepEventListeners() {
     document.removeEventListener("mousedown", this.onMouseDownOnSep);

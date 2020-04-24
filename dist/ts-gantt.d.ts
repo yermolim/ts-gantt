@@ -48,11 +48,11 @@ export declare class TsGanttTask {
 	equals(another: TsGanttTask): boolean;
 	compareTo(another: TsGanttTask): number;
 }
-export declare class TsGanttTaskUpdateResult {
+export interface TsGanttTaskUpdateResult {
 	oldTasks: TsGanttTask[];
 	newTasks: TsGanttTask[];
 }
-export declare class TsGanttTaskChangesDetectionResult {
+export interface TsGanttTaskChangesDetectionResult {
 	added: TsGanttTask[];
 	deleted: TsGanttTask[];
 	changed: TsGanttTask[];
@@ -68,6 +68,7 @@ export declare class TsGanttOptions {
 	columnsContentAlign: ("start" | "center" | "end")[];
 	chartHeaderHeightPx: number;
 	chartRowHeightPx: number;
+	chartBarMarginPx: number;
 	chartBarMode: "planned" | "actual" | "both";
 	chartScale: "day" | "week" | "month" | "year";
 	chartDateOffsetDays: {
@@ -120,9 +121,7 @@ export declare class TsGanttChart {
 	private _htmlHeader;
 	private _htmlBody;
 	private _chartBarGroups;
-	private _chartRows;
-	private _dateMin;
-	private _dateMax;
+	private _chartBarGroupsShown;
 	private _dateMinOffset;
 	private _dateMaxOffset;
 	private _width;
@@ -133,8 +132,9 @@ export declare class TsGanttChart {
 	update(forceRedraw: boolean, data: TsGanttTaskChangesDetectionResult): void;
 	private checkDates;
 	private refreshBarGroups;
-	private refreshRows;
-	private getChartRowsRecursively;
+	private getBarGroupOptions;
+	private refreshBarGroupsShown;
+	private getBarGroupsShownRecursively;
 	private refreshHeader;
 	private refreshBody;
 	private redraw;
@@ -177,8 +177,8 @@ export declare class TsGantt {
 	onMouseDownOnSep: (e: MouseEvent) => void;
 	onMouseMoveOnSep: (e: MouseEvent) => boolean;
 	onMouseUpOnSep: (e: MouseEvent) => void;
-	onRowClick: (e: Event) => void;
-	onRowExpanderClick: (e: Event) => void;
+	onRowClick: EventListener;
+	onRowExpanderClick: EventListener;
 	private removeSepEventListeners;
 	private removeRowEventListeners;
 	private createLayout;
