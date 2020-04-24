@@ -1,8 +1,9 @@
 import { getRandomUuid } from "./ts-gantt-common";
+import dayjs from "dayjs";
 
 class TsGanttTaskModel {
   id: string;
-  parentId: string | null;
+  parentId: string;
 
   name: string;  
   localizedNames: {[key: string]: string};
@@ -13,7 +14,7 @@ class TsGanttTaskModel {
   dateActualStart: Date | null;
   dateActualEnd: Date | null;
       
-  constructor(id: string, parentId: string | null, 
+  constructor(id: string, parentId: string, 
     name: string, progress: number,
     datePlannedStart: Date, datePlannedEnd: Date,
     dateActualStart: Date | null = null, dateActualEnd: Date | null = null,
@@ -27,7 +28,7 @@ class TsGanttTaskModel {
     this.datePlannedStart = datePlannedStart;
     this.datePlannedEnd = datePlannedEnd;
     this.dateActualStart = dateActualStart;
-    this.dateActualEnd = dateActualEnd;     
+    this.dateActualEnd = dateActualEnd;   
   }
 }
 
@@ -43,10 +44,10 @@ class TsGanttTask {
   name: string;
   localizedNames: {[key: string]: string};
 
-  datePlannedStart: Date;
-  datePlannedEnd: Date;
-  dateActualStart: Date | null;
-  dateActualEnd: Date | null;  
+  datePlannedStart: dayjs.Dayjs | null;
+  datePlannedEnd: dayjs.Dayjs | null;
+  dateActualStart: dayjs.Dayjs | null;
+  dateActualEnd: dayjs.Dayjs | null;  
 
   shown: boolean;
   expanded: boolean;
@@ -65,8 +66,8 @@ class TsGanttTask {
     name: string,
     localizedNames: {[key: string]: string},
     progress: number,
-    datePlannedStart: Date, 
-    datePlannedEnd: Date,
+    datePlannedStart: Date | null = null, 
+    datePlannedEnd: Date | null = null,
     dateActualStart: Date | null = null, 
     dateActualEnd: Date | null = null,
     nestingLvl = 0,
@@ -79,10 +80,10 @@ class TsGanttTask {
     this.name = name;
     this.localizedNames = localizedNames;
     this.progress = progress;    
-    this.datePlannedStart = datePlannedStart;
-    this.datePlannedEnd = datePlannedEnd;
-    this.dateActualStart = dateActualStart;
-    this.dateActualEnd = dateActualEnd;
+    this.datePlannedStart = datePlannedStart ? dayjs(datePlannedStart) : null;
+    this.datePlannedEnd = datePlannedEnd ? dayjs(datePlannedEnd) : null;
+    this.dateActualStart = dateActualStart ? dayjs(dateActualStart) : null;
+    this.dateActualEnd = dateActualEnd ? dayjs(dateActualEnd) : null;   
     this.nestingLvl = nestingLvl;
     this.hasChildren = hasChildren;
     this.parentUuid = parentUuid;
@@ -114,7 +115,7 @@ class TsGanttTask {
     }  
     
     let currentNestingLvl = 1;    
-    while (models.length !== 0 || currentLevelTasks.length !== 0) {
+    while (currentLevelTasks.length !== 0) {
       const nextLevelTasks: TsGanttTask[] = [];
 
       currentLevelTasks.filter(x => x.hasChildren).forEach(task => {
@@ -139,8 +140,11 @@ class TsGanttTask {
   }
   
   static convertTasksToModels(tasks: TsGanttTask[]): TsGanttTaskModel[] {
-    return tasks.map(x => new TsGanttTaskModel(x.externalId, x.parentExternalId, x.name, 
-      x.progress, x.datePlannedStart, x.datePlannedEnd, x.dateActualStart, x.dateActualEnd, x.localizedNames));
+    return tasks.map(x => new TsGanttTaskModel(x.externalId, x.parentExternalId, 
+      x.name, x.progress, 
+      x.datePlannedStart.toDate(), x.datePlannedEnd.toDate(), 
+      x.dateActualStart.toDate(), x.dateActualEnd.toDate(), 
+      x.localizedNames));
   }
     
   static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangesDetectionResult {
@@ -194,10 +198,10 @@ class TsGanttTask {
       && this.hasChildren === another.hasChildren
       && this.name === another.name
       && this.progress === another.progress
-      && this.datePlannedStart?.getTime() === another.datePlannedStart?.getTime()
-      && this.datePlannedEnd?.getTime() === another.datePlannedEnd?.getTime()
-      && this.dateActualStart?.getTime() === another.dateActualStart?.getTime()
-      && this.dateActualEnd?.getTime() === another.dateActualEnd?.getTime()
+      && this.datePlannedStart?.unix() === another.datePlannedStart?.unix()
+      && this.datePlannedEnd?.unix() === another.datePlannedEnd?.unix()
+      && this.dateActualStart?.unix() === another.dateActualStart?.unix()
+      && this.dateActualEnd?.unix() === another.dateActualEnd?.unix()
       && this.expanded === another.expanded
       && this.shown === another.shown
       && this.selected === another.selected;
@@ -210,28 +214,28 @@ class TsGanttTask {
     if (this.nestingLvl < another.nestingLvl) {
       return -1;
     }
-    if (this.datePlannedStart?.getTime() > another.datePlannedStart?.getTime()) {
+    if (this.datePlannedStart?.unix() > another.datePlannedStart?.unix()) {
       return 1;
     }
-    if (this.datePlannedStart?.getTime() < another.datePlannedStart?.getTime()) {
+    if (this.datePlannedStart?.unix() < another.datePlannedStart?.unix()) {
       return -1;
     }
-    if (this.datePlannedEnd?.getTime() > another.datePlannedEnd?.getTime()) {
+    if (this.datePlannedEnd?.unix() > another.datePlannedEnd?.unix()) {
       return 1;
     }
-    if (this.datePlannedEnd?.getTime() < another.datePlannedEnd?.getTime()) {
+    if (this.datePlannedEnd?.unix() < another.datePlannedEnd?.unix()) {
       return -1;
     }
-    if (this.dateActualStart?.getTime() > another.dateActualStart?.getTime()) {
+    if (this.dateActualStart?.unix() > another.dateActualStart?.unix()) {
       return 1;
     }
-    if (this.dateActualStart?.getTime() < another.dateActualStart?.getTime()) {
+    if (this.dateActualStart?.unix() < another.dateActualStart?.unix()) {
       return -1;
     }
-    if (this.dateActualEnd?.getTime() > another.dateActualEnd?.getTime()) {
+    if (this.dateActualEnd?.unix() > another.dateActualEnd?.unix()) {
       return 1;
     }
-    if (this.dateActualEnd?.getTime() < another.dateActualEnd?.getTime()) {
+    if (this.dateActualEnd?.unix() < another.dateActualEnd?.unix()) {
       return -1;
     }
 

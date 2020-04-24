@@ -9,7 +9,7 @@
     "buildts": "tsc && copyfiles -f ./src/*.css ./tsc/",
     "buildru": "rollup -c",
     "build": "tsc && copyfiles -f ./src/*.css ./tsc/src && rollup -c && dts-bundle-generator -o dist/ts-gantt.d.ts src/ts-gantt.ts",
-    "start": "npm run build && http-server ./ -a localhost -p 5500"
+    "start": "npm run build && copyfiles -f ./dist/styles.min.css ./dist/ts-gantt.min.js ./demo && lite-server -c ls-config.json"
   },
   "repository": {
     "type": "git",
@@ -51,6 +51,7 @@
     "karma-jasmine": "^3.1.1",
     "karma-jasmine-html-reporter": "^1.5.3",
     "karma-typescript": "^5.0.2",
+    "lite-server": "^2.5.4",
     "rollup": "^2.3.2",
     "rollup-plugin-css-porter": "^1.0.2",
     "rollup-plugin-terser": "^5.3.0",
