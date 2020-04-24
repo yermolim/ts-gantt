@@ -1,4 +1,9 @@
-class TsGanttConst {    
+class TsGanttConst {  
+  static readonly CSS_VAR_HEADER_HEIGHT = "--tsg-header-height";
+  static readonly CSS_VAR_ROW_HEIGHT = "--tsg-row-height";
+  static readonly CSS_VAR_GRIDLINES_WIDTH = "--tsg-gridlines-width";
+  static readonly CSS_VAR_BAR_STROKE_WIDTH = "--tsg-bar-stroke-width";
+
   static readonly WRAPPER_CLASS = "tsg-wrapper";
   static readonly FOOTER_CLASS = "tsg-footer";
   static readonly TABLE_WRAPPER_CLASS = "tsg-table-wrapper";
@@ -32,6 +37,8 @@ class TsGanttConst {
   static readonly CHART_ROW_WRAPPER_CLASS = "tsg-chart-row-wrapper";
   static readonly CHART_ROW_CLASS = "tsg-chart-row";
   static readonly CHART_ROW_BACKGROUND_CLASS = "tsg-chart-row-bg";
+  static readonly CHART_BAR_GROUP_CLASS = "tsg-chart-bar-group";
+  static readonly CHART_BAR_WRAPPER_CLASS = "tsg-chart-bar-wrapper";
   static readonly CHART_BAR_PLANNED_CLASS = "tsg-chart-bar-planned";
   static readonly CHART_BAR_ACTUAL_CLASS = "tsg-chart-bar-actual";
 }

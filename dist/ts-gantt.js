@@ -1,5 +1,9 @@
 class TsGanttConst {
 }
+TsGanttConst.CSS_VAR_HEADER_HEIGHT = "--tsg-header-height";
+TsGanttConst.CSS_VAR_ROW_HEIGHT = "--tsg-row-height";
+TsGanttConst.CSS_VAR_GRIDLINES_WIDTH = "--tsg-gridlines-width";
+TsGanttConst.CSS_VAR_BAR_STROKE_WIDTH = "--tsg-bar-stroke-width";
 TsGanttConst.WRAPPER_CLASS = "tsg-wrapper";
 TsGanttConst.FOOTER_CLASS = "tsg-footer";
 TsGanttConst.TABLE_WRAPPER_CLASS = "tsg-table-wrapper";
@@ -29,6 +33,8 @@ TsGanttConst.CHART_BODY_GRIDLINES_CLASS = "tsg-chart-body-gl";
 TsGanttConst.CHART_ROW_WRAPPER_CLASS = "tsg-chart-row-wrapper";
 TsGanttConst.CHART_ROW_CLASS = "tsg-chart-row";
 TsGanttConst.CHART_ROW_BACKGROUND_CLASS = "tsg-chart-row-bg";
+TsGanttConst.CHART_BAR_GROUP_CLASS = "tsg-chart-bar-group";
+TsGanttConst.CHART_BAR_WRAPPER_CLASS = "tsg-chart-bar-wrapper";
 TsGanttConst.CHART_BAR_PLANNED_CLASS = "tsg-chart-bar-planned";
 TsGanttConst.CHART_BAR_ACTUAL_CLASS = "tsg-chart-bar-actual";
 
@@ -254,9 +260,12 @@ class TsGanttOptions {
         this.enableProgressEdit = true;
         this.columnsMinWidthPx = [200, 100, 100, 100, 100, 100, 100, 100];
         this.columnsContentAlign = ["start", "end", "center", "center", "center", "center", "center", "center"];
-        this.chartHeaderHeightPx = 90;
-        this.chartRowHeightPx = 40;
-        this.chartBarMarginPx = 2;
+        this.headerHeightPx = 90;
+        this.rowHeightPx = 40;
+        this.borderWidthPx = 1;
+        this.barStrokeWidthPx = 2;
+        this.barMarginPx = 2;
+        this.barCornerRadiusPx = 6;
         this.chartBarMode = "both";
         this.chartScale = "month";
         this.chartDateOffsetDays = {
@@ -410,7 +419,61 @@ class TsGanttOptions {
 
 class TsGanttChartBarGroup {
     constructor(task, options) {
+        const { mode, dayWidth, rowHeight, barHeight, barBorder, barCornerR, y0, y1 } = options;
+        const plannedStart = dayjs_min(task.datePlannedStart);
+        const plannedEnd = dayjs_min(task.datePlannedEnd);
+        const actualStart = task.dateActualStart ? dayjs_min(task.dateActualStart) : null;
+        const actualEnd = task.dateActualEnd ? dayjs_min(task.dateActualEnd) : null;
+        const minDate = actualStart && actualStart.isBefore(plannedStart)
+            ? actualStart
+            : plannedStart;
+        const maxDate = actualEnd && actualEnd.isAfter(plannedEnd)
+            ? actualEnd
+            : plannedEnd;
+        const widthDays = maxDate.diff(minDate, "day");
+        const width = widthDays * dayWidth;
+        const barSvg = createSvgElement("svg", [TsGanttConst.CHART_BAR_GROUP_CLASS], [
+            ["width", width + ""],
+            ["height", rowHeight + ""],
+        ]);
+        if (mode === "both") {
+            this.createBar(barSvg, minDate, plannedStart, plannedEnd, dayWidth, y0, barHeight, barBorder, barCornerR, [TsGanttConst.CHART_BAR_PLANNED_CLASS]);
+            if (actualStart && actualEnd) {
+                this.createBar(barSvg, minDate, actualStart, actualEnd, dayWidth, y1, barHeight, barBorder, barCornerR, [TsGanttConst.CHART_BAR_ACTUAL_CLASS]);
+            }
+        }
+        else if (mode === "planned") {
+            this.createBar(barSvg, minDate, plannedStart, plannedEnd, dayWidth, y0, barHeight, barBorder, barCornerR, [TsGanttConst.CHART_BAR_PLANNED_CLASS]);
+        }
+        else {
+            if (actualStart && actualEnd) {
+                this.createBar(barSvg, minDate, actualStart, actualEnd, dayWidth, y0, barHeight, barBorder, barCornerR, [TsGanttConst.CHART_BAR_ACTUAL_CLASS]);
+            }
+        }
+        this.minDate = minDate;
+        this.maxDate = maxDate;
         this.task = task;
+        this.barSvg = barSvg;
+    }
+    createBar(parent, minDate, start, end, dayWidth, y, wrapperHeight, borderWidth, cornerRadius, barClassList) {
+        const offsetX = start.diff(minDate, "day") * dayWidth;
+        const wrapperWidth = end.diff(start, "day") * dayWidth;
+        const wrapper = createSvgElement("svg", [TsGanttConst.CHART_BAR_WRAPPER_CLASS], [
+            ["x", offsetX + ""],
+            ["y", y + ""],
+            ["width", wrapperWidth + ""],
+            ["height", wrapperHeight + ""],
+        ], parent);
+        const width = wrapperWidth - 2 * borderWidth;
+        const height = wrapperHeight - 2 * borderWidth;
+        const bar = createSvgElement("rect", barClassList, [
+            ["x", borderWidth + ""],
+            ["y", borderWidth + ""],
+            ["width", width + ""],
+            ["height", height + ""],
+            ["rx", cornerRadius + ""],
+            ["ry", cornerRadius + ""],
+        ], wrapper);
     }
 }
 class TsGanttChart {
@@ -492,29 +555,26 @@ class TsGanttChart {
     }
     getBarGroupOptions() {
         const mode = this._options.chartBarMode;
-        const dayWidth = this._options.chartDayWidthPx[mode];
-        const rowHeight = this._options.chartRowHeightPx;
-        const barMargin = this._options.chartBarMarginPx;
-        const y0 = barMargin;
+        const dayWidth = this._options.chartDayWidthPx[this._options.chartScale];
+        const rowHeight = this._options.rowHeightPx;
+        const border = this._options.borderWidthPx;
+        const barMargin = this._options.barMarginPx;
+        const barBorder = this._options.barStrokeWidthPx;
+        const barCornerR = this._options.barCornerRadiusPx;
+        const y0 = barMargin - border / 2;
         let barHeight;
         let y1;
         switch (mode) {
             case "both":
                 barHeight = (rowHeight - 3 * barMargin) / 2;
-                y1 = barHeight + 2 * barMargin;
+                y1 = barHeight + 2 * barMargin - border / 2;
                 break;
             case "planned":
             case "actual":
                 barHeight = rowHeight - 2 * barMargin;
                 break;
         }
-        return {
-            mode,
-            dayWidth,
-            barHeight,
-            y0,
-            y1,
-        };
+        return { mode, dayWidth, rowHeight, barHeight, barBorder, barCornerR, y0, y1 };
     }
     refreshBarGroupsShown() {
         this._chartBarGroupsShown = this.getBarGroupsShownRecursively(this._chartBarGroups, null);
@@ -537,7 +597,7 @@ class TsGanttChart {
     refreshHeader() {
         const scale = this._options.chartScale;
         const dayWidth = this._options.chartDayWidthPx[scale];
-        const height = this._options.chartHeaderHeightPx;
+        const height = this._options.headerHeightPx;
         const minDate = this._dateMinOffset;
         const maxDate = this._dateMaxOffset;
         const dates = getAllDatesBetweenTwoDates(this._dateMinOffset, this._dateMaxOffset);
@@ -754,9 +814,13 @@ class TsGanttChart {
     }
     refreshBody() {
         const scale = this._options.chartScale;
-        const width = this._width;
-        const rowHeight = this._options.chartRowHeightPx;
+        const dayWidth = this._options.chartDayWidthPx[scale];
+        const rowHeight = this._options.rowHeightPx;
+        const border = this._options.borderWidthPx;
         const barGroups = this._chartBarGroupsShown;
+        const minDate = this._dateMinOffset;
+        const xCoords = this._verticalLinesXCoords;
+        const width = this._width;
         const height = rowHeight * barGroups.length;
         const y0 = this._headerHeight;
         const body = createSvgElement("svg", [TsGanttConst.CHART_BODY_CLASS], [
@@ -777,7 +841,7 @@ class TsGanttChart {
             ], body);
         }
         for (let i = 0; i < barGroups.length;) {
-            const lineY = ++i * rowHeight - 0.5;
+            const lineY = ++i * rowHeight - border / 2;
             const horizontalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
                 ["x1", 0 + ""],
                 ["y1", lineY + ""],
@@ -785,7 +849,7 @@ class TsGanttChart {
                 ["y2", lineY + ""],
             ], body);
         }
-        this._verticalLinesXCoords.forEach(x => {
+        xCoords.forEach(x => {
             const verticalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
                 ["x1", x + ""],
                 ["y1", 0 + ""],
@@ -794,8 +858,9 @@ class TsGanttChart {
             ], body);
         });
         barGroups.forEach((x, i) => {
-            const rowWrapper = createSvgElement("svg", [TsGanttConst.CHART_ROW_CLASS], [
-                ["y", (i * rowHeight) + ""],
+            const offsetY = i * rowHeight;
+            const rowWrapper = createSvgElement("svg", [TsGanttConst.CHART_ROW_WRAPPER_CLASS], [
+                ["y", offsetY + ""],
                 ["width", width + ""],
                 ["height", rowHeight + ""],
                 ["data-tsg-row-uuid", x.task.uuid],
@@ -810,6 +875,9 @@ class TsGanttChart {
                 ["width", width + ""],
                 ["height", rowHeight + ""],
             ], rowWrapper);
+            const offsetX = x.minDate.diff(minDate, "day") * dayWidth;
+            x.barSvg.setAttribute("x", offsetX + "");
+            rowWrapper.append(x.barSvg);
         });
         this._bodyHeight = height;
         this._htmlBody = body;
@@ -1011,6 +1079,7 @@ class TsGantt {
             this.toggleTaskExpanded(e.detail);
         });
         this._options = new TsGanttOptions(options);
+        this.setCssVariables(this._options);
         this._htmlContainer = document.querySelector(containerSelector);
         if (!this._htmlContainer) {
             throw new Error("Container is null");
@@ -1067,6 +1136,12 @@ class TsGantt {
     removeRowEventListeners() {
         document.removeEventListener(TsGanttConst.ROW_CLICK, this.onRowClick);
         document.removeEventListener(TsGanttConst.CELL_EXPANDER_CLICK, this.onRowExpanderClick);
+    }
+    setCssVariables(options) {
+        document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_HEADER_HEIGHT, options.headerHeightPx + "px");
+        document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_ROW_HEIGHT, options.rowHeightPx + "px");
+        document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_GRIDLINES_WIDTH, options.borderWidthPx + "px");
+        document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_BAR_STROKE_WIDTH, options.barStrokeWidthPx + "px");
     }
     createLayout() {
         const wrapper = document.createElement("div");

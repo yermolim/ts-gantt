@@ -66,9 +66,12 @@ export declare class TsGanttOptions {
 	enableProgressEdit: boolean;
 	columnsMinWidthPx: number[];
 	columnsContentAlign: ("start" | "center" | "end")[];
-	chartHeaderHeightPx: number;
-	chartRowHeightPx: number;
-	chartBarMarginPx: number;
+	headerHeightPx: number;
+	rowHeightPx: number;
+	borderWidthPx: number;
+	barStrokeWidthPx: number;
+	barMarginPx: number;
+	barCornerRadiusPx: number;
 	chartBarMode: "planned" | "actual" | "both";
 	chartScale: "day" | "week" | "month" | "year";
 	chartDateOffsetDays: {
@@ -181,6 +184,7 @@ export declare class TsGantt {
 	onRowExpanderClick: EventListener;
 	private removeSepEventListeners;
 	private removeRowEventListeners;
+	private setCssVariables;
 	private createLayout;
 	private updateTasks;
 	private toggleTaskExpanded;

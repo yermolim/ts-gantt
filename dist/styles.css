@@ -4,13 +4,14 @@
   --tsg-table-header-color: rgb(210, 210, 210);
   --tsg-table-border-color: rgb(190, 190, 190);
   --tsg-table-selection-color: rgb(230, 230, 230);
-  --tsg-header-height: 90px;
-  --tsg-row-height: 40px;
-  --tsg-row-nesting-indent: 20px;
-  --tsg-max-cell-text-rows: 2;
+  --tsg-table-background-color: white;
+  --tsg-table-separator-color: black;
+
   --tsg-font-family: 'Calibri', sans-serif;
   --tsg-font-size: 14px;
   --tsg-line-height: 16px;
+  --tsg-nesting-indent: 20px;
+  --tsg-max-cell-text-rows: 2;
 }
 
 .tsg-wrapper {  
@@ -24,6 +25,7 @@
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  background-color: var(--tsg-table-background-color);
 }
 
 .tsg-separator {
@@ -34,7 +36,7 @@
   height: 100%;
   padding: 0;
   cursor: ew-resize;
-  background-color: black;
+  background-color: var(--tsg-table-separator-color);
 }
 
 .tsg-table-wrapper {
@@ -65,9 +67,9 @@
   position: sticky;
   top: 0;
   padding: 5px;
-  border-width: 0 1px 1px 0;
-  border-style: solid;
+  border-width: 0 var(--tsg-gridlines-width) var(--tsg-gridlines-width) 0;
   border-color: var(--tsg-table-border-color);
+  border-style: solid;
   background-color: var(--tsg-table-header-color);
   z-index: 5;
 }
@@ -86,9 +88,9 @@
   box-sizing: border-box;
   padding: 0;
   cursor: default;
-  border-width: 0 1px 1px 0;
-  border-style: solid;
+  border-width: 0 var(--tsg-gridlines-width) var(--tsg-gridlines-width) 0;
   border-color: var(--tsg-table-border-color);
+  border-style: solid;
 }
 
 .tsg-cell-text-wrapper {
@@ -108,23 +110,23 @@
   justify-content: flex-end;
 }
 .tsg-cell-text-indent {
-  width: var(--tsg-row-nesting-indent) !important;
+  width: var(--tsg-nesting-indent) !important;
   text-align: center;
 }
 .tsg-cell-text-expander {
-  width: var(--tsg-row-nesting-indent) !important;
+  width: var(--tsg-nesting-indent) !important;
   text-align: center;
   cursor: pointer;
 }
 .tsg-cell-text {
   overflow: hidden;
-  position: relative; 
-  text-align: justify;  
+  position: relative;  
+  margin-right: 0px;
   max-height: calc(var(--tsg-max-cell-text-rows) * var(--tsg-line-height)); 
+  padding-right: var(--tsg-line-height);
   font-size: var(--tsg-font-size);
   line-height: var(--tsg-line-height);
-  margin-right: 0px;
-  padding-right: var(--tsg-line-height);
+  text-align: justify; 
 }
 .tsg-cell-text:before {
   content: '...';
@@ -136,18 +138,18 @@
   content: '';
   position: absolute;
   right: 0;
+  margin-top: 3px;
   width: var(--tsg-line-height);
   height: var(--tsg-line-height);
-  margin-top: 3px;
-  background-color: white;
+  background-color: var(--tsg-table-background-color);
 }
 tr.selected .tsg-cell-text:after {
   content: '';
   position: absolute;
   right: 0;
+  margin-top: 3px;
   width: var(--tsg-line-height);
   height: var(--tsg-line-height);
-  margin-top: 3px;
   background-color: var(--tsg-table-selection-color);
 }
 
@@ -169,7 +171,7 @@ tr.selected .tsg-cell-text:after {
 
 .tsg-chart-header-bg {
   fill: var(--tsg-table-header-color);
-  stroke-width: 1px;
+  stroke-width: var(--tsg-gridlines-width);
   stroke: var(--tsg-table-border-color);
 }
 
@@ -179,24 +181,19 @@ tr.selected .tsg-cell-text:after {
   font-weight: bold;
 }
 
-.tsg-chart-header-gl {  
-  stroke-width: 1px;
+.tsg-chart-header-gl,
+.tsg-chart-body-gl {  
+  stroke-width: var(--tsg-gridlines-width);
   stroke: var(--tsg-table-border-color);
   shape-rendering: crispEdges;
 }
 
 .tsg-chart-body-bg {
-  fill: white;
-}
-
-.tsg-chart-body-gl {  
-  stroke-width: 1px;
-  stroke: var(--tsg-table-border-color);
-  shape-rendering: crispEdges;
+  fill: transparent;
 }
 
 .tsg-chart-row-bg {
-  fill: none;
+  fill: var(--tsg-table-background-color);
 }
 
 .tsg-chart-row-bg.selected {
@@ -208,13 +205,13 @@ tr.selected .tsg-cell-text:after {
 }
 
 .tsg-chart-bar-planned {
-  fill: blue;
-  stroke-width: 1px;
-  stroke: black;
+  fill: lightblue;
+  stroke-width: var(--tsg-bar-stroke-width);
+  stroke: darkblue;
 }
 
 .tsg-chart-bar-actual {
-  fill: green;
-  stroke-width: 1px;
-  stroke: black;
+  fill: lightcoral;
+  stroke-width: var(--tsg-bar-stroke-width);
+  stroke: darkred;
 }

@@ -71,6 +71,7 @@ class TsGantt {
     options: TsGanttOptions) {
 
     this._options = new TsGanttOptions(options);
+    this.setCssVariables(this._options);
 
     this._htmlContainer = document.querySelector(containerSelector);
     if (!this._htmlContainer) {
@@ -126,6 +127,13 @@ class TsGantt {
     document.removeEventListener(TsGanttConst.CELL_EXPANDER_CLICK, this.onRowExpanderClick);
   }
   // #endregion
+
+  private setCssVariables(options: TsGanttOptions) {
+    document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_HEADER_HEIGHT, options.headerHeightPx + "px");
+    document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_ROW_HEIGHT, options.rowHeightPx + "px");
+    document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_GRIDLINES_WIDTH, options.borderWidthPx + "px");
+    document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_BAR_STROKE_WIDTH, options.barStrokeWidthPx + "px");
+  }
 
   private createLayout() {
     const wrapper = document.createElement("div");

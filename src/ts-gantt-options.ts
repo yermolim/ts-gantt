@@ -3,6 +3,7 @@ import { TsGanttTask } from "./ts-gantt-task";
 
 class TsGanttOptions {
 
+  // IMPLEMENT
   enableChartEdit = false;
   enablePlannedDatesEdit = true;
   enableActualDatesEdit = true;
@@ -13,9 +14,13 @@ class TsGanttOptions {
   columnsMinWidthPx: number[] = [200, 100, 100, 100, 100, 100, 100, 100];
   columnsContentAlign: ("start" | "center" | "end")[] = ["start", "end", "center", "center", "center", "center", "center", "center"];
 
-  chartHeaderHeightPx = 90; // change in conjuction with css styles for grid
-  chartRowHeightPx = 40; // change in conjuction with css styles for grid
-  chartBarMarginPx = 2; // change in conjuction with css styles for grid
+  headerHeightPx = 90;
+  rowHeightPx = 40;
+  borderWidthPx = 1;
+  barStrokeWidthPx = 2;
+  barMarginPx = 2;
+  barCornerRadiusPx = 6;
+
   chartBarMode: "planned" | "actual" | "both" = "both";
   chartScale: "day" | "week" | "month" | "year" = "month";
   chartDateOffsetDays: {[key: string]: number} = {
