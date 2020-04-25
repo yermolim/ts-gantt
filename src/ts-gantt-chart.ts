@@ -142,9 +142,11 @@ class TsGanttChart {
   private _html: SVGElement;
   get html(): SVGElement {
     return this._html;
-  }
-  
+  }    
   private _htmlHeader: SVGElement;
+  get htmlHeader(): SVGElement {
+    return this._htmlHeader;
+  }  
   private _htmlBody: SVGElement;
 
   private _chartBarGroups: TsGanttChartBarGroup[] = [];
@@ -613,7 +615,7 @@ class TsGanttChart {
       ["width", this._width + ""],
       ["height", height + ""],
     ]);
-    newHtml.append(this._htmlHeader, this._htmlBody);
+    newHtml.append(this._htmlBody, this._htmlHeader);
 
     oldHtml.replaceWith(newHtml);
     this._html = newHtml;

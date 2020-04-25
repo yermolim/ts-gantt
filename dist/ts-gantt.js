@@ -517,6 +517,9 @@ class TsGanttChart {
     get html() {
         return this._html;
     }
+    get htmlHeader() {
+        return this._htmlHeader;
+    }
     update(forceRedraw, data) {
         const datesCheckResult = this.checkDates(data.all);
         if (!datesCheckResult || forceRedraw) {
@@ -922,7 +925,7 @@ class TsGanttChart {
             ["width", this._width + ""],
             ["height", height + ""],
         ]);
-        newHtml.append(this._htmlHeader, this._htmlBody);
+        newHtml.append(this._htmlBody, this._htmlHeader);
         oldHtml.replaceWith(newHtml);
         this._html = newHtml;
     }
@@ -1106,12 +1109,14 @@ class TsGantt {
         };
         this.onWrapperScroll = ((e) => {
             const wrapper = e.currentTarget;
+            const scroll = wrapper.scrollTop;
             if (wrapper === this._htmlTableWrapper) {
-                this._htmlChartWrapper.scrollTop = wrapper.scrollTop;
+                this._htmlChartWrapper.scrollTop = scroll;
             }
-            else if (wrapper === this._htmlChartWrapper) {
-                this._htmlTableWrapper.scrollTop = wrapper.scrollTop;
+            else {
+                this._htmlTableWrapper.scrollTop = scroll;
             }
+            this._chart.htmlHeader.setAttribute("y", scroll + "");
         });
         this.onRowClick = ((e) => {
             const newSelectedTask = this._tasks.find(x => x.uuid === e.detail);

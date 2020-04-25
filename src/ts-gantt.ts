@@ -110,11 +110,13 @@ class TsGantt {
 
   onWrapperScroll = <EventListener>((e: UIEvent) => {
     const wrapper = e.currentTarget as Element;
+    const scroll = wrapper.scrollTop;
     if (wrapper === this._htmlTableWrapper) {
-      this._htmlChartWrapper.scrollTop = wrapper.scrollTop;
-    } else if (wrapper === this._htmlChartWrapper) {
-      this._htmlTableWrapper.scrollTop = wrapper.scrollTop;
+      this._htmlChartWrapper.scrollTop = scroll;
+    } else {
+      this._htmlTableWrapper.scrollTop = scroll;
     }
+    this._chart.htmlHeader.setAttribute("y", scroll + "");
   });
   
   onRowClick = <EventListener>((e: CustomEvent) => {

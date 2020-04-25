@@ -124,6 +124,7 @@ export declare class TsGanttChart {
 	private _html;
 	get html(): SVGElement;
 	private _htmlHeader;
+	get htmlHeader(): SVGElement;
 	private _htmlBody;
 	private _chartBarGroups;
 	private _chartBarGroupsShown;
