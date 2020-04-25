@@ -48,7 +48,7 @@
   height: 100%;
   min-width: var(--tsg-table-min-width);
   overflow-y: auto;
-  overflow-x: auto;
+  overflow-x: scroll;
 }
 
 .tsg-table {
@@ -162,11 +162,13 @@ tr.selected .tsg-cell-text:after {
   height: 100%;
   min-width: var(--tsg-chart-min-width);
   overflow-y: auto;
-  overflow-x: auto;
+  overflow-x: scroll;
 }
 
 .tsg-chart {
   box-sizing: border-box;
+  display: flex;
+  flex-shrink: 0;
 }
 
 .tsg-chart-header-bg {

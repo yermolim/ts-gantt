@@ -107,6 +107,15 @@ class TsGantt {
   onMouseUpOnSep = (e: MouseEvent) => {
     this._htmlSeparatorDragActive = false;
   }; 
+
+  onWrapperScroll = <EventListener>((e: UIEvent) => {
+    const wrapper = e.currentTarget as Element;
+    if (wrapper === this._htmlTableWrapper) {
+      this._htmlChartWrapper.scrollTop = wrapper.scrollTop;
+    } else if (wrapper === this._htmlChartWrapper) {
+      this._htmlTableWrapper.scrollTop = wrapper.scrollTop;
+    }
+  });
   
   onRowClick = <EventListener>((e: CustomEvent) => {
     const newSelectedTask = this._tasks.find(x => x.uuid === e.detail);
@@ -154,6 +163,9 @@ class TsGantt {
     wrapper.append(chartWrapper);
     tableWrapper.append(this._table.html);
     chartWrapper.append(this._chart.html);
+
+    tableWrapper.addEventListener("scroll", this.onWrapperScroll);
+    chartWrapper.addEventListener("scroll", this.onWrapperScroll);
      
     this._htmlContainer.append(wrapper);     
     this._htmlWrapper = wrapper;

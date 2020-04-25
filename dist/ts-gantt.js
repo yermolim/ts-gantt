@@ -114,8 +114,8 @@ class TsGanttTask {
         this.hasChildren = hasChildren;
         this.parentUuid = parentUuid;
         this.uuid = uuid || getRandomUuid();
-        this.shown = true;
-        this.expanded = true;
+        this.shown = !parentUuid;
+        this.expanded = false;
         this.selected = false;
     }
     set progress(value) {
@@ -1104,6 +1104,15 @@ class TsGantt {
         this.onMouseUpOnSep = (e) => {
             this._htmlSeparatorDragActive = false;
         };
+        this.onWrapperScroll = ((e) => {
+            const wrapper = e.currentTarget;
+            if (wrapper === this._htmlTableWrapper) {
+                this._htmlChartWrapper.scrollTop = wrapper.scrollTop;
+            }
+            else if (wrapper === this._htmlChartWrapper) {
+                this._htmlTableWrapper.scrollTop = wrapper.scrollTop;
+            }
+        });
         this.onRowClick = ((e) => {
             const newSelectedTask = this._tasks.find(x => x.uuid === e.detail);
             this.selectTask(newSelectedTask);
@@ -1192,6 +1201,8 @@ class TsGantt {
         wrapper.append(chartWrapper);
         tableWrapper.append(this._table.html);
         chartWrapper.append(this._chart.html);
+        tableWrapper.addEventListener("scroll", this.onWrapperScroll);
+        chartWrapper.addEventListener("scroll", this.onWrapperScroll);
         this._htmlContainer.append(wrapper);
         this._htmlWrapper = wrapper;
         this._htmlTableWrapper = tableWrapper;

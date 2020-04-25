@@ -132,7 +132,7 @@ class TsGanttChartBarGroup {
 }
 
 class TsGanttChartTooltip {
-
+  // IMPLEMENT
 }
 
 class TsGanttChart {

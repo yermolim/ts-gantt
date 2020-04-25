@@ -182,6 +182,7 @@ export declare class TsGantt {
 	onMouseDownOnSep: (e: MouseEvent) => void;
 	onMouseMoveOnSep: (e: MouseEvent) => boolean;
 	onMouseUpOnSep: (e: MouseEvent) => void;
+	onWrapperScroll: EventListener;
 	onRowClick: EventListener;
 	onRowExpanderClick: EventListener;
 	private removeSepEventListeners;
