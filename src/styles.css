@@ -111,10 +111,12 @@
 }
 .tsg-cell-text-indent {
   width: var(--tsg-nesting-indent) !important;
+  min-width: var(--tsg-nesting-indent) !important;
   text-align: center;
 }
 .tsg-cell-text-expander {
   width: var(--tsg-nesting-indent) !important;
+  min-width: var(--tsg-nesting-indent) !important;
   text-align: center;
   cursor: pointer;
 }
@@ -170,6 +172,11 @@ tr.selected .tsg-cell-text:after {
   display: flex;
   flex-shrink: 0;
 }
+
+/* .tsg-chart-header {
+  position: sticky;
+  top: 0;
+} */
 
 .tsg-chart-header-bg {
   fill: var(--tsg-table-header-color);
