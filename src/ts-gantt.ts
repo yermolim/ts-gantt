@@ -207,19 +207,13 @@ class TsGantt {
     targetChildren.forEach(x => x.shown = !x.shown);
     const changedTasks = [targetTask, ...targetChildren];
 
-    const selectedTask = this._selectedTask;
-    if (selectedTask && selectedTask !== targetTask
-        && TsGanttTask.checkPaternity(this._tasks, targetTask, selectedTask)) {
-      this.selectTask(null);      
-    }
-
     this.update({added: [], deleted: [], changed: changedTasks, all: this._tasks});
   }
 
-  private selectTask(newSelectedTask: TsGanttTask) {
+  private selectTask(newSelectedTask: TsGanttTask, forceSelection = false) {
     const oldSelectedTask: TsGanttTask = this._selectedTask;
-    if ((!oldSelectedTask && !newSelectedTask) 
-        || oldSelectedTask === newSelectedTask) {
+    if (!forceSelection && ((!oldSelectedTask && !newSelectedTask) 
+        || oldSelectedTask === newSelectedTask)) {
       return;
     }
     this._selectedTask = newSelectedTask;    
@@ -236,6 +230,14 @@ class TsGantt {
   private update(data: TsGanttTaskChangeResult) {
     this._table.update(false, data);
     this._chart.update(false, data);
+
+    if (this._selectedTask) {
+      if (data.all.filter(x => x.shown).find(x => x.uuid === this._selectedTask.uuid)) {
+        this.selectTask(this._selectedTask, true);
+      } else {
+        this._selectedTask = null;
+      }
+    }
   }
 
   private updateLocale() {    
