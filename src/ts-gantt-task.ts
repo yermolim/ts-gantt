@@ -188,6 +188,18 @@ class TsGanttTask {
     }
     return false;
   }
+      
+  static sortTasksRecursively(tasks: TsGanttTask[], 
+    parentUuid: string): TsGanttTask[] {      
+    const tasksFiltered = tasks.filter(x => x.parentUuid === parentUuid)
+      .sort((a: TsGanttTask, b: TsGanttTask): number => a.compareTo(b));
+    const sorted: TsGanttTask[] = [];
+    for (const task of tasksFiltered) {
+      sorted.push(task);
+      sorted.push(...this.sortTasksRecursively(tasks, task.uuid));
+    }
+    return sorted;
+  }
 
   equals(another: TsGanttTask): boolean {
     return this.uuid === another.uuid 

@@ -127,4 +127,37 @@ describe("TsGanttTask", () => {
     expect(changes.changed.length).toEqual(3);
     expect(changes.all.length).toEqual(6);
   });
+
+  const sortedTasks = TsGanttTask.sortTasksRecursively(tasks, null);
+
+  it("sorted array should have same length (for correct tree)", () => {
+    expect(sortedTasks.length).toEqual(tasks.length);
+  });
+  it("sorted array elements should have correct order", () => {
+    expect(sortedTasks[0].externalId).toEqual("root1id");
+    expect(sortedTasks[1].externalId).toEqual("root1child1id");
+    expect(sortedTasks[2].externalId).toEqual("root1child1child1id");
+    expect(sortedTasks[3].externalId).toEqual("root1child2id");
+    expect(sortedTasks[4].externalId).toEqual("root2id");
+    expect(sortedTasks[5].externalId).toEqual("root2child1id");
+    expect(sortedTasks[6].externalId).toEqual("root3id");
+  });
+
+  const equalityTest1 = tasks[0].equals(tasks[0]);
+  const equalityTest2 = tasks[0].equals(tasks[1]);
+  const equalityTest3 = tasks[0].equals(tasks[2]);
+  const equalityTest4 = tasks[0].equals(tasks[3]);
+  const equalityTest5 = tasks[0].equals(tasks[4]);
+  const equalityTest6 = tasks[0].equals(tasks[5]);
+  const equalityTest7 = tasks[0].equals(tasks[6]);
+  
+  it("equality test should show correct result", () => {
+    expect(equalityTest1).toBeTruthy();
+    expect(equalityTest2).toBeFalsy();
+    expect(equalityTest3).toBeFalsy();
+    expect(equalityTest4).toBeFalsy();
+    expect(equalityTest5).toBeFalsy();
+    expect(equalityTest6).toBeFalsy();
+    expect(equalityTest7).toBeFalsy();
+  });
 });
