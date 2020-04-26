@@ -51,7 +51,6 @@ class TsGanttTask {
 
   shown: boolean;
   expanded: boolean;
-  selected: boolean;
 
   private _progress = 0;
   set progress(value: number) {
@@ -91,7 +90,6 @@ class TsGanttTask {
 
     this.shown = !parentUuid;
     this.expanded = false;
-    this.selected = false;
   }
 
   static convertModelsToTasks(taskModels: TsGanttTaskModel[], 
@@ -147,7 +145,7 @@ class TsGanttTask {
       x.localizedNames));
   }
     
-  static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangesDetectionResult {
+  static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult {
     const { oldTasks, newTasks } = data;
     const oldUuids = oldTasks.map(x => x.uuid);
     const newUuids = newTasks.map(x => x.uuid);
@@ -203,8 +201,7 @@ class TsGanttTask {
       && this.dateActualStart?.unix() === another.dateActualStart?.unix()
       && this.dateActualEnd?.unix() === another.dateActualEnd?.unix()
       && this.expanded === another.expanded
-      && this.shown === another.shown
-      && this.selected === another.selected;
+      && this.shown === another.shown;
   }
 
   compareTo(another: TsGanttTask): number {    
@@ -248,12 +245,17 @@ interface TsGanttTaskUpdateResult {
   newTasks: TsGanttTask[];
 }
 
-interface TsGanttTaskChangesDetectionResult {
+interface TsGanttTaskChangeResult {
   added: TsGanttTask[]; 
   deleted: TsGanttTask[]; 
   changed: TsGanttTask[];
   all: TsGanttTask[];
 }
 
+interface TsGanttTaskSelectionChangeResult {
+  deselected: TsGanttTask;
+  selected: TsGanttTask;
+}
+
 export { TsGanttTask, TsGanttTaskModel, TsGanttTaskUpdateResult, 
-  TsGanttTaskChangesDetectionResult };
+  TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult };

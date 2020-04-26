@@ -35,7 +35,6 @@ export declare class TsGanttTask {
 	dateActualEnd: dayjs.Dayjs | null;
 	shown: boolean;
 	expanded: boolean;
-	selected: boolean;
 	private _progress;
 	set progress(value: number);
 	get progress(): number;
@@ -44,7 +43,7 @@ export declare class TsGanttTask {
 	}, progress: number, datePlannedStart?: Date | null, datePlannedEnd?: Date | null, dateActualStart?: Date | null, dateActualEnd?: Date | null, nestingLvl?: number, hasChildren?: boolean, parentUuid?: string, uuid?: string);
 	static convertModelsToTasks(taskModels: TsGanttTaskModel[], idsMap?: Map<string, string>): TsGanttTask[];
 	static convertTasksToModels(tasks: TsGanttTask[]): TsGanttTaskModel[];
-	static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangesDetectionResult;
+	static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult;
 	static getTasksIdsMap(tasks: TsGanttTask[]): Map<string, string>;
 	static checkPaternity(tasks: TsGanttTask[], parent: TsGanttTask, child: TsGanttTask): boolean;
 	equals(another: TsGanttTask): boolean;
@@ -54,11 +53,15 @@ export interface TsGanttTaskUpdateResult {
 	oldTasks: TsGanttTask[];
 	newTasks: TsGanttTask[];
 }
-export interface TsGanttTaskChangesDetectionResult {
+export interface TsGanttTaskChangeResult {
 	added: TsGanttTask[];
 	deleted: TsGanttTask[];
 	changed: TsGanttTask[];
 	all: TsGanttTask[];
+}
+export interface TsGanttTaskSelectionChangeResult {
+	deselected: TsGanttTask;
+	selected: TsGanttTask;
 }
 export declare class TsGanttOptions {
 	enableChartEdit: boolean;
@@ -128,6 +131,7 @@ export declare class TsGanttChart {
 	private _htmlBody;
 	private _chartBarGroups;
 	private _chartBarGroupsShown;
+	private _chartRowBgs;
 	private _dateMinOffset;
 	private _dateMaxOffset;
 	private _width;
@@ -135,7 +139,8 @@ export declare class TsGanttChart {
 	private _bodyHeight;
 	private _verticalLinesXCoords;
 	constructor(options: TsGanttOptions);
-	update(forceRedraw: boolean, data: TsGanttTaskChangesDetectionResult): void;
+	update(forceRedraw: boolean, data: TsGanttTaskChangeResult): void;
+	applySelection(selectionResult: TsGanttTaskSelectionChangeResult): void;
 	private checkDates;
 	private refreshBarGroups;
 	private getBarGroupOptions;
@@ -154,7 +159,8 @@ export declare class TsGanttTable {
 	private _tableColumns;
 	private _tableRows;
 	constructor(options: TsGanttOptions);
-	update(updateColumns: boolean, data: TsGanttTaskChangesDetectionResult): void;
+	update(updateColumns: boolean, data: TsGanttTaskChangeResult): void;
+	applySelection(selectionResult: TsGanttTaskSelectionChangeResult): void;
 	private updateColumns;
 	private updateRows;
 	private getRowsHtmlRecursively;

@@ -1,5 +1,5 @@
 import { TsGanttConst } from "./ts-gantt-const";
-import { TsGanttTask, TsGanttTaskChangesDetectionResult } from "./ts-gantt-task";
+import { TsGanttTask, TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "./ts-gantt-task";
 import { TsGanttOptions } from "./ts-gantt-options";
 
 class TsGanttTableColumn {
@@ -54,9 +54,6 @@ class TsGanttTableRow {
         }));
       }
     });
-    if (this.task.selected) {
-      row.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
-    }
     
     columns.forEach((x, i) => {
       const cell = document.createElement("td");
@@ -135,12 +132,28 @@ class TsGanttTable {
     this.updateColumns();
   }
 
-  update(updateColumns: boolean, data: TsGanttTaskChangesDetectionResult ) {
+  update(updateColumns: boolean, data: TsGanttTaskChangeResult ) {
     if (updateColumns) {
       this.updateColumns();
     }
     if (data) {
       this.updateRows(data);
+    }
+  }
+  
+  applySelection(selectionResult: TsGanttTaskSelectionChangeResult) {
+    const {selected, deselected} = selectionResult;
+    if (deselected) {
+      const row = this._tableRows.find(x => x.task.uuid === deselected.uuid);
+      if (row) {
+        row.html.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
+      }
+    }
+    if (selected) {      
+      const row = this._tableRows.find(x => x.task.uuid === selected.uuid);
+      if (row) {
+        row.html.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
+      }
     }
   }
 
@@ -163,7 +176,7 @@ class TsGanttTable {
     this._htmlHead.append(headerRow);    
   }  
 
-  private updateRows(data: TsGanttTaskChangesDetectionResult) {
+  private updateRows(data: TsGanttTaskChangeResult) {
     data.deleted.forEach(x => {
       const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
       if (index !== 1) {

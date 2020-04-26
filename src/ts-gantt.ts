@@ -2,11 +2,10 @@
 import "./styles.css";
 import { TsGanttConst } from "./ts-gantt-const";
 import { TsGanttTask, TsGanttTaskModel, TsGanttTaskUpdateResult, 
-  TsGanttTaskChangesDetectionResult } from "./ts-gantt-task";
+  TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "./ts-gantt-task";
 import { TsGanttOptions } from "./ts-gantt-options";
 import { TsGanttChart } from "./ts-gantt-chart";
 import { TsGanttTable } from "./ts-gantt-table";
-
 
 class TsGantt {  
 
@@ -211,11 +210,7 @@ class TsGantt {
     const selectedTask = this._selectedTask;
     if (selectedTask && selectedTask !== targetTask
         && TsGanttTask.checkPaternity(this._tasks, targetTask, selectedTask)) {
-      selectedTask.selected = false;
-      this._selectedTask = null;
-      if (selectedTask.parentUuid !== targetTask.uuid) {
-        changedTasks.push(selectedTask);
-      }
+      this.selectTask(null);      
     }
 
     this.update({added: [], deleted: [], changed: changedTasks, all: this._tasks});
@@ -227,31 +222,24 @@ class TsGantt {
         || oldSelectedTask === newSelectedTask) {
       return;
     }
-
-    this._selectedTask = null;
-
-    const changedTasks: TsGanttTask[] = [];
-
-    if (oldSelectedTask) {
-      oldSelectedTask.selected = false;
-      changedTasks.push(oldSelectedTask);
-    }        
-    if (newSelectedTask) {
-      newSelectedTask.selected = true;
-      changedTasks.push(newSelectedTask);
-      this._selectedTask = newSelectedTask;
-    }
-
-    this.update({added: [], deleted: [], changed: changedTasks, all: this._tasks});
+    this._selectedTask = newSelectedTask;    
+    this._table.applySelection(<TsGanttTaskSelectionChangeResult>{
+      selected: newSelectedTask,
+      deselected: oldSelectedTask,
+    });
+    this._chart.applySelection(<TsGanttTaskSelectionChangeResult>{
+      selected: newSelectedTask,
+      deselected: oldSelectedTask,
+    });
   }
 
-  private update(data: TsGanttTaskChangesDetectionResult) {
+  private update(data: TsGanttTaskChangeResult) {
     this._table.update(false, data);
     this._chart.update(false, data);
   }
 
   private updateLocale() {    
-    const data = <TsGanttTaskChangesDetectionResult>{
+    const data = <TsGanttTaskChangeResult>{
       deleted: [],
       added: [],
       changed: this._tasks,
@@ -262,7 +250,7 @@ class TsGantt {
   }
   
   private updateChartScale() {
-    this._chart.update(true, <TsGanttTaskChangesDetectionResult>{
+    this._chart.update(true, <TsGanttTaskChangeResult>{
       deleted: [],
       added: [],
       changed: this._tasks,
@@ -271,7 +259,7 @@ class TsGantt {
   }  
 
   private updateChartBarMode() {
-    this._chart.update(false, <TsGanttTaskChangesDetectionResult>{
+    this._chart.update(false, <TsGanttTaskChangeResult>{
       deleted: [],
       added: [],
       changed: this._tasks,
@@ -283,4 +271,4 @@ class TsGantt {
 
 export { TsGantt, TsGanttOptions, TsGanttChart, TsGanttTable,
   TsGanttTask, TsGanttTaskModel, TsGanttTaskUpdateResult, 
-  TsGanttTaskChangesDetectionResult };
+  TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult };

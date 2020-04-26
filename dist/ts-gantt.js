@@ -116,7 +116,6 @@ class TsGanttTask {
         this.uuid = uuid || getRandomUuid();
         this.shown = !parentUuid;
         this.expanded = false;
-        this.selected = false;
     }
     set progress(value) {
         this._progress = value < 0 ? 0 : value > 100 ? 100 : value;
@@ -215,8 +214,7 @@ class TsGanttTask {
             && ((_e = this.dateActualStart) === null || _e === void 0 ? void 0 : _e.unix()) === ((_f = another.dateActualStart) === null || _f === void 0 ? void 0 : _f.unix())
             && ((_g = this.dateActualEnd) === null || _g === void 0 ? void 0 : _g.unix()) === ((_h = another.dateActualEnd) === null || _h === void 0 ? void 0 : _h.unix())
             && this.expanded === another.expanded
-            && this.shown === another.shown
-            && this.selected === another.selected;
+            && this.shown === another.shown;
     }
     compareTo(another) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
@@ -532,6 +530,21 @@ class TsGanttChart {
         }
         this.refreshBody();
         this.redraw();
+    }
+    applySelection(selectionResult) {
+        const { selected, deselected } = selectionResult;
+        if (deselected) {
+            const row = this._chartRowBgs.get(deselected.uuid);
+            if (row) {
+                row.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
+            }
+        }
+        if (selected) {
+            const row = this._chartRowBgs.get(selected.uuid);
+            if (row) {
+                row.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
+            }
+        }
     }
     checkDates(tasks) {
         const currentDateMin = this._dateMinOffset;
@@ -867,14 +880,14 @@ class TsGanttChart {
             ["width", width + ""],
             ["height", height + ""],
         ], body);
-        const selectedRowIndex = barGroups.findIndex(x => x.task.selected);
-        if (selectedRowIndex !== -1) {
-            const selectedRowBg = createSvgElement("rect", [TsGanttConst.CHART_ROW_BACKGROUND_CLASS, TsGanttConst.ROW_SELECTED_CLASS], [
-                ["y", (selectedRowIndex * rowHeight) + ""],
+        const rowBgs = new Map();
+        barGroups.forEach((x, i) => {
+            rowBgs.set(x.task.uuid, createSvgElement("rect", [TsGanttConst.CHART_ROW_BACKGROUND_CLASS], [
+                ["y", (i * rowHeight) + ""],
                 ["width", width + ""],
                 ["height", rowHeight + ""],
-            ], body);
-        }
+            ], body));
+        });
         for (let i = 0; i < barGroups.length;) {
             const lineY = ++i * rowHeight - border / 2;
             const horizontalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
@@ -916,6 +929,7 @@ class TsGanttChart {
                 rowWrapper.append(x.barSvg);
             }
         });
+        this._chartRowBgs = rowBgs;
         this._bodyHeight = height;
         this._htmlBody = body;
     }
@@ -964,9 +978,6 @@ class TsGanttTableRow {
                 }));
             }
         });
-        if (this.task.selected) {
-            row.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
-        }
         columns.forEach((x, i) => {
             const cell = document.createElement("td");
             const cellInnerDiv = document.createElement("div");
@@ -1032,6 +1043,21 @@ class TsGanttTable {
         }
         if (data) {
             this.updateRows(data);
+        }
+    }
+    applySelection(selectionResult) {
+        const { selected, deselected } = selectionResult;
+        if (deselected) {
+            const row = this._tableRows.find(x => x.task.uuid === deselected.uuid);
+            if (row) {
+                row.html.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
+            }
+        }
+        if (selected) {
+            const row = this._tableRows.find(x => x.task.uuid === selected.uuid);
+            if (row) {
+                row.html.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
+            }
         }
     }
     updateColumns() {
@@ -1243,11 +1269,7 @@ class TsGantt {
         const selectedTask = this._selectedTask;
         if (selectedTask && selectedTask !== targetTask
             && TsGanttTask.checkPaternity(this._tasks, targetTask, selectedTask)) {
-            selectedTask.selected = false;
-            this._selectedTask = null;
-            if (selectedTask.parentUuid !== targetTask.uuid) {
-                changedTasks.push(selectedTask);
-            }
+            this.selectTask(null);
         }
         this.update({ added: [], deleted: [], changed: changedTasks, all: this._tasks });
     }
@@ -1257,18 +1279,15 @@ class TsGantt {
             || oldSelectedTask === newSelectedTask) {
             return;
         }
-        this._selectedTask = null;
-        const changedTasks = [];
-        if (oldSelectedTask) {
-            oldSelectedTask.selected = false;
-            changedTasks.push(oldSelectedTask);
-        }
-        if (newSelectedTask) {
-            newSelectedTask.selected = true;
-            changedTasks.push(newSelectedTask);
-            this._selectedTask = newSelectedTask;
-        }
-        this.update({ added: [], deleted: [], changed: changedTasks, all: this._tasks });
+        this._selectedTask = newSelectedTask;
+        this._table.applySelection({
+            selected: newSelectedTask,
+            deselected: oldSelectedTask,
+        });
+        this._chart.applySelection({
+            selected: newSelectedTask,
+            deselected: oldSelectedTask,
+        });
     }
     update(data) {
         this._table.update(false, data);
