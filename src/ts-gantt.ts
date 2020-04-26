@@ -39,6 +39,7 @@ class TsGantt {
   private _htmlWrapper: HTMLDivElement;
   private _htmlTableWrapper: HTMLDivElement;
   private _htmlChartWrapper: HTMLDivElement;
+
   private _htmlSeparator: HTMLDivElement;
   private _htmlSeparatorDragActive = false;
 
@@ -81,12 +82,19 @@ class TsGantt {
   }
 
   destroy() {
-    this.removeSepEventListeners();
+    this.removeResizeEventListeners();
     this.removeRowEventListeners();
     this._htmlWrapper.remove();
   }
 
   // #region event listeners
+  onResize = (e: Event) => {
+    const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
+    const tableWrapperWidth = this._htmlTableWrapper.getBoundingClientRect().width;
+    this._htmlChartWrapper.style.width = 
+      (wrapperWidth - tableWrapperWidth - this._options.separatorWidthPx) + "px";
+  };
+
   onMouseDownOnSep = (e: MouseEvent) => {
     if (e.target === this._htmlSeparator) {
       this._htmlSeparatorDragActive = true;
@@ -100,7 +108,7 @@ class TsGantt {
     const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
     const userDefinedWidth = e.clientX - wrapperLeftOffset;
 
-    this._htmlTableWrapper.style.width = (userDefinedWidth - 5) + "px";
+    this._htmlTableWrapper.style.width = (userDefinedWidth - this._options.separatorWidthPx) + "px";
     this._htmlChartWrapper.style.width = (wrapperWidth - userDefinedWidth) + "px";
   };        
   onMouseUpOnSep = (e: MouseEvent) => {
@@ -125,7 +133,8 @@ class TsGantt {
     this.toggleTaskExpanded(e.detail);
   });
 
-  private removeSepEventListeners() {
+  private removeResizeEventListeners() {
+    window.removeEventListener("resize", this.onResize);
     document.removeEventListener("mousedown", this.onMouseDownOnSep);
     document.removeEventListener("mousemove", this.onMouseMoveOnSep);
     document.removeEventListener("mouseup", this.onMouseUpOnSep);
@@ -138,6 +147,7 @@ class TsGantt {
   // #endregion
 
   private setCssVariables(options: TsGanttOptions) {
+    document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_SEPARATOR_WIDTH, options.separatorWidthPx + "px");
     document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_HEADER_HEIGHT, options.headerHeightPx + "px");
     document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_ROW_HEIGHT, options.rowHeightPx + "px");
     document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_GRIDLINES_WIDTH, options.borderWidthPx + "px");
@@ -173,6 +183,7 @@ class TsGantt {
     this._htmlChartWrapper = chartWrapper;
     this._htmlSeparator = separator;
 
+    window.addEventListener("resize", this.onResize);
     document.addEventListener("mousedown", this.onMouseDownOnSep);
     document.addEventListener("mousemove", this.onMouseMoveOnSep);
     document.addEventListener("mouseup", this.onMouseUpOnSep);

@@ -1,4 +1,5 @@
 class TsGanttConst {  
+  static readonly CSS_VAR_SEPARATOR_WIDTH = "--tsg-separator-width";
   static readonly CSS_VAR_HEADER_HEIGHT = "--tsg-header-height";
   static readonly CSS_VAR_ROW_HEIGHT = "--tsg-row-height";
   static readonly CSS_VAR_GRIDLINES_WIDTH = "--tsg-gridlines-width";

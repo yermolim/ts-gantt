@@ -71,6 +71,7 @@ export declare class TsGanttOptions {
 	enableProgressEdit: boolean;
 	columnsMinWidthPx: number[];
 	columnsContentAlign: ("start" | "center" | "end")[];
+	separatorWidthPx: number;
 	headerHeightPx: number;
 	rowHeightPx: number;
 	borderWidthPx: number;
@@ -186,13 +187,14 @@ export declare class TsGantt {
 	set chartBarMode(value: "planned" | "actual" | "both");
 	constructor(containerSelector: string, options: TsGanttOptions);
 	destroy(): void;
+	onResize: (e: Event) => void;
 	onMouseDownOnSep: (e: MouseEvent) => void;
 	onMouseMoveOnSep: (e: MouseEvent) => boolean;
 	onMouseUpOnSep: (e: MouseEvent) => void;
 	onWrapperScroll: EventListener;
 	onRowClick: EventListener;
 	onRowExpanderClick: EventListener;
-	private removeSepEventListeners;
+	private removeResizeEventListeners;
 	private removeRowEventListeners;
 	private setCssVariables;
 	private createLayout;

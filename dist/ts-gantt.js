@@ -1,5 +1,6 @@
 class TsGanttConst {
 }
+TsGanttConst.CSS_VAR_SEPARATOR_WIDTH = "--tsg-separator-width";
 TsGanttConst.CSS_VAR_HEADER_HEIGHT = "--tsg-header-height";
 TsGanttConst.CSS_VAR_ROW_HEIGHT = "--tsg-row-height";
 TsGanttConst.CSS_VAR_GRIDLINES_WIDTH = "--tsg-gridlines-width";
@@ -261,6 +262,7 @@ class TsGanttOptions {
         this.enableProgressEdit = true;
         this.columnsMinWidthPx = [200, 100, 100, 100, 100, 100, 100, 100];
         this.columnsContentAlign = ["start", "end", "center", "center", "center", "center", "center", "center"];
+        this.separatorWidthPx = 5;
         this.headerHeightPx = 90;
         this.rowHeightPx = 40;
         this.borderWidthPx = 1;
@@ -1113,6 +1115,12 @@ class TsGantt {
     constructor(containerSelector, options) {
         this._tasks = [];
         this._htmlSeparatorDragActive = false;
+        this.onResize = (e) => {
+            const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
+            const tableWrapperWidth = this._htmlTableWrapper.getBoundingClientRect().width;
+            this._htmlChartWrapper.style.width =
+                (wrapperWidth - tableWrapperWidth - this._options.separatorWidthPx) + "px";
+        };
         this.onMouseDownOnSep = (e) => {
             if (e.target === this._htmlSeparator) {
                 this._htmlSeparatorDragActive = true;
@@ -1125,7 +1133,7 @@ class TsGantt {
             const wrapperLeftOffset = this._htmlWrapper.offsetLeft;
             const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
             const userDefinedWidth = e.clientX - wrapperLeftOffset;
-            this._htmlTableWrapper.style.width = (userDefinedWidth - 5) + "px";
+            this._htmlTableWrapper.style.width = (userDefinedWidth - this._options.separatorWidthPx) + "px";
             this._htmlChartWrapper.style.width = (wrapperWidth - userDefinedWidth) + "px";
         };
         this.onMouseUpOnSep = (e) => {
@@ -1194,11 +1202,12 @@ class TsGantt {
         }
     }
     destroy() {
-        this.removeSepEventListeners();
+        this.removeResizeEventListeners();
         this.removeRowEventListeners();
         this._htmlWrapper.remove();
     }
-    removeSepEventListeners() {
+    removeResizeEventListeners() {
+        window.removeEventListener("resize", this.onResize);
         document.removeEventListener("mousedown", this.onMouseDownOnSep);
         document.removeEventListener("mousemove", this.onMouseMoveOnSep);
         document.removeEventListener("mouseup", this.onMouseUpOnSep);
@@ -1208,6 +1217,7 @@ class TsGantt {
         document.removeEventListener(TsGanttConst.CELL_EXPANDER_CLICK, this.onRowExpanderClick);
     }
     setCssVariables(options) {
+        document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_SEPARATOR_WIDTH, options.separatorWidthPx + "px");
         document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_HEADER_HEIGHT, options.headerHeightPx + "px");
         document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_ROW_HEIGHT, options.rowHeightPx + "px");
         document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_GRIDLINES_WIDTH, options.borderWidthPx + "px");
@@ -1236,6 +1246,7 @@ class TsGantt {
         this._htmlTableWrapper = tableWrapper;
         this._htmlChartWrapper = chartWrapper;
         this._htmlSeparator = separator;
+        window.addEventListener("resize", this.onResize);
         document.addEventListener("mousedown", this.onMouseDownOnSep);
         document.addEventListener("mousemove", this.onMouseMoveOnSep);
         document.addEventListener("mouseup", this.onMouseUpOnSep);

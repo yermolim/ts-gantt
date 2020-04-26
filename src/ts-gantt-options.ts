@@ -13,6 +13,7 @@ class TsGanttOptions {
   columnsMinWidthPx: number[] = [200, 100, 100, 100, 100, 100, 100, 100];
   columnsContentAlign: ("start" | "center" | "end")[] = ["start", "end", "center", "center", "center", "center", "center", "center"];
 
+  separatorWidthPx = 5;
   headerHeightPx = 90;
   rowHeightPx = 40;
   borderWidthPx = 1;
