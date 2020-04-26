@@ -170,13 +170,14 @@ tr.selected .tsg-cell-text:after {
 .tsg-chart {
   box-sizing: border-box;
   display: flex;
+  flex-direction: column;
   flex-shrink: 0;
 }
 
-/* .tsg-chart-header {
+.tsg-chart-header {
   position: sticky;
   top: 0;
-} */
+}
 
 .tsg-chart-header-bg {
   fill: var(--tsg-table-header-color);

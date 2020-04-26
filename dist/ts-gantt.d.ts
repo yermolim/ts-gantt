@@ -122,7 +122,7 @@ export declare class TsGanttOptions {
 export declare class TsGanttChart {
 	private _options;
 	private _html;
-	get html(): SVGElement;
+	get html(): HTMLDivElement;
 	private _htmlHeader;
 	get htmlHeader(): SVGElement;
 	private _htmlBody;

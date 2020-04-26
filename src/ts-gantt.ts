@@ -116,7 +116,6 @@ class TsGantt {
     } else {
       this._htmlTableWrapper.scrollTop = scroll;
     }
-    this._chart.htmlHeader.setAttribute("y", scroll + "");
   });
   
   onRowClick = <EventListener>((e: CustomEvent) => {

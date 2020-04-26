@@ -511,7 +511,8 @@ class TsGanttChart {
         this._chartBarGroups = [];
         this._chartBarGroupsShown = [];
         this._options = options;
-        const svg = createSvgElement("svg", [TsGanttConst.CHART_CLASS]);
+        const svg = document.createElement("div");
+        svg.classList.add(TsGanttConst.CHART_CLASS);
         this._html = svg;
     }
     get html() {
@@ -919,13 +920,10 @@ class TsGanttChart {
         this._htmlBody = body;
     }
     redraw() {
-        const height = this._headerHeight + this._bodyHeight;
         const oldHtml = this._html;
-        const newHtml = createSvgElement("svg", [TsGanttConst.CHART_CLASS], [
-            ["width", this._width + ""],
-            ["height", height + ""],
-        ]);
-        newHtml.append(this._htmlBody, this._htmlHeader);
+        const newHtml = document.createElement("div");
+        newHtml.classList.add(TsGanttConst.CHART_CLASS);
+        newHtml.append(this._htmlHeader, this._htmlBody);
         oldHtml.replaceWith(newHtml);
         this._html = newHtml;
     }
@@ -1116,7 +1114,6 @@ class TsGantt {
             else {
                 this._htmlTableWrapper.scrollTop = scroll;
             }
-            this._chart.htmlHeader.setAttribute("y", scroll + "");
         });
         this.onRowClick = ((e) => {
             const newSelectedTask = this._tasks.find(x => x.uuid === e.detail);

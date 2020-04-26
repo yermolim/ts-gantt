@@ -139,8 +139,8 @@ class TsGanttChart {
 
   private _options: TsGanttOptions;
   
-  private _html: SVGElement;
-  get html(): SVGElement {
+  private _html: HTMLDivElement;
+  get html(): HTMLDivElement {
     return this._html;
   }    
   private _htmlHeader: SVGElement;
@@ -163,7 +163,8 @@ class TsGanttChart {
   constructor(options: TsGanttOptions) {
     this._options = options;
     
-    const svg = createSvgElement("svg", [TsGanttConst.CHART_CLASS]);
+    const svg = document.createElement("div");
+    svg.classList.add(TsGanttConst.CHART_CLASS);
     this._html = svg;
   }
   
@@ -608,14 +609,11 @@ class TsGanttChart {
   }
 
   private redraw() {
-    const height = this._headerHeight + this._bodyHeight;
     const oldHtml = this._html;
 
-    const newHtml = createSvgElement("svg", [TsGanttConst.CHART_CLASS], [
-      ["width", this._width + ""],
-      ["height", height + ""],
-    ]);
-    newHtml.append(this._htmlBody, this._htmlHeader);
+    const newHtml = document.createElement("div");
+    newHtml.classList.add(TsGanttConst.CHART_CLASS);
+    newHtml.append(this._htmlHeader, this._htmlBody);
 
     oldHtml.replaceWith(newHtml);
     this._html = newHtml;
