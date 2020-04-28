@@ -30,8 +30,11 @@
   background-color: var(--tsg-background-color);
 }
 
-.tsg-separator {
+.tsg-wrapper * {
   box-sizing: border-box;
+}
+
+.tsg-separator {
   display: flex;
   flex: 0 0 auto;
   width: var(--tsg-separator-width);
@@ -43,7 +46,6 @@
 
 .tsg-table-wrapper {
   position: relative;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   width: calc(50% - 5px);
@@ -54,7 +56,6 @@
 }
 
 .tsg-table {
-  box-sizing: border-box;
   width: 100%;
   border-spacing: 0;
   font-family: var(--tsg-font-family);
@@ -62,11 +63,9 @@
 }
 
 .tsg-table thead tr {
-  box-sizing: border-box;
   height: var(--tsg-header-height) !important;
 }
 .tsg-table thead th {
-  box-sizing: border-box;
   position: sticky;
   top: 0;
   padding: 5px;
@@ -78,7 +77,6 @@
 }
 
 .tsg-table tbody tr {
-  box-sizing: border-box;
   height: var(--tsg-row-height) !important;
 }
 .tsg-table tbody tr.selected {
@@ -88,7 +86,6 @@
   font-weight: bold;
 }
 .tsg-table tbody td {
-  box-sizing: border-box;
   padding: 0;
   cursor: default;
   border-width: 0 var(--tsg-gridlines-width) var(--tsg-gridlines-width) 0;
@@ -97,7 +94,6 @@
 }
 
 .tsg-cell-text-wrapper {
-  box-sizing: border-box;
   display: flex;
   align-items: center;
   height: calc(var(--tsg-row-height) - 2px);
@@ -160,7 +156,6 @@ tr.selected .tsg-cell-text:after {
 
 .tsg-chart-wrapper {
   position: relative;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   width: 50%;
@@ -171,7 +166,6 @@ tr.selected .tsg-cell-text:after {
 }
 
 .tsg-chart {
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;

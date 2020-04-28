@@ -202,10 +202,20 @@ class TsGanttTask {
         }
         return false;
     }
+    static sortTasksRecursively(tasks, parentUuid) {
+        const tasksFiltered = tasks.filter(x => x.parentUuid === parentUuid)
+            .sort((a, b) => a.compareTo(b));
+        const sorted = [];
+        for (const task of tasksFiltered) {
+            sorted.push(task);
+            sorted.push(...this.sortTasksRecursively(tasks, task.uuid));
+        }
+        return sorted;
+    }
     equals(another) {
         var _a, _b, _c, _d, _e, _f, _g, _h;
-        return this.uuid === another.uuid
-            && this.parentUuid === another.parentUuid
+        return this.externalId === another.externalId
+            && this.parentExternalId === another.parentExternalId
             && this.nestingLvl === another.nestingLvl
             && this.hasChildren === another.hasChildren
             && this.name === another.name
@@ -213,9 +223,7 @@ class TsGanttTask {
             && ((_a = this.datePlannedStart) === null || _a === void 0 ? void 0 : _a.unix()) === ((_b = another.datePlannedStart) === null || _b === void 0 ? void 0 : _b.unix())
             && ((_c = this.datePlannedEnd) === null || _c === void 0 ? void 0 : _c.unix()) === ((_d = another.datePlannedEnd) === null || _d === void 0 ? void 0 : _d.unix())
             && ((_e = this.dateActualStart) === null || _e === void 0 ? void 0 : _e.unix()) === ((_f = another.dateActualStart) === null || _f === void 0 ? void 0 : _f.unix())
-            && ((_g = this.dateActualEnd) === null || _g === void 0 ? void 0 : _g.unix()) === ((_h = another.dateActualEnd) === null || _h === void 0 ? void 0 : _h.unix())
-            && this.expanded === another.expanded
-            && this.shown === another.shown;
+            && ((_g = this.dateActualEnd) === null || _g === void 0 ? void 0 : _g.unix()) === ((_h = another.dateActualEnd) === null || _h === void 0 ? void 0 : _h.unix());
     }
     compareTo(another) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
@@ -1046,6 +1054,7 @@ class TsGanttTable {
         if (data) {
             this.updateRows(data);
         }
+        this.redraw();
     }
     applySelection(selectionResult) {
         const { selected, deselected } = selectionResult;
@@ -1071,11 +1080,7 @@ class TsGanttTable {
                 columns.push(new TsGanttTableColumn(minColumnWidth, contentAlign, this._options.localeHeaders[this._options.locale][i] || "", this._options.columnValueGetters[i] || ((task) => "")));
             }
         }
-        const headerRow = document.createElement("tr");
-        columns.forEach(x => headerRow.append(x.html));
         this._tableColumns = columns;
-        this._htmlHead.innerHTML = "";
-        this._htmlHead.append(headerRow);
     }
     updateRows(data) {
         data.deleted.forEach(x => {
@@ -1091,6 +1096,12 @@ class TsGanttTable {
             }
         });
         data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns)));
+    }
+    redraw() {
+        const headerRow = document.createElement("tr");
+        this._tableColumns.forEach(x => headerRow.append(x.html));
+        this._htmlHead.innerHTML = "";
+        this._htmlHead.append(headerRow);
         this._htmlBody.innerHTML = "";
         this._htmlBody.append(...this.getRowsHtmlRecursively(this._tableRows, null));
     }

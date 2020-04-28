@@ -158,7 +158,6 @@ class TsGanttChart {
 
   private _width: number;
   private _headerHeight: number;
-  private _bodyHeight: number;
   private _verticalLinesXCoords: number[];
   
   constructor(options: TsGanttOptions) {
@@ -623,7 +622,6 @@ class TsGanttChart {
     });
 
     this._chartRowBgs = rowBgs;
-    this._bodyHeight = height;
     this._htmlBody = body;
   }
 

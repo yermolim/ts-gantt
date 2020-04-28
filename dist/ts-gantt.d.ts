@@ -46,6 +46,7 @@ export declare class TsGanttTask {
 	static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult;
 	static getTasksIdsMap(tasks: TsGanttTask[]): Map<string, string>;
 	static checkPaternity(tasks: TsGanttTask[], parent: TsGanttTask, child: TsGanttTask): boolean;
+	static sortTasksRecursively(tasks: TsGanttTask[], parentUuid: string): TsGanttTask[];
 	equals(another: TsGanttTask): boolean;
 	compareTo(another: TsGanttTask): number;
 }
@@ -164,6 +165,7 @@ export declare class TsGanttTable {
 	applySelection(selectionResult: TsGanttTaskSelectionChangeResult): void;
 	private updateColumns;
 	private updateRows;
+	private redraw;
 	private getRowsHtmlRecursively;
 }
 export declare class TsGantt {

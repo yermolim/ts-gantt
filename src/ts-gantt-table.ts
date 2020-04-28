@@ -139,6 +139,7 @@ class TsGanttTable {
     if (data) {
       this.updateRows(data);
     }
+    this.redraw();
   }
   
   applySelection(selectionResult: TsGanttTaskSelectionChangeResult) {
@@ -167,13 +168,7 @@ class TsGanttTable {
           this._options.columnValueGetters[i] || ((task: TsGanttTask) => "")));
       }
     }
-
-    const headerRow = document.createElement("tr");
-    columns.forEach(x => headerRow.append(x.html));
-
-    this._tableColumns = columns;
-    this._htmlHead.innerHTML = "";    
-    this._htmlHead.append(headerRow);    
+    this._tableColumns = columns;  
   }  
 
   private updateRows(data: TsGanttTaskChangeResult) {
@@ -190,6 +185,14 @@ class TsGanttTable {
       }
     });
     data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns)));
+  }
+
+  private redraw() {    
+    const headerRow = document.createElement("tr");
+    this._tableColumns.forEach(x => headerRow.append(x.html));
+
+    this._htmlHead.innerHTML = "";    
+    this._htmlHead.append(headerRow);  
 
     this._htmlBody.innerHTML = "";
     this._htmlBody.append(...this.getRowsHtmlRecursively(this._tableRows, null));
@@ -210,6 +213,7 @@ class TsGanttTable {
     }
     return rowsHtml;
   }
+
 }
 
 export { TsGanttTable };

@@ -202,8 +202,8 @@ class TsGanttTask {
   }
 
   equals(another: TsGanttTask): boolean {
-    return this.uuid === another.uuid 
-      && this.parentUuid === another.parentUuid
+    return this.externalId === another.externalId 
+      && this.parentExternalId === another.parentExternalId
       && this.nestingLvl === another.nestingLvl
       && this.hasChildren === another.hasChildren
       && this.name === another.name
@@ -211,9 +211,7 @@ class TsGanttTask {
       && this.datePlannedStart?.unix() === another.datePlannedStart?.unix()
       && this.datePlannedEnd?.unix() === another.datePlannedEnd?.unix()
       && this.dateActualStart?.unix() === another.dateActualStart?.unix()
-      && this.dateActualEnd?.unix() === another.dateActualEnd?.unix()
-      && this.expanded === another.expanded
-      && this.shown === another.shown;
+      && this.dateActualEnd?.unix() === another.dateActualEnd?.unix();
   }
 
   compareTo(another: TsGanttTask): number {    
