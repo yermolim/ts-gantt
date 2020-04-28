@@ -138,7 +138,6 @@ export declare class TsGanttChart {
 	private _dateMaxOffset;
 	private _width;
 	private _headerHeight;
-	private _bodyHeight;
 	private _verticalLinesXCoords;
 	constructor(options: TsGanttOptions);
 	update(forceRedraw: boolean, data: TsGanttTaskChangeResult): void;
@@ -146,9 +145,8 @@ export declare class TsGanttChart {
 	private checkDates;
 	private refreshBarGroups;
 	private getBarGroupOptions;
-	private refreshBarGroupsShown;
-	private getBarGroupsShownRecursively;
 	private refreshHeader;
+	private getShownBarGroupsRecursively;
 	private refreshBody;
 	private redraw;
 }
@@ -207,6 +205,7 @@ export declare class TsGantt {
 	private updateLocale;
 	private updateChartScale;
 	private updateChartBarMode;
+	private refreshSelection;
 }
 
 export {};

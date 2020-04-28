@@ -530,13 +530,14 @@ class TsGanttChart {
         return this._htmlHeader;
     }
     update(forceRedraw, data) {
-        const datesCheckResult = this.checkDates(data.all);
+        const datesCheckResult = data
+            ? this.checkDates(data.all)
+            : true;
         if (!datesCheckResult || forceRedraw) {
             this.refreshHeader();
         }
         if (data) {
             this.refreshBarGroups(data);
-            this.refreshBarGroupsShown();
         }
         this.refreshBody();
         this.redraw();
@@ -633,24 +634,6 @@ class TsGanttChart {
                 break;
         }
         return { mode, dayWidth, rowHeight, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 };
-    }
-    refreshBarGroupsShown() {
-        this._chartBarGroupsShown = this.getBarGroupsShownRecursively(this._chartBarGroups, null);
-    }
-    getBarGroupsShownRecursively(barGroups, parentUuid) {
-        const barGroupsFiltered = barGroups.filter(x => x.task.parentUuid === parentUuid)
-            .sort((a, b) => a.task.compareTo(b.task));
-        const barGroupsShown = [];
-        for (const barGroup of barGroupsFiltered) {
-            if (!barGroup.task.shown) {
-                continue;
-            }
-            barGroupsShown.push(barGroup);
-            if (barGroup.task.expanded) {
-                barGroupsShown.push(...this.getBarGroupsShownRecursively(barGroups, barGroup.task.uuid));
-            }
-        }
-        return barGroupsShown;
     }
     refreshHeader() {
         const scale = this._options.chartScale;
@@ -870,12 +853,27 @@ class TsGanttChart {
         this._verticalLinesXCoords = verticalLinesXCoords;
         this._htmlHeader = header;
     }
+    getShownBarGroupsRecursively(barGroups, parentUuid) {
+        const barGroupsFiltered = barGroups.filter(x => x.task.parentUuid === parentUuid)
+            .sort((a, b) => a.task.compareTo(b.task));
+        const barGroupsShown = [];
+        for (const barGroup of barGroupsFiltered) {
+            if (!barGroup.task.shown) {
+                continue;
+            }
+            barGroupsShown.push(barGroup);
+            if (barGroup.task.expanded) {
+                barGroupsShown.push(...this.getShownBarGroupsRecursively(barGroups, barGroup.task.uuid));
+            }
+        }
+        return barGroupsShown;
+    }
     refreshBody() {
         const scale = this._options.chartScale;
         const dayWidth = this._options.chartDayWidthPx[scale];
         const rowHeight = this._options.rowHeightPx;
         const border = this._options.borderWidthPx;
-        const barGroups = this._chartBarGroupsShown;
+        const barGroups = this.getShownBarGroupsRecursively(this._chartBarGroups, null);
         const minDate = this._dateMinOffset;
         const xCoords = this._verticalLinesXCoords;
         const width = this._width;
@@ -940,7 +938,6 @@ class TsGanttChart {
             }
         });
         this._chartRowBgs = rowBgs;
-        this._bodyHeight = height;
         this._htmlBody = body;
     }
     redraw() {
@@ -1287,8 +1284,7 @@ class TsGantt {
         }
         targetTask.expanded = !targetTask.expanded;
         targetChildren.forEach(x => x.shown = !x.shown);
-        const changedTasks = [targetTask, ...targetChildren];
-        this.update({ added: [], deleted: [], changed: changedTasks, all: this._tasks });
+        this.update(null);
     }
     selectTask(newSelectedTask, forceSelection = false) {
         const oldSelectedTask = this._selectedTask;
@@ -1309,14 +1305,7 @@ class TsGantt {
     update(data) {
         this._table.update(false, data);
         this._chart.update(false, data);
-        if (this._selectedTask) {
-            if (data.all.filter(x => x.shown).find(x => x.uuid === this._selectedTask.uuid)) {
-                this.selectTask(this._selectedTask, true);
-            }
-            else {
-                this._selectedTask = null;
-            }
-        }
+        this.refreshSelection();
     }
     updateLocale() {
         const data = {
@@ -1343,6 +1332,16 @@ class TsGantt {
             changed: this._tasks,
             all: this._tasks,
         });
+    }
+    refreshSelection() {
+        if (this._selectedTask) {
+            if (this._tasks.filter(x => x.shown).find(x => x.uuid === this._selectedTask.uuid)) {
+                this.selectTask(this._selectedTask, true);
+            }
+            else {
+                this.selectTask(null);
+            }
+        }
     }
 }
 

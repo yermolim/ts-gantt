@@ -213,12 +213,10 @@ class TsGantt {
     if (!targetTask) {
       return;
     }
-
     targetTask.expanded = !targetTask.expanded;
     targetChildren.forEach(x => x.shown = !x.shown);
-    const changedTasks = [targetTask, ...targetChildren];
 
-    this.update({added: [], deleted: [], changed: changedTasks, all: this._tasks});
+    this.update(null);
   }
 
   private selectTask(newSelectedTask: TsGanttTask, forceSelection = false) {
@@ -241,14 +239,7 @@ class TsGantt {
   private update(data: TsGanttTaskChangeResult) {
     this._table.update(false, data);
     this._chart.update(false, data);
-
-    if (this._selectedTask) {
-      if (data.all.filter(x => x.shown).find(x => x.uuid === this._selectedTask.uuid)) {
-        this.selectTask(this._selectedTask, true);
-      } else {
-        this._selectedTask = null;
-      }
-    }
+    this.refreshSelection();
   }
 
   private updateLocale() {    
@@ -278,6 +269,16 @@ class TsGantt {
       changed: this._tasks,
       all: this._tasks,
     });
+  }
+
+  private refreshSelection() {    
+    if (this._selectedTask) {
+      if (this._tasks.filter(x => x.shown).find(x => x.uuid === this._selectedTask.uuid)) {
+        this.selectTask(this._selectedTask, true);
+      } else {
+        this.selectTask(null);
+      }
+    }
   }
   // #endregion
 }

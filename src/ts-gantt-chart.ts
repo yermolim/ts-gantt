@@ -170,13 +170,14 @@ class TsGanttChart {
   
   update(forceRedraw: boolean, data: TsGanttTaskChangeResult) {
     
-    const datesCheckResult = this.checkDates(data.all);
+    const datesCheckResult = data 
+      ? this.checkDates(data.all)
+      : true;
     if (!datesCheckResult || forceRedraw) {
       this.refreshHeader();
     }
     if (data) {
       this.refreshBarGroups(data);
-      this.refreshBarGroupsShown();
     } 
     this.refreshBody();
     this.redraw();
@@ -283,28 +284,6 @@ class TsGanttChart {
     }
 
     return { mode, dayWidth, rowHeight, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 };
-  }
-
-  private refreshBarGroupsShown() {
-    this._chartBarGroupsShown = this.getBarGroupsShownRecursively(this._chartBarGroups, null);
-  }
-    
-  private getBarGroupsShownRecursively(barGroups: TsGanttChartBarGroup[], 
-    parentUuid: string): TsGanttChartBarGroup[] {
-      
-    const barGroupsFiltered = barGroups.filter(x => x.task.parentUuid === parentUuid)
-      .sort((a: TsGanttChartBarGroup, b: TsGanttChartBarGroup): number => a.task.compareTo(b.task));
-    const barGroupsShown: TsGanttChartBarGroup[] = [];
-    for (const barGroup of barGroupsFiltered) {
-      if (!barGroup.task.shown) {
-        continue;
-      }
-      barGroupsShown.push(barGroup);
-      if (barGroup.task.expanded) {
-        barGroupsShown.push(...this.getBarGroupsShownRecursively(barGroups, barGroup.task.uuid));
-      }
-    }
-    return barGroupsShown;
   }
 
   private refreshHeader() {
@@ -542,6 +521,24 @@ class TsGanttChart {
     this._verticalLinesXCoords = verticalLinesXCoords;
     this._htmlHeader = header;
   }
+    
+  private getShownBarGroupsRecursively(barGroups: TsGanttChartBarGroup[], 
+    parentUuid: string): TsGanttChartBarGroup[] {
+      
+    const barGroupsFiltered = barGroups.filter(x => x.task.parentUuid === parentUuid)
+      .sort((a: TsGanttChartBarGroup, b: TsGanttChartBarGroup): number => a.task.compareTo(b.task));
+    const barGroupsShown: TsGanttChartBarGroup[] = [];
+    for (const barGroup of barGroupsFiltered) {
+      if (!barGroup.task.shown) {
+        continue;
+      }
+      barGroupsShown.push(barGroup);
+      if (barGroup.task.expanded) {
+        barGroupsShown.push(...this.getShownBarGroupsRecursively(barGroups, barGroup.task.uuid));
+      }
+    }
+    return barGroupsShown;
+  }
 
   private refreshBody() {
     const scale = this._options.chartScale;
@@ -549,7 +546,7 @@ class TsGanttChart {
     const rowHeight = this._options.rowHeightPx;
     const border = this._options.borderWidthPx;
     
-    const barGroups = this._chartBarGroupsShown;
+    const barGroups = this.getShownBarGroupsRecursively(this._chartBarGroups, null);
     const minDate = this._dateMinOffset;
     const xCoords = this._verticalLinesXCoords;
     const width = this._width;
