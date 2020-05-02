@@ -41,7 +41,9 @@ class TsGanttConst {
   static readonly CHART_BAR_GROUP_CLASS = "tsg-chart-bar-group";
   static readonly CHART_BAR_WRAPPER_CLASS = "tsg-chart-bar-wrapper";
   static readonly CHART_BAR_PLANNED_CLASS = "tsg-chart-bar-planned";
+  static readonly CHART_BAR_PLANNED_PROGRESS_CLASS = "tsg-chart-bar-planned-progress";
   static readonly CHART_BAR_ACTUAL_CLASS = "tsg-chart-bar-actual";
+  static readonly CHART_BAR_ACTUAL_PROGRESS_CLASS = "tsg-chart-bar-actual-progress";
 }
 
 export { TsGanttConst };

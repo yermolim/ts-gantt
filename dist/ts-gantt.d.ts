@@ -79,6 +79,7 @@ export declare class TsGanttOptions {
 	barStrokeWidthPx: number;
 	barMarginPx: number;
 	barCornerRadiusPx: number;
+	chartShowProgress: boolean;
 	chartBarMode: "planned" | "actual" | "both";
 	chartScale: "day" | "week" | "month" | "year";
 	chartDateOffsetDays: {

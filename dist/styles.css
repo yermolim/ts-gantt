@@ -108,17 +108,21 @@
 .tsg-cell-text-wrapper.end {
   justify-content: flex-end;
 }
+
 .tsg-cell-text-indent {
   width: var(--tsg-nesting-indent) !important;
   min-width: var(--tsg-nesting-indent) !important;
+  color: var(--tsg-border-color);
   text-align: center;
 }
 .tsg-cell-text-expander {
   width: var(--tsg-nesting-indent) !important;
   min-width: var(--tsg-nesting-indent) !important;
+  color: var(--tsg-border-color);
   text-align: center;
   cursor: pointer;
 }
+
 .tsg-cell-text {
   overflow: hidden;
   position: relative;  
@@ -211,12 +215,17 @@ tr.selected .tsg-cell-text:after {
 }
 
 .tsg-chart-bar-planned {
-  fill: lightblue;
-  stroke: lightblue;
+  fill: skyblue;
+  stroke: skyblue;
   stroke-width: var(--tsg-bar-stroke-width);
 }
 .selected .tsg-chart-bar-planned {
   stroke: darkcyan;
+}
+.tsg-chart-bar-planned-progress {
+  fill: darkcyan;
+  stroke: darkcyan;
+  stroke-width: var(--tsg-bar-stroke-width);
 }
 
 .tsg-chart-bar-actual {
@@ -226,4 +235,9 @@ tr.selected .tsg-cell-text:after {
 }
 .selected .tsg-chart-bar-actual {
   stroke: darkred;
+}
+.tsg-chart-bar-actual-progress {
+  fill: darkred;
+  stroke: darkred;
+  stroke-width: var(--tsg-bar-stroke-width);
 }

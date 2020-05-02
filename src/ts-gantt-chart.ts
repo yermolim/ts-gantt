@@ -6,6 +6,7 @@ import { createSvgElement, getAllDatesBetweenTwoDates } from "./ts-gantt-common"
 
 interface TsGanttChartBarGroupOptions {
   mode: "planned" | "actual" | "both";
+  showProgress: boolean;
   dayWidth: number;
   rowHeight: number; 
   barMinWidth: number;
@@ -23,7 +24,8 @@ class TsGanttChartBarGroup {
   readonly barSvg: SVGElement;
 
   constructor(task: TsGanttTask, options: TsGanttChartBarGroupOptions) {
-    const { mode, dayWidth, rowHeight, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
+    const { mode, showProgress, dayWidth, rowHeight, 
+      barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
 
     const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = task;    
     const plannedDatesSet = datePlannedStart && datePlannedEnd;
@@ -53,13 +55,13 @@ class TsGanttChartBarGroup {
           this.createBar(barSvg,
             minDate, datePlannedStart.subtract(1, "day"), datePlannedEnd,
             dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR,
-            [TsGanttConst.CHART_BAR_PLANNED_CLASS]);
+            "planned", task.progress, showProgress);
         }
         if (actualDatesSet) {
           this.createBar(barSvg,
             minDate, dateActualStart.subtract(1, "day"), dateActualEnd,
             dayWidth, barMinWidth, barHeight, y1, barBorder, barCornerR,
-            [TsGanttConst.CHART_BAR_ACTUAL_CLASS]);
+            "actual", task.progress, showProgress);
         }   
       }     
 
@@ -71,7 +73,7 @@ class TsGanttChartBarGroup {
       this.createBar(barSvg,
         minDate, minDate, maxDate,
         dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR,
-        [TsGanttConst.CHART_BAR_PLANNED_CLASS]);
+        "planned", task.progress, showProgress);
 
     } else if (mode === "actual" && actualDatesSet) {  
       minDate = dateActualStart.subtract(1, "day");
@@ -81,7 +83,7 @@ class TsGanttChartBarGroup {
       this.createBar(barSvg,
         minDate, minDate, maxDate,
         dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR,
-        [TsGanttConst.CHART_BAR_ACTUAL_CLASS]);
+        "actual", task.progress, showProgress);
     }   
 
     this.minDate = minDate;
@@ -107,7 +109,14 @@ class TsGanttChartBarGroup {
     minDate: dayjs.Dayjs, start: dayjs.Dayjs, end: dayjs.Dayjs,
     dayWidth: number, minWrapperWidth: number, wrapperHeight: number, y: number,
     borderWidth: number, cornerRadius: number,
-    barClassList: string[]) {
+    barType: "planned" | "actual",    
+    progress: number, showProgress: boolean) {
+    const barClassList = barType === "planned"
+      ? [TsGanttConst.CHART_BAR_PLANNED_CLASS]
+      : [TsGanttConst.CHART_BAR_ACTUAL_CLASS];
+    const progressBarClassList = barType === "planned"
+      ? [TsGanttConst.CHART_BAR_PLANNED_PROGRESS_CLASS]
+      : [TsGanttConst.CHART_BAR_ACTUAL_PROGRESS_CLASS];
         
     const offsetX = start.diff(minDate, "day") * dayWidth;
     const widthDays = end.diff(start, "day");
@@ -118,16 +127,31 @@ class TsGanttChartBarGroup {
       ["width", wrapperWidth + ""],
       ["height", wrapperHeight + ""],
     ], parent); 
+    const margin = borderWidth/2;
     const width = wrapperWidth - borderWidth;
     const height = wrapperHeight - borderWidth;
     const bar = createSvgElement("rect", barClassList, [
-      ["x", borderWidth/2 + ""],
-      ["y", borderWidth/2 + ""],
+      ["x", margin + ""],
+      ["y", margin + ""],
       ["width", width + ""],
       ["height", height + ""],
       ["rx", cornerRadius + ""],
       ["ry", cornerRadius + ""],
     ], wrapper);
+    if (showProgress) {  
+      const calculatedProgressWidth = width * progress / 100;
+      const progressWidth = calculatedProgressWidth < minWrapperWidth - borderWidth 
+        ? 0
+        : calculatedProgressWidth;
+      const barProgress = createSvgElement("rect", progressBarClassList, [
+        ["x", margin + ""],
+        ["y", margin + ""],
+        ["width", progressWidth + ""],
+        ["height", height + ""],
+        ["rx", cornerRadius + ""],
+        ["ry", cornerRadius + ""],
+      ], wrapper);
+    }
   }
 }
 
@@ -270,6 +294,7 @@ class TsGanttChart {
 
   private getBarGroupOptions(): TsGanttChartBarGroupOptions {
     const mode = this._options.chartBarMode;
+    const showProgress = this._options.chartShowProgress;
     const dayWidth = this._options.chartDayWidthPx[this._options.chartScale];
     const rowHeight = this._options.rowHeightPx;
     const border = this._options.borderWidthPx;
@@ -292,7 +317,8 @@ class TsGanttChart {
         break;
     }
 
-    return { mode, dayWidth, rowHeight, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 };
+    return { mode, showProgress, dayWidth, rowHeight, 
+      barMinWidth, barHeight, barBorder, barCornerR, y0, y1 };
   }
 
   private refreshHeader() {

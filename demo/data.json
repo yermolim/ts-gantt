@@ -3,19 +3,19 @@
       "id":"1470",
       "parentId":null,
       "name":"График ИНК",
-      "progress":0,
+      "progress":1,
       "datePlannedStart":"2017-06-15",
       "datePlannedEnd":"2021-12-31",
-      "dateActualStart":null,
-      "dateActualEnd":null
+      "dateActualStart":"2017-06-01",
+      "dateActualEnd":"2022-03-23"
    },
    {
       "id":"126729",
       "parentId":"126728",
       "name":"301.3-АР Полы",
-      "progress":0,
-      "datePlannedStart":null,
-      "datePlannedEnd":null,
+      "progress":2,
+      "datePlannedStart":"2017-06-15",
+      "datePlannedEnd":"2017-06-16",
       "dateActualStart":null,
       "dateActualEnd":null
    },

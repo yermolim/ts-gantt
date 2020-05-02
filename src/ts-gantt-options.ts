@@ -21,6 +21,7 @@ class TsGanttOptions {
   barMarginPx = 2;
   barCornerRadiusPx = 6;
 
+  chartShowProgress = true;
   chartBarMode: "planned" | "actual" | "both" = "both";
   chartScale: "day" | "week" | "month" | "year" = "month";
   chartDateOffsetDays: {[key: string]: number} = {
