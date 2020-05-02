@@ -260,6 +260,7 @@ class TsGantt {
       changed: this._tasks,
       all: this._tasks,
     });
+    this.refreshSelection();
   }  
 
   private updateChartBarMode() {
@@ -269,6 +270,7 @@ class TsGantt {
       changed: this._tasks,
       all: this._tasks,
     });
+    this.refreshSelection();
   }
 
   private refreshSelection() {    

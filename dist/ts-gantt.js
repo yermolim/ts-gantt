@@ -1324,6 +1324,7 @@ class TsGantt {
             changed: this._tasks,
             all: this._tasks,
         });
+        this.refreshSelection();
     }
     updateChartBarMode() {
         this._chart.update(false, {
@@ -1332,6 +1333,7 @@ class TsGantt {
             changed: this._tasks,
             all: this._tasks,
         });
+        this.refreshSelection();
     }
     refreshSelection() {
         if (this._selectedTask) {
