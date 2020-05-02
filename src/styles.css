@@ -202,7 +202,6 @@ tr.selected .tsg-cell-text:after {
 .tsg-chart-row-bg {
   fill: var(--tsg-background-color);
 }
-
 .tsg-chart-row-bg.selected {
   fill: var(--tsg-selection-color);
 }
@@ -212,13 +211,19 @@ tr.selected .tsg-cell-text:after {
 }
 
 .tsg-chart-bar-planned {
-  fill: lightblue;
+  fill: skyblue;
+  stroke: skyblue;
   stroke-width: var(--tsg-bar-stroke-width);
-  stroke: darkblue;
+}
+.selected .tsg-chart-bar-planned {
+  stroke: darkcyan;
 }
 
 .tsg-chart-bar-actual {
   fill: lightcoral;
+  stroke: lightcoral;
   stroke-width: var(--tsg-bar-stroke-width);
+}
+.selected .tsg-chart-bar-actual {
   stroke: darkred;
 }

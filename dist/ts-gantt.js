@@ -545,15 +545,23 @@ class TsGanttChart {
     applySelection(selectionResult) {
         const { selected, deselected } = selectionResult;
         if (deselected) {
-            const row = this._chartRowBgs.get(deselected.uuid);
-            if (row) {
-                row.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
+            const rowBg = this._chartRowBgs.get(deselected.uuid);
+            if (rowBg) {
+                rowBg.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
+            }
+            const rowWrapper = this._chartRowWrappers.get(deselected.uuid);
+            if (rowWrapper) {
+                rowWrapper.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
             }
         }
         if (selected) {
-            const row = this._chartRowBgs.get(selected.uuid);
-            if (row) {
-                row.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
+            const rowBg = this._chartRowBgs.get(selected.uuid);
+            if (rowBg) {
+                rowBg.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
+            }
+            const rowWrapper = this._chartRowWrappers.get(selected.uuid);
+            if (rowWrapper) {
+                rowWrapper.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
             }
         }
     }
@@ -913,6 +921,7 @@ class TsGanttChart {
                 ["y2", height + ""],
             ], body);
         });
+        const rowWrappers = new Map();
         barGroups.forEach((x, i) => {
             const offsetY = i * rowHeight;
             const rowWrapper = createSvgElement("svg", [TsGanttConst.CHART_ROW_WRAPPER_CLASS], [
@@ -927,6 +936,7 @@ class TsGanttChart {
                     detail: x.task.uuid,
                 }));
             });
+            rowWrappers.set(x.task.uuid, rowWrapper);
             const row = createSvgElement("rect", [TsGanttConst.CHART_ROW_CLASS], [
                 ["width", width + ""],
                 ["height", rowHeight + ""],
@@ -938,6 +948,7 @@ class TsGanttChart {
             }
         });
         this._chartRowBgs = rowBgs;
+        this._chartRowWrappers = rowWrappers;
         this._htmlBody = body;
     }
     redraw() {

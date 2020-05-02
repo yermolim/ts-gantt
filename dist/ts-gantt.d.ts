@@ -134,6 +134,7 @@ export declare class TsGanttChart {
 	private _chartBarGroups;
 	private _chartBarGroupsShown;
 	private _chartRowBgs;
+	private _chartRowWrappers;
 	private _dateMinOffset;
 	private _dateMaxOffset;
 	private _width;
