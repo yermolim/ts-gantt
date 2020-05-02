@@ -46,6 +46,8 @@ class TsGantt {
   private _table: TsGanttTable;
   private _chart: TsGanttChart;  
 
+  private _ignoreNextScrollEvent = false;
+
   set locale(value: string) {
     if (value !== this._options.locale) {
       this._options.locale = value;
@@ -116,12 +118,22 @@ class TsGantt {
   }; 
 
   onWrapperScroll = <EventListener>((e: UIEvent) => {
+    if (this._ignoreNextScrollEvent) {
+      this._ignoreNextScrollEvent = false;
+      return;
+    }
+    this._ignoreNextScrollEvent = true;
+    
     const wrapper = e.currentTarget as Element;
     const scroll = wrapper.scrollTop;
     if (wrapper === this._htmlTableWrapper) {
-      this._htmlChartWrapper.scrollTop = scroll;
-    } else {
-      this._htmlTableWrapper.scrollTop = scroll;
+      if (this._htmlChartWrapper.scrollTop !== scroll) {
+        this._htmlChartWrapper.scrollTop = scroll;
+      }
+    } else if (wrapper === this._htmlChartWrapper) {
+      if (this._htmlTableWrapper.scrollTop !== scroll) {
+        this._htmlTableWrapper.scrollTop = scroll;
+      }
     }
   });
   

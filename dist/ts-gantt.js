@@ -1160,6 +1160,7 @@ class TsGantt {
     constructor(containerSelector, options) {
         this._tasks = [];
         this._htmlSeparatorDragActive = false;
+        this._ignoreNextScrollEvent = false;
         this.onResize = (e) => {
             const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
             const tableWrapperWidth = this._htmlTableWrapper.getBoundingClientRect().width;
@@ -1185,13 +1186,22 @@ class TsGantt {
             this._htmlSeparatorDragActive = false;
         };
         this.onWrapperScroll = ((e) => {
+            if (this._ignoreNextScrollEvent) {
+                this._ignoreNextScrollEvent = false;
+                return;
+            }
+            this._ignoreNextScrollEvent = true;
             const wrapper = e.currentTarget;
             const scroll = wrapper.scrollTop;
             if (wrapper === this._htmlTableWrapper) {
-                this._htmlChartWrapper.scrollTop = scroll;
+                if (this._htmlChartWrapper.scrollTop !== scroll) {
+                    this._htmlChartWrapper.scrollTop = scroll;
+                }
             }
-            else {
-                this._htmlTableWrapper.scrollTop = scroll;
+            else if (wrapper === this._htmlChartWrapper) {
+                if (this._htmlTableWrapper.scrollTop !== scroll) {
+                    this._htmlTableWrapper.scrollTop = scroll;
+                }
             }
         });
         this.onRowClick = ((e) => {

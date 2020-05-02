@@ -184,6 +184,7 @@ export declare class TsGantt {
 	private _htmlSeparatorDragActive;
 	private _table;
 	private _chart;
+	private _ignoreNextScrollEvent;
 	set locale(value: string);
 	set chartScale(value: "day" | "week" | "month" | "year");
 	set chartBarMode(value: "planned" | "actual" | "both");
