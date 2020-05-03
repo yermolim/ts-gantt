@@ -297,6 +297,4 @@ class TsGantt {
   // #endregion
 }
 
-export { TsGantt, TsGanttOptions, TsGanttChart, TsGanttTable,
-  TsGanttTask, TsGanttTaskModel, TsGanttTaskUpdateResult, 
-  TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult };
+export { TsGantt, TsGanttOptions, TsGanttTask, TsGanttTaskModel };

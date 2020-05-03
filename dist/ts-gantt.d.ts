@@ -60,10 +60,6 @@ export interface TsGanttTaskChangeResult {
 	changed: TsGanttTask[];
 	all: TsGanttTask[];
 }
-export interface TsGanttTaskSelectionChangeResult {
-	deselected: TsGanttTask;
-	selected: TsGanttTask;
-}
 export declare class TsGanttOptions {
 	enableChartEdit: boolean;
 	enablePlannedDatesEdit: boolean;
@@ -124,49 +120,6 @@ export declare class TsGanttOptions {
 	};
 	columnValueGetters: ((a: TsGanttTask) => string)[];
 	constructor(item?: object);
-}
-export declare class TsGanttChart {
-	private _options;
-	private _html;
-	get html(): HTMLDivElement;
-	private _htmlHeader;
-	get htmlHeader(): SVGElement;
-	private _htmlBody;
-	private _chartBarGroups;
-	private _chartBarGroupsShown;
-	private _chartRowBgs;
-	private _chartRowWrappers;
-	private _dateMinOffset;
-	private _dateMaxOffset;
-	private _width;
-	private _headerHeight;
-	private _verticalLinesXCoords;
-	constructor(options: TsGanttOptions);
-	update(forceRedraw: boolean, data: TsGanttTaskChangeResult): void;
-	applySelection(selectionResult: TsGanttTaskSelectionChangeResult): void;
-	private checkDates;
-	private refreshBarGroups;
-	private getBarGroupOptions;
-	private refreshHeader;
-	private getShownBarGroupsRecursively;
-	private refreshBody;
-	private redraw;
-}
-export declare class TsGanttTable {
-	private _options;
-	private _html;
-	get html(): HTMLTableElement;
-	private _htmlHead;
-	private _htmlBody;
-	private _tableColumns;
-	private _tableRows;
-	constructor(options: TsGanttOptions);
-	update(updateColumns: boolean, data: TsGanttTaskChangeResult): void;
-	applySelection(selectionResult: TsGanttTaskSelectionChangeResult): void;
-	private updateColumns;
-	private updateRows;
-	private redraw;
-	private getRowsHtmlRecursively;
 }
 export declare class TsGantt {
 	private _options;

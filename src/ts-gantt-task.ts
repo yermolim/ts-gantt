@@ -1,5 +1,5 @@
-import { getRandomUuid } from "./ts-gantt-common";
 import dayjs from "dayjs";
+import { getRandomUuid } from "./ts-gantt-common";
 
 class TsGanttTaskModel {
   id: string;

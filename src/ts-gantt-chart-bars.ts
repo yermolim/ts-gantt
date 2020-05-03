@@ -1,0 +1,157 @@
+import dayjs from "dayjs";
+import { TsGanttConst } from "./ts-gantt-const";
+import { createSvgElement } from "./ts-gantt-common";
+import { TsGanttTask } from "./ts-gantt-task";
+
+interface TsGanttChartBarGroupOptions {
+  mode: "planned" | "actual" | "both";
+  showProgress: boolean;
+  dayWidth: number;
+  rowHeight: number; 
+  barMinWidth: number;
+  barHeight: number;
+  barBorder: number; 
+  barCornerR: number;
+  y0: number; 
+  y1: number;
+}
+
+class TsGanttChartBarGroup {  
+  readonly task: TsGanttTask;
+  readonly minDate: dayjs.Dayjs;
+  readonly maxDate: dayjs.Dayjs;
+  readonly barSvg: SVGElement;
+
+  constructor(task: TsGanttTask, options: TsGanttChartBarGroupOptions) {
+    const { mode, showProgress, dayWidth, rowHeight, 
+      barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
+
+    const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = task;    
+    const plannedDatesSet = datePlannedStart && datePlannedEnd;
+    const actualDatesSet = dateActualStart && dateActualEnd;
+
+    let minDate: dayjs.Dayjs;
+    let maxDate: dayjs.Dayjs;
+    let barSvg: SVGElement;
+
+    if (mode === "both") {
+
+      if (actualDatesSet || plannedDatesSet) {
+        if (actualDatesSet && plannedDatesSet) {
+          minDate = datePlannedStart.isBefore(dateActualStart) ? datePlannedStart : dateActualStart;
+          maxDate = datePlannedEnd.isAfter(dateActualEnd) ? datePlannedEnd : dateActualEnd;
+        } else if (plannedDatesSet) {
+          minDate = datePlannedStart;
+          maxDate = datePlannedEnd;
+        } else {
+          minDate = dateActualStart;
+          maxDate = dateActualEnd;
+        }
+        minDate = minDate.subtract(1, "day"); // hereinafter substract 1 day to include first day
+
+        barSvg = this.createSvg(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
+        if (plannedDatesSet) {
+          this.createBar(barSvg,
+            minDate, datePlannedStart.subtract(1, "day"), datePlannedEnd,
+            dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR,
+            "planned", task.progress, showProgress);
+        }
+        if (actualDatesSet) {
+          this.createBar(barSvg,
+            minDate, dateActualStart.subtract(1, "day"), dateActualEnd,
+            dayWidth, barMinWidth, barHeight, y1, barBorder, barCornerR,
+            "actual", task.progress, showProgress);
+        }   
+      }     
+
+    } else if (mode === "planned" && plannedDatesSet) {
+      minDate = datePlannedStart.subtract(1, "day");
+      maxDate = datePlannedEnd;
+
+      barSvg = this.createSvg(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
+      this.createBar(barSvg,
+        minDate, minDate, maxDate,
+        dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR,
+        "planned", task.progress, showProgress);
+
+    } else if (mode === "actual" && actualDatesSet) {  
+      minDate = dateActualStart.subtract(1, "day");
+      maxDate = dateActualEnd;
+
+      barSvg = this.createSvg(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
+      this.createBar(barSvg,
+        minDate, minDate, maxDate,
+        dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR,
+        "actual", task.progress, showProgress);
+    }   
+
+    this.minDate = minDate;
+    this.maxDate = maxDate;
+    this.barSvg = barSvg;
+
+    this.task = task;
+  }
+
+  private createSvg(minDate: dayjs.Dayjs, maxDate: dayjs.Dayjs,
+    dayWidth: number, minWidth: number, rowHeight: number): SVGElement {
+
+    const widthDays = maxDate.diff(minDate, "day");
+    const width = Math.max(widthDays * dayWidth, minWidth);
+    const barSvg = createSvgElement("svg", [TsGanttConst.CHART_BAR_GROUP_CLASS], [
+      ["width", width + ""],
+      ["height", rowHeight + ""],
+    ]); 
+    return barSvg;
+  }
+
+  private createBar(parent: SVGElement, 
+    minDate: dayjs.Dayjs, start: dayjs.Dayjs, end: dayjs.Dayjs,
+    dayWidth: number, minWrapperWidth: number, wrapperHeight: number, y: number,
+    borderWidth: number, cornerRadius: number,
+    barType: "planned" | "actual",    
+    progress: number, showProgress: boolean) {
+    const barClassList = barType === "planned"
+      ? [TsGanttConst.CHART_BAR_PLANNED_CLASS]
+      : [TsGanttConst.CHART_BAR_ACTUAL_CLASS];
+    const progressBarClassList = barType === "planned"
+      ? [TsGanttConst.CHART_BAR_PLANNED_PROGRESS_CLASS]
+      : [TsGanttConst.CHART_BAR_ACTUAL_PROGRESS_CLASS];
+        
+    const offsetX = start.diff(minDate, "day") * dayWidth;
+    const widthDays = end.diff(start, "day");
+    const wrapperWidth = Math.max(widthDays * dayWidth, minWrapperWidth);
+    const wrapper = createSvgElement("svg", [TsGanttConst.CHART_BAR_WRAPPER_CLASS], [
+      ["x", offsetX + ""],
+      ["y", y + ""],
+      ["width", wrapperWidth + ""],
+      ["height", wrapperHeight + ""],
+    ], parent); 
+    const margin = borderWidth/2;
+    const width = wrapperWidth - borderWidth;
+    const height = wrapperHeight - borderWidth;
+    const bar = createSvgElement("rect", barClassList, [
+      ["x", margin + ""],
+      ["y", margin + ""],
+      ["width", width + ""],
+      ["height", height + ""],
+      ["rx", cornerRadius + ""],
+      ["ry", cornerRadius + ""],
+    ], wrapper);
+    if (showProgress) {  
+      const calculatedProgressWidth = width * progress / 100;
+      const progressWidth = calculatedProgressWidth < minWrapperWidth - borderWidth 
+        ? 0
+        : calculatedProgressWidth;
+      const barProgress = createSvgElement("rect", progressBarClassList, [
+        ["x", margin + ""],
+        ["y", margin + ""],
+        ["width", progressWidth + ""],
+        ["height", height + ""],
+        ["rx", cornerRadius + ""],
+        ["ry", cornerRadius + ""],
+      ], wrapper);
+    }
+  }
+}
+
+export { TsGanttChartBarGroup, TsGanttChartBarGroupOptions };
