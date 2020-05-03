@@ -3,7 +3,7 @@ import { TsGanttConst } from "./ts-gantt-const";
 import { createSvgElement, getAllDatesBetweenTwoDates } from "./ts-gantt-common";
 import { TsGanttOptions } from "./ts-gantt-options";
 import { TsGanttTask, TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "./ts-gantt-task";
-import { TsGanttChartBarGroup, TsGanttChartBarGroupOptions } from "./ts-gantt-chart-bars";
+import { TsGanttChartBarGroup, TsGanttChartBarGroupOptions } from "./ts-gantt-chart-parts";
 
 class TsGanttChart {
   private _options: TsGanttOptions;
@@ -23,7 +23,8 @@ class TsGanttChart {
 
   private _chartBarGroups: TsGanttChartBarGroup[] = [];
   private _chartRowBgs: Map<string, SVGElement>;
-  private _chartRowWrappers: Map<string, SVGElement>;
+  private _chartRowFgs: Map<string, SVGElement>;
+  private _chartOffsetsX: Map<string, number>;
 
   private _width: number;
   private _headerHeight: number;
@@ -57,7 +58,7 @@ class TsGanttChart {
       if (rowBg) {
         rowBg.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
       }
-      const rowWrapper = this._chartRowWrappers.get(deselected.uuid);
+      const rowWrapper = this._chartRowFgs.get(deselected.uuid);
       if (rowWrapper) {
         rowWrapper.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
       }
@@ -67,11 +68,15 @@ class TsGanttChart {
       if (rowBg) {
         rowBg.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
       }
-      const rowWrapper = this._chartRowWrappers.get(selected.uuid);
+      const rowWrapper = this._chartRowFgs.get(selected.uuid);
       if (rowWrapper) {
         rowWrapper.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
       }
     }
+  }
+
+  getBarOffsetByTaskUuid(uuid: string): number {
+    return this._chartOffsetsX.get(uuid);
   }
 
   private createChartDiv(): HTMLDivElement {
@@ -475,7 +480,8 @@ class TsGanttChart {
       ], body);    
     });
 
-    const rowWrappers = new Map<string, SVGElement>();
+    const rowFgs = new Map<string, SVGElement>();
+    const offsetsX = new Map<string, number>();
     barGroups.forEach((x, i) => {            
       const offsetY = i * rowHeight;
       const rowWrapper = createSvgElement("svg", [TsGanttConst.CHART_ROW_WRAPPER_CLASS], [
@@ -490,20 +496,22 @@ class TsGanttChart {
           detail: x.task.uuid,
         }));
       });
-      rowWrappers.set(x.task.uuid, rowWrapper);
+      rowFgs.set(x.task.uuid, rowWrapper);
       const row = createSvgElement("rect", [TsGanttConst.CHART_ROW_CLASS], [
         ["width", width + ""],
         ["height", rowHeight + ""],
       ], rowWrapper);
       if (x.barSvg) {
         const offsetX = x.minDate.diff(minDate, "day") * dayWidth;
+        offsetsX.set(x.task.uuid, offsetX);
         x.barSvg.setAttribute("x", offsetX + "");
         rowWrapper.append(x.barSvg);
       }
     });
 
     this._chartRowBgs = rowBgs;
-    this._chartRowWrappers = rowWrappers;
+    this._chartRowFgs = rowFgs;
+    this._chartOffsetsX = offsetsX;
     this._htmlBody = body;
   }
 

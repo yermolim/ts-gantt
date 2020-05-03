@@ -571,7 +571,7 @@ class TsGanttChart {
             if (rowBg) {
                 rowBg.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
             }
-            const rowWrapper = this._chartRowWrappers.get(deselected.uuid);
+            const rowWrapper = this._chartRowFgs.get(deselected.uuid);
             if (rowWrapper) {
                 rowWrapper.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
             }
@@ -581,11 +581,14 @@ class TsGanttChart {
             if (rowBg) {
                 rowBg.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
             }
-            const rowWrapper = this._chartRowWrappers.get(selected.uuid);
+            const rowWrapper = this._chartRowFgs.get(selected.uuid);
             if (rowWrapper) {
                 rowWrapper.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
             }
         }
+    }
+    getBarOffsetByTaskUuid(uuid) {
+        return this._chartOffsetsX.get(uuid);
     }
     createChartDiv() {
         const svg = document.createElement("div");
@@ -950,7 +953,8 @@ class TsGanttChart {
                 ["y2", height + ""],
             ], body);
         });
-        const rowWrappers = new Map();
+        const rowFgs = new Map();
+        const offsetsX = new Map();
         barGroups.forEach((x, i) => {
             const offsetY = i * rowHeight;
             const rowWrapper = createSvgElement("svg", [TsGanttConst.CHART_ROW_WRAPPER_CLASS], [
@@ -965,19 +969,21 @@ class TsGanttChart {
                     detail: x.task.uuid,
                 }));
             });
-            rowWrappers.set(x.task.uuid, rowWrapper);
+            rowFgs.set(x.task.uuid, rowWrapper);
             const row = createSvgElement("rect", [TsGanttConst.CHART_ROW_CLASS], [
                 ["width", width + ""],
                 ["height", rowHeight + ""],
             ], rowWrapper);
             if (x.barSvg) {
                 const offsetX = x.minDate.diff(minDate, "day") * dayWidth;
+                offsetsX.set(x.task.uuid, offsetX);
                 x.barSvg.setAttribute("x", offsetX + "");
                 rowWrapper.append(x.barSvg);
             }
         });
         this._chartRowBgs = rowBgs;
-        this._chartRowWrappers = rowWrappers;
+        this._chartRowFgs = rowFgs;
+        this._chartOffsetsX = offsetsX;
         this._htmlBody = body;
     }
     redraw() {
@@ -1352,6 +1358,15 @@ class TsGantt {
             selected: newSelectedTask,
             deselected: oldSelectedTask,
         });
+        if (newSelectedTask) {
+            this.scrollChartToTask(newSelectedTask.uuid);
+        }
+    }
+    scrollChartToTask(uuid) {
+        const offset = this._chart.getBarOffsetByTaskUuid(uuid);
+        if (offset) {
+            this._htmlChartWrapper.scrollLeft = offset;
+        }
     }
     update(data) {
         this._table.update(false, data);

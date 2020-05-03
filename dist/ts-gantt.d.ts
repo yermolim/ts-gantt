@@ -157,6 +157,7 @@ export declare class TsGantt {
 	private updateTasks;
 	private toggleTaskExpanded;
 	private selectTask;
+	scrollChartToTask(uuid: string): void;
 	private update;
 	private updateLocale;
 	private updateChartScale;

@@ -246,6 +246,16 @@ class TsGantt {
       selected: newSelectedTask,
       deselected: oldSelectedTask,
     });
+    if (newSelectedTask) {
+      this.scrollChartToTask(newSelectedTask.uuid);
+    }
+  } 
+
+  scrollChartToTask(uuid: string) {
+    const offset = this._chart.getBarOffsetByTaskUuid(uuid);
+    if (offset) {
+      this._htmlChartWrapper.scrollLeft = offset;
+    }
   }
 
   private update(data: TsGanttTaskChangeResult) {
