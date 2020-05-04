@@ -1,6 +1,6 @@
 {
   "name": "ts-gantt",
-  "version": "0.0.1",
+  "version": "0.3.0",
   "description": "simple gantt chart written using typescript",
   "main": "dist/ts-gantt.js",
   "types": "dist/ts-gantt.d.ts",
