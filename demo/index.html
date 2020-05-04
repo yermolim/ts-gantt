@@ -6,19 +6,45 @@
         html, body {
             position: relative;
             min-width: 320px;
+            min-height: 700px;
             width: 100%;
             height: 100%;
             margin: 0;
+            padding: 0;
         }        
         #gantt-container {
             box-sizing: border-box;
             position: relative;
-            width: 100%;
-            height: 80%;
+            width: calc(100%-2*20px);
+            height: 600px;
             padding: 0;
-            margin: 0;
-            border: 5px solid black;
-        }   
+            margin: 20px;
+            border: 2px solid slateblue;
+        } 
+        button {
+            width: 80px;
+            height: 40px;
+            margin: 0 5px 0 0;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: white;
+            border: 2px solid slateblue;
+            color: slateblue;
+        }  
+        button:hover {
+            width: 80px;
+            height: 40px;
+            margin: 0 5px 0 0;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: slateblue;
+            border: 0;
+            color: white;
+        }  
+        .button-div {
+            display: inline-block;
+            margin: 0 0 20px 20px;
+        }
     </style>
     <link rel="stylesheet" type="text/css" href="./styles.min.css">
     <link rel="icon" href="data:,">
@@ -32,19 +58,22 @@
     <body>  
         
         <div id="gantt-container"></div>
-                
-        <button id="btn-locale-en">En</button>
-        <button id="btn-locale-uk">Uk</button>
-        <button id="btn-locale-ru">Ru</button>
-
-        <button id="btn-scale-day">Day</button>
-        <button id="btn-scale-week">Week</button>
-        <button id="btn-scale-month">Month</button>
-        <button id="btn-scale-year">Year</button>
-        
-        <button id="btn-bar-both">Planned and actual</button>
-        <button id="btn-bar-planned">Planned only</button>
-        <button id="btn-bar-actual">Actual only</button>
+        <div class="button-div">
+            <button id="btn-locale-en">En</button>
+            <button id="btn-locale-uk">Uk</button>
+            <button id="btn-locale-ru">Ru</button>
+        </div>                
+        <div class="button-div">
+            <button id="btn-scale-day">Day</button>
+            <button id="btn-scale-week">Week</button>
+            <button id="btn-scale-month">Month</button>
+            <button id="btn-scale-year">Year</button>
+        </div>
+        <div class="button-div">
+            <button id="btn-bar-both">Both</button>
+            <button id="btn-bar-planned">Planned</button>
+            <button id="btn-bar-actual">Actual</button>
+        </div>        
       
         <script src="./ts-gantt.umd.min.js"></script>
         <script>

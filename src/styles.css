@@ -4,9 +4,10 @@
 
   --tsg-background-color: white;
   --tsg-foreground-color: black;
-  --tsg-separator-color: black;
+  --tsg-separator-color: rgb(80, 80, 80);
   --tsg-header-color: rgb(210, 210, 210);
   --tsg-border-color: rgb(190, 190, 190);
+  --tsg-expander-color: rgb(80, 80, 80);
   --tsg-selection-color: rgb(230, 230, 230);
 
   --tsg-font-family: 'Calibri', sans-serif;
@@ -112,13 +113,13 @@
 .tsg-cell-text-indent {
   width: var(--tsg-nesting-indent) !important;
   min-width: var(--tsg-nesting-indent) !important;
-  color: var(--tsg-border-color);
+  color: var(--tsg-expander-color);
   text-align: center;
 }
 .tsg-cell-text-expander {
   width: var(--tsg-nesting-indent) !important;
   min-width: var(--tsg-nesting-indent) !important;
-  color: var(--tsg-border-color);
+  color: var(--tsg-expander-color);
   text-align: center;
   cursor: pointer;
 }
