@@ -46,15 +46,14 @@
         <button id="btn-bar-planned">Planned only</button>
         <button id="btn-bar-actual">Actual only</button>
       
-        <script type="module">
-            import { TsGantt, TsGanttTaskModel } from "./ts-gantt.min.js";
-            
+        <script src="./ts-gantt.umd.min.js"></script>
+        <script>
             fetch("./data.json")
             .then(response => response.text())
             .then(text => {
                 const inputModels = JSON.parse(text);
 
-                const ganttChart = new TsGantt("#gantt-container");
+                const ganttChart = new tsGantt.TsGantt("#gantt-container");
                 ganttChart.tasks = inputModels;
 
                 function setLocale(locale) {

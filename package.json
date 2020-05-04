@@ -1,15 +1,16 @@
 {
   "name": "ts-gantt",
-  "version": "0.4.1",
+  "version": "0.1.0",
   "description": "simple gantt chart written using typescript",
-  "main": "dist/ts-gantt.js",
+  "main": "dist/ts-gantt.umd.min.js",
+  "module": "dist/ts-gantt.esm.min.js",
   "types": "dist/ts-gantt.d.ts",
   "scripts": {
     "test": "karma start",
     "buildts": "tsc && copyfiles -f ./src/*.css ./tsc/",
     "buildru": "rollup -c",
     "build": "tsc && copyfiles -f ./src/*.css ./tsc/src && rollup -c && dts-bundle-generator -o dist/ts-gantt.d.ts src/ts-gantt.ts",
-    "start": "npm run build && copyfiles -f ./dist/styles.min.css ./dist/ts-gantt.min.js ./demo && lite-server -c ls-config.json",
+    "start": "npm run build && copyfiles -f ./dist/styles.min.css ./dist/ts-gantt.umd.min.js ./demo && lite-server -c ls-config.json",
     "mpublish": "npm version minor && npm publish",
     "ppublish": "npm version patch && npm publish"
   },
