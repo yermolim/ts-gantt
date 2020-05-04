@@ -27,7 +27,8 @@ jobs:
           command: npm test
       - store_artifacts:
           path: coverage
-      - codecov/upload
+      - codecov/upload:
+          file: "coverage/lcov.info"
 workflows:
     build-and-test:
       jobs:
