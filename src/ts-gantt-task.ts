@@ -245,8 +245,7 @@ class TsGanttTask {
     if (this.dateActualEnd?.unix() < another.dateActualEnd?.unix()) {
       return -1;
     }
-
-    return 0;
+    return this.name.localeCompare(another.name);
   }
 }
 

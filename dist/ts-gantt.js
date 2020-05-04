@@ -259,7 +259,7 @@ class TsGanttTask {
         if (((_q = this.dateActualEnd) === null || _q === void 0 ? void 0 : _q.unix()) < ((_r = another.dateActualEnd) === null || _r === void 0 ? void 0 : _r.unix())) {
             return -1;
         }
-        return 0;
+        return this.name.localeCompare(another.name);
     }
 }
 
