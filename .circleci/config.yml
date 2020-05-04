@@ -1,12 +1,10 @@
 version: 2.1
-docker:
-  - image: circleci/node:latest
-    environment:
-      NODE_ENV: development
 jobs:
   build-and-test:
-    executor:
-      name: node/default
+    docker:
+      - image: circleci/node:latest
+        environment:
+          NODE_ENV: development
     steps:
       - checkout
       - node/with-cache:
