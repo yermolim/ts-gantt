@@ -1,6 +1,8 @@
 # TsGantt
 
 <p align="left">
+    <a href="https://www.npmjs.com/package/ts-gantt"><img
+            src="https://img.shields.io/npm/v/ts-gantt" alt="Npm"></a>
     <a href="https://circleci.com/gh/yermolim/ts-gantt"><img
             src="https://circleci.com/gh/yermolim/ts-gantt.svg?style=shield" alt="Build Status"></a>
     <a href="https://codecov.io/gh/yermolim/ts-gantt"><img
