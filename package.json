@@ -9,7 +9,8 @@
     "buildts": "tsc && copyfiles -f ./src/*.css ./tsc/",
     "buildru": "rollup -c",
     "build": "tsc && copyfiles -f ./src/*.css ./tsc/src && rollup -c && dts-bundle-generator -o dist/ts-gantt.d.ts src/ts-gantt.ts",
-    "start": "npm run build && copyfiles -f ./dist/styles.min.css ./dist/ts-gantt.min.js ./demo && lite-server -c ls-config.json"
+    "start": "npm run build && copyfiles -f ./dist/styles.min.css ./dist/ts-gantt.min.js ./demo && lite-server -c ls-config.json",
+    "mpublish": "npm version minor && npm publish"
   },
   "repository": {
     "type": "git",
