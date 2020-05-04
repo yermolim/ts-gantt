@@ -1,6 +1,8 @@
 version: 2.1
-orbs:
-  node: circleci/node@1.1.6
+docker:
+  - image: circleci/node:latest
+    environment:
+      NODE_ENV: development
 jobs:
   build-and-test:
     executor:
