@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   docker: circleci/docker@1.0.1
+  codecov: codecov/codecov@1.0.5
 jobs:
   build-and-test:
     docker:
@@ -26,6 +27,7 @@ jobs:
           command: npm test
       - store_artifacts:
           path: coverage
+      - codecov/upload
 workflows:
     build-and-test:
       jobs:
