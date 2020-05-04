@@ -53,6 +53,7 @@ or using CDN
     <li>add optional possibility to move/resize chart bars</li>
     <li>make grid columns resizable</li>
     <li>allow column reorder</li>
+    <li>increase code coverage</li>
     <li>optimize task change detection</li>
     <li>add row virtualization</li>
 </ul>
