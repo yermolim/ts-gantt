@@ -106,6 +106,16 @@ chart.chartDisplayMode = mode; // "planned" | "actual" | "both"
 "planned" - show only planned dates bar on timeline <br/>
 "actual" - show only actual dates bar on timeline 
 
+### Select task
+select a task row programmatically
+```javascript
+chart.selectedTask = {id: "taskIdString"};
+```
+get selected task
+```javascript
+const selectedTask = chart.selectedTask;
+```
+
 ### Customize chart
 you can customize chart in two ways: 
 <ul>
