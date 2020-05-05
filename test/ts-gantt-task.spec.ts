@@ -1,4 +1,4 @@
-import { TsGanttTask, TsGanttTaskModel, TsGantt } from "../src/ts-gantt";
+import { TsGanttTaskModel, TsGanttTask } from "../src/ts-gantt-task";
 
 const inputModels = [
   <TsGanttTaskModel>{

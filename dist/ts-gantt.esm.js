@@ -1413,4 +1413,4 @@ class TsGantt {
     }
 }
 
-export { TsGantt, TsGanttOptions, TsGanttTask };
+export { TsGantt, TsGanttOptions };

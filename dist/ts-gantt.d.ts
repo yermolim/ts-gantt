@@ -2,7 +2,7 @@
 
 import dayjs from 'dayjs';
 
-export declare class TsGanttTask {
+declare class TsGanttTask {
 	readonly externalId: string;
 	readonly uuid: string;
 	parentExternalId: string;

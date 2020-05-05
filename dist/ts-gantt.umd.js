@@ -1421,7 +1421,6 @@
 
 	exports.TsGantt = TsGantt;
 	exports.TsGanttOptions = TsGanttOptions;
-	exports.TsGanttTask = TsGanttTask;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

@@ -307,4 +307,4 @@ class TsGantt {
   // #endregion
 }
 
-export { TsGantt, TsGanttOptions, TsGanttTask, TsGanttTaskModel };
+export { TsGantt, TsGanttOptions, TsGanttTaskModel };
