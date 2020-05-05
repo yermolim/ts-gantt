@@ -220,6 +220,7 @@ const chart = new tsGantt.TsGantt("#container-selector", options); // umd
     <li>add optional possibility to move/resize chart bars</li>
     <li>make grid columns resizable</li>
     <li>allow column reorder</li>
+    <li>add tooltips on bar hover</li>
     <li>increase code coverage</li>
     <li>optimize task change detection</li>
     <li>add row virtualization</li>
