@@ -128,7 +128,7 @@ class TsGanttChart {
   }
 
   private getBarGroupOptions(): TsGanttChartBarGroupOptions {
-    const mode = this._options.chartBarMode;
+    const mode = this._options.chartDisplayMode;
     const showProgress = this._options.chartShowProgress;
     const dayWidth = this._options.chartDayWidthPx[this._options.chartScale];
     const rowHeight = this._options.rowHeightPx;

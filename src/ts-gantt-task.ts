@@ -1,37 +1,6 @@
 import dayjs from "dayjs";
 import { getRandomUuid } from "./ts-gantt-common";
 
-class TsGanttTaskModel {
-  id: string;
-  parentId: string;
-
-  name: string;  
-  localizedNames: {[key: string]: string};
-  progress: number;
-
-  datePlannedStart: Date;
-  datePlannedEnd: Date;  
-  dateActualStart: Date | null;
-  dateActualEnd: Date | null;
-      
-  constructor(id: string, parentId: string, 
-    name: string, progress: number,
-    datePlannedStart: Date, datePlannedEnd: Date,
-    dateActualStart: Date | null = null, dateActualEnd: Date | null = null,
-    localizedNames: {[key: string]: string} = {}) {
-
-    this.id = id;
-    this.parentId = parentId;
-    this.name = name;
-    this.localizedNames = localizedNames;
-    this.progress = progress > 100 ? 100 : progress < 0 ? 0 : progress;    
-    this.datePlannedStart = datePlannedStart;
-    this.datePlannedEnd = datePlannedEnd;
-    this.dateActualStart = dateActualStart;
-    this.dateActualEnd = dateActualEnd;   
-  }
-}
-
 class TsGanttTask {
   readonly externalId: string;
   readonly uuid: string;
@@ -102,7 +71,7 @@ class TsGanttTask {
          
     for (let i = models.length - 1; i >= 0; i--) {
       const model = models[i];
-      if (model.parentId === null) {
+      if (!model.parentId) {
         const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress,
           model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 
           0, allParentIds.has(model.id), null, idsMap.get(model.id));
@@ -138,11 +107,17 @@ class TsGanttTask {
   }
   
   static convertTasksToModels(tasks: TsGanttTask[]): TsGanttTaskModel[] {
-    return tasks.map(x => new TsGanttTaskModel(x.externalId, x.parentExternalId, 
-      x.name, x.progress, 
-      x.datePlannedStart?.toDate(), x.datePlannedEnd?.toDate(), 
-      x.dateActualStart?.toDate(), x.dateActualEnd?.toDate(), 
-      x.localizedNames));
+    return tasks.map(x => <TsGanttTaskModel>{
+      id: x.externalId,
+      parentId: x.parentExternalId,
+      name: x.name,
+      progress: x.progress,
+      datePlannedStart: x.datePlannedStart?.toDate() || null,
+      datePlannedEnd: x.datePlannedEnd?.toDate() || null,
+      dateActualStart: x.dateActualStart?.toDate() || null,
+      dateActualEnd: x.dateActualEnd?.toDate() || null,
+      localizedNames: x.localizedNames
+    });
   }
     
   static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult {
@@ -247,6 +222,21 @@ class TsGanttTask {
     }
     return this.name.localeCompare(another.name);
   }
+}
+
+interface TsGanttTaskModel {
+  id: string;
+  parentId: string;
+
+  name: string;  
+  progress: number;
+
+  datePlannedStart: Date;
+  datePlannedEnd: Date;  
+  dateActualStart: Date;
+  dateActualEnd: Date;
+  
+  localizedNames: {[key: string]: string};
 }
 
 interface TsGanttTaskUpdateResult {

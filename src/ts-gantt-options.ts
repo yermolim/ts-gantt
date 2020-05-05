@@ -9,7 +9,6 @@ class TsGanttOptions {
   bindParentDatesToChild = true;
   enableProgressEdit = true;
 
-  // 0 to disable column
   columnsMinWidthPx: number[] = [200, 100, 100, 100, 100, 100, 100, 100];
   columnsContentAlign: ("start" | "center" | "end")[] = ["start", "end", "center", "center", "center", "center", "center", "center"];
 
@@ -21,8 +20,14 @@ class TsGanttOptions {
   barMarginPx = 2;
   barCornerRadiusPx = 6;
 
+  rowSymbols: TsGanttRowSymbols = {
+    childless: "◆",
+    collapsed: "⬘",
+    expanded: "⬙",
+  };
+
   chartShowProgress = true;
-  chartBarMode: "planned" | "actual" | "both" = "both";
+  chartDisplayMode: "planned" | "actual" | "both" = "both";
   chartScale: "day" | "week" | "month" | "year" = "month";
   chartDateOffsetDays: {[key: string]: number} = {
     "day": 14,
@@ -176,4 +181,10 @@ class TsGanttOptions {
   }
 }
 
-export { TsGanttOptions };
+interface TsGanttRowSymbols {
+  expanded: string; 
+  collapsed: string; 
+  childless: string;
+}
+
+export { TsGanttOptions, TsGanttRowSymbols };

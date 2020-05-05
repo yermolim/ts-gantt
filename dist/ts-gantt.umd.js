@@ -27,9 +27,6 @@
 	TsGanttConst.TABLE_CELL_INDENT_CLASS = "tsg-cell-text-indent";
 	TsGanttConst.TABLE_CELL_EXPANDER_CLASS = "tsg-cell-text-expander";
 	TsGanttConst.CELL_EXPANDER_CLICK = "tsgexpanderclick";
-	TsGanttConst.CELL_EXPANDER_SYMBOL = "◆";
-	TsGanttConst.CELL_EXPANDER_EXPANDABLE_SYMBOL = "⬘";
-	TsGanttConst.CELL_EXPANDER_EXPANDED_SYMBOL = "⬙";
 	TsGanttConst.CHART_HEADER_CLASS = "tsg-chart-header";
 	TsGanttConst.CHART_HEADER_BACKGROUND_CLASS = "tsg-chart-header-bg";
 	TsGanttConst.CHART_HEADER_GRIDLINES_CLASS = "tsg-chart-header-gl";
@@ -94,19 +91,6 @@
 	    return dates;
 	}
 
-	class TsGanttTaskModel {
-	    constructor(id, parentId, name, progress, datePlannedStart, datePlannedEnd, dateActualStart = null, dateActualEnd = null, localizedNames = {}) {
-	        this.id = id;
-	        this.parentId = parentId;
-	        this.name = name;
-	        this.localizedNames = localizedNames;
-	        this.progress = progress > 100 ? 100 : progress < 0 ? 0 : progress;
-	        this.datePlannedStart = datePlannedStart;
-	        this.datePlannedEnd = datePlannedEnd;
-	        this.dateActualStart = dateActualStart;
-	        this.dateActualEnd = dateActualEnd;
-	    }
-	}
 	class TsGanttTask {
 	    constructor(id, parentId, name, localizedNames, progress, datePlannedStart = null, datePlannedEnd = null, dateActualStart = null, dateActualEnd = null, nestingLvl = 0, hasChildren = false, parentUuid = null, uuid = null) {
 	        this._progress = 0;
@@ -139,7 +123,7 @@
 	        let currentLevelTasks = [];
 	        for (let i = models.length - 1; i >= 0; i--) {
 	            const model = models[i];
-	            if (model.parentId === null) {
+	            if (!model.parentId) {
 	                const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 0, allParentIds.has(model.id), null, idsMap.get(model.id));
 	                tasks.push(newTask);
 	                currentLevelTasks.push(newTask);
@@ -168,7 +152,17 @@
 	    static convertTasksToModels(tasks) {
 	        return tasks.map(x => {
 	            var _a, _b, _c, _d;
-	            return new TsGanttTaskModel(x.externalId, x.parentExternalId, x.name, x.progress, (_a = x.datePlannedStart) === null || _a === void 0 ? void 0 : _a.toDate(), (_b = x.datePlannedEnd) === null || _b === void 0 ? void 0 : _b.toDate(), (_c = x.dateActualStart) === null || _c === void 0 ? void 0 : _c.toDate(), (_d = x.dateActualEnd) === null || _d === void 0 ? void 0 : _d.toDate(), x.localizedNames);
+	            return ({
+	                id: x.externalId,
+	                parentId: x.parentExternalId,
+	                name: x.name,
+	                progress: x.progress,
+	                datePlannedStart: ((_a = x.datePlannedStart) === null || _a === void 0 ? void 0 : _a.toDate()) || null,
+	                datePlannedEnd: ((_b = x.datePlannedEnd) === null || _b === void 0 ? void 0 : _b.toDate()) || null,
+	                dateActualStart: ((_c = x.dateActualStart) === null || _c === void 0 ? void 0 : _c.toDate()) || null,
+	                dateActualEnd: ((_d = x.dateActualEnd) === null || _d === void 0 ? void 0 : _d.toDate()) || null,
+	                localizedNames: x.localizedNames
+	            });
 	        });
 	    }
 	    static detectTaskChanges(data) {
@@ -285,8 +279,13 @@
 	        this.barStrokeWidthPx = 2;
 	        this.barMarginPx = 2;
 	        this.barCornerRadiusPx = 6;
+	        this.rowSymbols = {
+	            childless: "◆",
+	            collapsed: "⬘",
+	            expanded: "⬙",
+	        };
 	        this.chartShowProgress = true;
-	        this.chartBarMode = "both";
+	        this.chartDisplayMode = "both";
 	        this.chartScale = "month";
 	        this.chartDateOffsetDays = {
 	            "day": 14,
@@ -640,7 +639,7 @@
 	        return this._dateMinOffset === currentDateMin && this._dateMaxOffset === currentDateMax;
 	    }
 	    getBarGroupOptions() {
-	        const mode = this._options.chartBarMode;
+	        const mode = this._options.chartDisplayMode;
 	        const showProgress = this._options.chartShowProgress;
 	        const dayWidth = this._options.chartDayWidthPx[this._options.chartScale];
 	        const rowHeight = this._options.rowHeightPx;
@@ -1021,11 +1020,11 @@
 	    }
 	}
 	class TsGanttTableRow {
-	    constructor(task, columns) {
+	    constructor(task, columns, symbols) {
 	        this.task = task;
-	        this.html = this.generateHtml(columns);
+	        this.html = this.generateHtml(columns, symbols);
 	    }
-	    generateHtml(columns) {
+	    generateHtml(columns, symbols) {
 	        const row = document.createElement("tr");
 	        row.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
 	        row.addEventListener("click", (e) => {
@@ -1046,15 +1045,15 @@
 	                    cellInnerDiv.append(this.createSimpleIndent());
 	                }
 	                if (!this.task.hasChildren) {
-	                    cellInnerDiv.append(this.createSimpleIndent(TsGanttConst.CELL_EXPANDER_SYMBOL));
+	                    cellInnerDiv.append(this.createSimpleIndent(symbols.childless));
 	                }
 	                else {
 	                    const expander = document.createElement("p");
 	                    expander.classList.add(TsGanttConst.TABLE_CELL_EXPANDER_CLASS);
 	                    expander.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
 	                    expander.innerHTML = this.task.expanded
-	                        ? TsGanttConst.CELL_EXPANDER_EXPANDED_SYMBOL
-	                        : TsGanttConst.CELL_EXPANDER_EXPANDABLE_SYMBOL;
+	                        ? symbols.expanded
+	                        : symbols.collapsed;
 	                    expander.addEventListener("click", (e) => {
 	                        expander.dispatchEvent(new CustomEvent(TsGanttConst.CELL_EXPANDER_CLICK, {
 	                            bubbles: true,
@@ -1133,6 +1132,7 @@
 	        this._tableColumns = columns;
 	    }
 	    updateRows(data) {
+	        const symbols = this._options.rowSymbols;
 	        data.deleted.forEach(x => {
 	            const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
 	            if (index !== 1) {
@@ -1142,10 +1142,10 @@
 	        data.changed.forEach(x => {
 	            const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
 	            if (index !== -1) {
-	                this._tableRows[index] = new TsGanttTableRow(x, this._tableColumns);
+	                this._tableRows[index] = new TsGanttTableRow(x, this._tableColumns, symbols);
 	            }
 	        });
-	        data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns)));
+	        data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns, symbols)));
 	    }
 	    redraw() {
 	        const headerRow = document.createElement("tr");
@@ -1266,10 +1266,10 @@
 	            this.updateChartScale();
 	        }
 	    }
-	    set chartBarMode(value) {
-	        if (value !== this._options.chartBarMode) {
-	            this._options.chartBarMode = value;
-	            this.updateChartBarMode();
+	    set chartDisplayMode(value) {
+	        if (value !== this._options.chartDisplayMode) {
+	            this._options.chartDisplayMode = value;
+	            this.updateChartDisplayMode();
 	        }
 	    }
 	    destroy() {
@@ -1398,7 +1398,7 @@
 	        });
 	        this.refreshSelection();
 	    }
-	    updateChartBarMode() {
+	    updateChartDisplayMode() {
 	        this._chart.update(false, {
 	            deleted: [],
 	            added: [],
@@ -1422,7 +1422,6 @@
 	exports.TsGantt = TsGantt;
 	exports.TsGanttOptions = TsGanttOptions;
 	exports.TsGanttTask = TsGanttTask;
-	exports.TsGanttTaskModel = TsGanttTaskModel;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

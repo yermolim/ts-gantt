@@ -1,20 +1,24 @@
 :root {
   --tsg-table-min-width: 100px;
   --tsg-chart-min-width: 100px;
+  --tsg-nesting-indent: 20px;
 
   --tsg-background-color: white;
   --tsg-foreground-color: black;
   --tsg-separator-color: rgb(80, 80, 80);
   --tsg-header-color: rgb(210, 210, 210);
   --tsg-border-color: rgb(190, 190, 190);
-  --tsg-expander-color: rgb(80, 80, 80);
+  --tsg-symbol-color: rgb(80, 80, 80);
   --tsg-selection-color: rgb(230, 230, 230);
+  --tsg-chart-bar-color-1: skyblue;
+  --tsg-chart-bar-color-2: lightcoral;
+  --tsg-chart-bar-accent-1: darkcyan;
+  --tsg-chart-bar-accent-2: darkred;  
 
   --tsg-font-family: 'Calibri', sans-serif;
   --tsg-font-size: 14px;
   --tsg-line-height: 16px;
-  --tsg-nesting-indent: 20px;
-  --tsg-max-cell-text-rows: 2;
+  --tsg-max-cell-text-lines: 2;
 }
 
 .tsg-wrapper {  
@@ -113,13 +117,13 @@
 .tsg-cell-text-indent {
   width: var(--tsg-nesting-indent) !important;
   min-width: var(--tsg-nesting-indent) !important;
-  color: var(--tsg-expander-color);
+  color: var(--tsg-symbol-color);
   text-align: center;
 }
 .tsg-cell-text-expander {
   width: var(--tsg-nesting-indent) !important;
   min-width: var(--tsg-nesting-indent) !important;
-  color: var(--tsg-expander-color);
+  color: var(--tsg-symbol-color);
   text-align: center;
   cursor: pointer;
 }
@@ -128,7 +132,7 @@
   overflow: hidden;
   position: relative;  
   margin-right: 0px;
-  max-height: calc(var(--tsg-max-cell-text-rows) * var(--tsg-line-height)); 
+  max-height: calc(var(--tsg-max-cell-text-lines) * var(--tsg-line-height)); 
   padding-right: var(--tsg-line-height);
   font-size: var(--tsg-font-size);
   line-height: var(--tsg-line-height);
@@ -216,29 +220,29 @@ tr.selected .tsg-cell-text:after {
 }
 
 .tsg-chart-bar-planned {
-  fill: skyblue;
-  stroke: skyblue;
+  fill: var(--tsg-chart-bar-color-1);
+  stroke: var(--tsg-chart-bar-color-1);
   stroke-width: var(--tsg-bar-stroke-width);
 }
 .selected .tsg-chart-bar-planned {
-  stroke: darkcyan;
+  stroke: var(--tsg-chart-bar-accent-1);
 }
 .tsg-chart-bar-planned-progress {
-  fill: darkcyan;
-  stroke: darkcyan;
+  fill: var(--tsg-chart-bar-accent-1);
+  stroke: var(--tsg-chart-bar-accent-1);
   stroke-width: var(--tsg-bar-stroke-width);
 }
 
 .tsg-chart-bar-actual {
-  fill: lightcoral;
-  stroke: lightcoral;
+  fill: var(--tsg-chart-bar-color-2);
+  stroke: var(--tsg-chart-bar-color-2);
   stroke-width: var(--tsg-bar-stroke-width);
 }
 .selected .tsg-chart-bar-actual {
-  stroke: darkred;
+  stroke: var(--tsg-chart-bar-accent-2);
 }
 .tsg-chart-bar-actual-progress {
-  fill: darkred;
-  stroke: darkred;
+  fill: var(--tsg-chart-bar-accent-2);
+  stroke: var(--tsg-chart-bar-accent-2);
   stroke-width: var(--tsg-bar-stroke-width);
 }

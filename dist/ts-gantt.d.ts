@@ -2,22 +2,6 @@
 
 import dayjs from 'dayjs';
 
-export declare class TsGanttTaskModel {
-	id: string;
-	parentId: string;
-	name: string;
-	localizedNames: {
-		[key: string]: string;
-	};
-	progress: number;
-	datePlannedStart: Date;
-	datePlannedEnd: Date;
-	dateActualStart: Date | null;
-	dateActualEnd: Date | null;
-	constructor(id: string, parentId: string, name: string, progress: number, datePlannedStart: Date, datePlannedEnd: Date, dateActualStart?: Date | null, dateActualEnd?: Date | null, localizedNames?: {
-		[key: string]: string;
-	});
-}
 export declare class TsGanttTask {
 	readonly externalId: string;
 	readonly uuid: string;
@@ -50,6 +34,19 @@ export declare class TsGanttTask {
 	equals(another: TsGanttTask): boolean;
 	compareTo(another: TsGanttTask): number;
 }
+export interface TsGanttTaskModel {
+	id: string;
+	parentId: string;
+	name: string;
+	progress: number;
+	datePlannedStart: Date;
+	datePlannedEnd: Date;
+	dateActualStart: Date;
+	dateActualEnd: Date;
+	localizedNames: {
+		[key: string]: string;
+	};
+}
 export interface TsGanttTaskUpdateResult {
 	oldTasks: TsGanttTask[];
 	newTasks: TsGanttTask[];
@@ -75,8 +72,9 @@ export declare class TsGanttOptions {
 	barStrokeWidthPx: number;
 	barMarginPx: number;
 	barCornerRadiusPx: number;
+	rowSymbols: TsGanttRowSymbols;
 	chartShowProgress: boolean;
-	chartBarMode: "planned" | "actual" | "both";
+	chartDisplayMode: "planned" | "actual" | "both";
 	chartScale: "day" | "week" | "month" | "year";
 	chartDateOffsetDays: {
 		[key: string]: number;
@@ -121,6 +119,11 @@ export declare class TsGanttOptions {
 	columnValueGetters: ((a: TsGanttTask) => string)[];
 	constructor(item?: object);
 }
+export interface TsGanttRowSymbols {
+	expanded: string;
+	collapsed: string;
+	childless: string;
+}
 export declare class TsGantt {
 	private _options;
 	private _tasks;
@@ -140,7 +143,7 @@ export declare class TsGantt {
 	private _ignoreNextScrollEvent;
 	set locale(value: string);
 	set chartScale(value: "day" | "week" | "month" | "year");
-	set chartBarMode(value: "planned" | "actual" | "both");
+	set chartDisplayMode(value: "planned" | "actual" | "both");
 	constructor(containerSelector: string, options: TsGanttOptions);
 	destroy(): void;
 	onResize: (e: Event) => void;
@@ -161,7 +164,7 @@ export declare class TsGantt {
 	private update;
 	private updateLocale;
 	private updateChartScale;
-	private updateChartBarMode;
+	private updateChartDisplayMode;
 	private refreshSelection;
 }
 

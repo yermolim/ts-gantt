@@ -62,10 +62,10 @@ class TsGantt {
     }
   }
     
-  set chartBarMode(value: "planned" | "actual" | "both") {
-    if (value !== this._options.chartBarMode) {
-      this._options.chartBarMode = value;
-      this.updateChartBarMode();
+  set chartDisplayMode(value: "planned" | "actual" | "both") {
+    if (value !== this._options.chartDisplayMode) {
+      this._options.chartDisplayMode = value;
+      this.updateChartDisplayMode();
     }
   }
 
@@ -285,7 +285,7 @@ class TsGantt {
     this.refreshSelection();
   }  
 
-  private updateChartBarMode() {
+  private updateChartDisplayMode() {
     this._chart.update(false, <TsGanttTaskChangeResult>{
       deleted: [],
       added: [],

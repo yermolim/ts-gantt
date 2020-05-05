@@ -1,5 +1,6 @@
 import { TsGanttTask } from "./ts-gantt-task";
 import { TsGanttConst } from "./ts-gantt-const";
+import { TsGanttRowSymbols } from "./ts-gantt-options";
 
 class TsGanttTableColumn {
   readonly html: HTMLTableHeaderCellElement;
@@ -36,12 +37,15 @@ class TsGanttTableRow {
   readonly task: TsGanttTask;
   readonly html: HTMLTableRowElement;
 
-  constructor(task: TsGanttTask, columns: TsGanttTableColumn[]) {
+  constructor(task: TsGanttTask, columns: TsGanttTableColumn[],
+    symbols: TsGanttRowSymbols) {
     this.task = task;
-    this.html = this.generateHtml(columns);
+    this.html = this.generateHtml(columns, symbols);
   }
 
-  private generateHtml(columns: TsGanttTableColumn[]): HTMLTableRowElement {
+  private generateHtml(columns: TsGanttTableColumn[], 
+    symbols: TsGanttRowSymbols): HTMLTableRowElement {
+
     const row = document.createElement("tr");
     row.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
     row.addEventListener("click", (e: Event) => {
@@ -64,14 +68,14 @@ class TsGanttTableRow {
           cellInnerDiv.append(this.createSimpleIndent());
         }
         if (!this.task.hasChildren) {          
-          cellInnerDiv.append(this.createSimpleIndent(TsGanttConst.CELL_EXPANDER_SYMBOL));
+          cellInnerDiv.append(this.createSimpleIndent(symbols.childless));
         } else {
           const expander = document.createElement("p");
           expander.classList.add(TsGanttConst.TABLE_CELL_EXPANDER_CLASS);
           expander.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
           expander.innerHTML = this.task.expanded 
-            ? TsGanttConst.CELL_EXPANDER_EXPANDED_SYMBOL 
-            : TsGanttConst.CELL_EXPANDER_EXPANDABLE_SYMBOL;
+            ? symbols.expanded 
+            : symbols.collapsed;
           expander.addEventListener("click", (e: Event) => {
             expander.dispatchEvent(new CustomEvent(TsGanttConst.CELL_EXPANDER_CLICK, {
               bubbles: true,

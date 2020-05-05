@@ -22,11 +22,7 @@ class TsGanttConst {
   static readonly TABLE_CELL_TEXT_CLASS = "tsg-cell-text";
   static readonly TABLE_CELL_INDENT_CLASS = "tsg-cell-text-indent";
   static readonly TABLE_CELL_EXPANDER_CLASS = "tsg-cell-text-expander";  
-
   static readonly CELL_EXPANDER_CLICK = "tsgexpanderclick";
-  static readonly CELL_EXPANDER_SYMBOL = "◆";
-  static readonly CELL_EXPANDER_EXPANDABLE_SYMBOL = "⬘";
-  static readonly CELL_EXPANDER_EXPANDED_SYMBOL = "⬙";
   
   static readonly CHART_HEADER_CLASS = "tsg-chart-header";
   static readonly CHART_HEADER_BACKGROUND_CLASS = "tsg-chart-header-bg";

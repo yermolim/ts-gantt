@@ -72,6 +72,7 @@ class TsGanttTable {
   }  
 
   private updateRows(data: TsGanttTaskChangeResult) {
+    const symbols = this._options.rowSymbols;
     data.deleted.forEach(x => {
       const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
       if (index !== 1) {
@@ -81,10 +82,10 @@ class TsGanttTable {
     data.changed.forEach(x => {      
       const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
       if (index !== -1) {
-        this._tableRows[index] = new TsGanttTableRow(x, this._tableColumns);
+        this._tableRows[index] = new TsGanttTableRow(x, this._tableColumns, symbols);
       }
     });
-    data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns)));
+    data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns, symbols)));
   }
 
   private redraw() {    

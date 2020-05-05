@@ -91,8 +91,8 @@
                 function setScale(scale) {
                     ganttChart.chartScale = scale;
                 }
-                function setBarMode(mode) {
-                    ganttChart.chartBarMode = mode;
+                function setDisplayMode(mode) {
+                    ganttChart.chartDisplayMode = mode;
                 }
 
                 document.getElementById("btn-locale-en").addEventListener("click", () => setLocale("en"));
@@ -104,9 +104,9 @@
                 document.getElementById("btn-scale-month").addEventListener("click", () => setScale("month"));
                 document.getElementById("btn-scale-year").addEventListener("click", () => setScale("year"));
 
-                document.getElementById("btn-bar-both").addEventListener("click", () => setBarMode("both"));
-                document.getElementById("btn-bar-planned").addEventListener("click", () => setBarMode("planned"));
-                document.getElementById("btn-bar-actual").addEventListener("click", () => setBarMode("actual"));
+                document.getElementById("btn-bar-both").addEventListener("click", () => setDisplayMode("both"));
+                document.getElementById("btn-bar-planned").addEventListener("click", () => setDisplayMode("planned"));
+                document.getElementById("btn-bar-actual").addEventListener("click", () => setDisplayMode("actual"));
             }).catch(e => console.log(e));
         </script> 
 
