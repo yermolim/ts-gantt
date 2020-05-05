@@ -254,7 +254,7 @@ class TsGantt {
   scrollChartToTask(uuid: string) {
     const offset = this._chart.getBarOffsetByTaskUuid(uuid);
     if (offset) {
-      this._htmlChartWrapper.scrollLeft = offset;
+      this._htmlChartWrapper.scrollLeft = offset - 20;
     }
   }
 
