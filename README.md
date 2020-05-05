@@ -51,7 +51,7 @@ import { TsGantt } from "ts-gantt";
 
 const chart = new TsGantt("#container-selector");
 ```
-include stylesheet ('styles.min.css') in any suitable way
+include stylesheet ('ts-gantt/dist/styles.min.css') in any suitable way
 
 #### Or using CDN
 ```html
