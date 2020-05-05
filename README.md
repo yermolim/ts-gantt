@@ -166,12 +166,9 @@ const chart = new tsGantt.TsGantt("#container-selector", options); // umd
   barStrokeWidthPx = 2;
   barMarginPx = 2;
   barCornerRadiusPx = 6;
-
-  rowSymbols: TsGanttRowSymbols = { // special row symbols. you can also use some HTML code
-    childless: "◆",
-    collapsed: "⬘",
-    expanded: "⬙",
-  };
+  
+  // special row symbols. you can also use some HTML code
+  rowSymbols: TsGanttRowSymbols = {childless: "◆", collapsed: "⬘", expanded: "⬙"};
 
   chartShowProgress = true; // indicating progress percentage on chart bar using different color
   chartDisplayMode: "planned" | "actual" | "both";
