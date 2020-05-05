@@ -20,9 +20,14 @@
   },
   "keywords": [
     "gantt",
+    "grid",
+    "table",
     "chart",
+    "timeline",
     "typescript",
-    "timeline"
+    "english",
+    "ukrainian",
+    "russian"
   ],
   "author": "Volodymyr Yermolenko <yermolim@gmail.com> (https://github.com/yermolim)",
   "license": "MIT",
