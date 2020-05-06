@@ -12,6 +12,7 @@
 </p>
 
 Simple library for creating gantt chart combined with task grid.
+![](demo.gif)
 
 ### Current features
 <ul>
