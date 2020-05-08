@@ -139,6 +139,7 @@ preffered way to customize styling is to change css variable values
   --tsg-border-color: rgb(190, 190, 190);
   --tsg-symbol-color: rgb(80, 80, 80); /* color of row special symbols */
   --tsg-selection-color: rgb(230, 230, 230); /* background color of selected row */
+  --tsg-today-line-color: orangered;
   
   --tsg-chart-bar-color-1: skyblue; /* chart bars colors */
   --tsg-chart-bar-color-2: lightcoral;
@@ -164,6 +165,8 @@ const chart = new tsGantt.TsGantt("#container-selector", options); // umd
  
 ```javascript
    // some default values ommited for brevity. you can always see them in 'TsGanttOptions' source code
+
+  drawTodayLine = true; // draw a vertical line on the chart that represents today
 
   // columns order: "Name", "Progress", "Start date planned", "End date planned",
   // "Start date actual", "End date actual", "Duration planned", "Duration actual"
