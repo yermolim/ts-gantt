@@ -70,8 +70,8 @@
       "parentId":"1",
       "name":"Root1Child3",
       "progress":40,
-      "datePlannedStart":"2020-05-02",
-      "datePlannedEnd":"2020-12-31",
+      "datePlannedStart":"2020-03-20",
+      "datePlannedEnd":"2020-04-05",
       "dateActualStart":"2020-04-11",
       "dateActualEnd":null,
       "localizedNames": {"en": "Root 1 Child 3", "uk": "Корінь 1 Дитина 3", "ru": "Корень 1 Ребенок 3"}

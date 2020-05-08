@@ -16,6 +16,7 @@ class TsGanttConst {
   static readonly ROW_UUID_ATTRIBUTE = "data-tsg-row-uuid";
   static readonly ROW_UUID_DATASET_KEY = "tsgRowUuid";
   static readonly ROW_SELECTED_CLASS = "selected";
+  static readonly ROW_OVERDUE_CLASS = "overdue";
   static readonly ROW_CLICK = "tsgrowclick";
 
   static readonly TABLE_CELL_TEXT_WRAPPER_CLASS = "tsg-cell-text-wrapper";

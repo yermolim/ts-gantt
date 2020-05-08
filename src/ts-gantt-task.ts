@@ -72,9 +72,12 @@ class TsGanttTask {
     for (let i = models.length - 1; i >= 0; i--) {
       const model = models[i];
       if (!model.parentId) {
-        const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress,
-          model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 
-          0, allParentIds.has(model.id), null, idsMap.get(model.id));
+        const newTask = new TsGanttTask(model.id, model.parentId, 
+          model.name, model.localizedNames, model.progress,
+          model.datePlannedStart, model.datePlannedEnd, 
+          model.dateActualStart, model.dateActualEnd, 
+          0, allParentIds.has(model.id), 
+          null, idsMap.get(model.id));
         tasks.push(newTask);
         currentLevelTasks.push(newTask);
         models.splice(i, 1);
@@ -89,9 +92,12 @@ class TsGanttTask {
         for (let i = models.length - 1; i >= 0; i--) {
           const model = models[i];
           if (model.parentId === task.externalId) {
-            const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress,
-              model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd,
-              currentNestingLvl, allParentIds.has(model.id), task.uuid, idsMap.get(model.id));
+            const newTask = new TsGanttTask(model.id, model.parentId, 
+              model.name, model.localizedNames, model.progress,
+              model.datePlannedStart, model.datePlannedEnd, 
+              model.dateActualStart, model.dateActualEnd,
+              currentNestingLvl, allParentIds.has(model.id), 
+              task.uuid, idsMap.get(model.id));
             tasks.push(newTask);
             nextLevelTasks.push(newTask);
             models.splice(i, 1);
@@ -153,7 +159,8 @@ class TsGanttTask {
     return idsMap;
   }  
 
-  static checkPaternity(tasks: TsGanttTask[], parent: TsGanttTask, child: TsGanttTask): boolean {
+  static checkPaternity(tasks: TsGanttTask[], 
+    parent: TsGanttTask, child: TsGanttTask): boolean {
     let parentUuid = child.parentUuid;
     while(parentUuid) {
       if (parentUuid === parent.uuid) {
@@ -221,6 +228,27 @@ class TsGanttTask {
       return -1;
     }
     return this.name.localeCompare(another.name);
+  }
+
+  getState(): "not-started" | "in-progress" | "overdue" | "completed" | "completed-late" {   
+    if (this.progress === 0) {
+      return "not-started";
+    }
+
+    if (this.progress === 100) {
+      if (this.datePlannedEnd) {
+        if ((this.dateActualEnd && this.dateActualEnd.isAfter(this.datePlannedEnd))
+          || (this.dateActualStart && this.dateActualStart.isAfter(this.datePlannedEnd))) {
+          return "completed-late";
+        }
+      }
+      return "completed";
+    }
+
+    if (this.datePlannedEnd && this.datePlannedEnd.isBefore(dayjs().startOf("day"))) {
+      return "overdue";
+    }
+    return "in-progress";
   }
 }
 

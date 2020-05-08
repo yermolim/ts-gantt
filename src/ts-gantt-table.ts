@@ -72,19 +72,23 @@ class TsGanttTable {
   }  
 
   private updateRows(data: TsGanttTaskChangeResult) {
+    const columns = this._tableColumns;
+    const rows = this._tableRows;
+    const addStateClass = this._options.highlightRowsDependingOnTaskState;
+
     data.deleted.forEach(x => {
-      const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
+      const index = rows.findIndex(y => y.task.uuid === x.uuid);
       if (index !== 1) {
-        this._tableRows.splice(index, 1);
+        rows.splice(index, 1);
       }
     });
     data.changed.forEach(x => {      
-      const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
+      const index = rows.findIndex(y => y.task.uuid === x.uuid);
       if (index !== -1) {
-        this._tableRows[index] = new TsGanttTableRow(x, this._tableColumns);
+        rows[index] = new TsGanttTableRow(x, columns, addStateClass);
       }
     });
-    data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns)));
+    data.added.forEach(x => rows.push(new TsGanttTableRow(x, columns, addStateClass)));
   }
 
   private redraw() {    

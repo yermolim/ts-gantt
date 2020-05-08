@@ -6,8 +6,8 @@ const inputModels = [
     parentId: null, 
     name: "Root1", 
     progress: 55, 
-    datePlannedStart: new Date(2020, 5, 1), 
-    datePlannedEnd: new Date(2020, 5, 30), 
+    datePlannedStart: new Date(2020, 4, 1), 
+    datePlannedEnd: new Date(2021, 4, 30), 
     dateActualStart: null, 
     dateActualEnd: null, 
     localizedNames: {en: "Root one", uk: "Корінь один", ru: "Корень один"},
@@ -17,9 +17,9 @@ const inputModels = [
     parentId: null, 
     name: "Root2", 
     progress: 75, 
-    datePlannedStart: new Date(2020, 5, 6), 
-    datePlannedEnd: new Date(2020, 5, 26), 
-    dateActualStart: new Date(2020, 7, 2),
+    datePlannedStart: new Date(2020, 4, 6), 
+    datePlannedEnd: new Date(2020, 4, 7), 
+    dateActualStart: null,
     dateActualEnd: null, 
     localizedNames: null,
   },
@@ -71,11 +71,11 @@ const inputModels = [
     id: "root2child1id", 
     parentId: "root2id", 
     name: "Root2child1", 
-    progress: 15, 
+    progress: 100, 
     datePlannedStart: new Date(2020, 5, 6), 
     datePlannedEnd: new Date(2020, 5, 16), 
-    dateActualStart: null, 
-    dateActualEnd: null, 
+    dateActualStart: new Date(2020, 5, 6), 
+    dateActualEnd: new Date(2020, 5, 26), 
     localizedNames: null,
   },
 ];
@@ -86,8 +86,8 @@ const inputModelsUpdated = [
     parentId: null, 
     name: "Root1", 
     progress: 95, 
-    datePlannedStart: new Date(2020, 5, 1), 
-    datePlannedEnd: new Date(2020, 5, 30), 
+    datePlannedStart: new Date(2020, 4, 1), 
+    datePlannedEnd: new Date(2020, 4, 30), 
     dateActualStart: null, 
     dateActualEnd: null, 
     localizedNames: null,
@@ -97,9 +97,9 @@ const inputModelsUpdated = [
     parentId: null, 
     name: "Root2", 
     progress: 75, 
-    datePlannedStart: new Date(2020, 5, 6), 
-    datePlannedEnd: new Date(2020, 5, 26), 
-    dateActualStart: new Date(2020, 10, 2), 
+    datePlannedStart: new Date(2020, 4, 6), 
+    datePlannedEnd: new Date(2020, 4, 26), 
+    dateActualStart: new Date(2020, 4, 2), 
     dateActualEnd: null, 
     localizedNames: null,
   },
@@ -152,7 +152,7 @@ const inputModelsUpdated = [
 describe("TsGanttTask", () => {
   
   const tasks = TsGanttTask.convertModelsToTasks(inputModels, 
-    new Map<string, string>([["root1id", "some-generated-id"]]));
+    new Map<string, string>([["root1id", "some-generated-id"]]));    
 
   it("converted tasks should be instanciated from models", () => {
     expect(tasks).toBeTruthy();
@@ -187,7 +187,7 @@ describe("TsGanttTask", () => {
     expect(tasks.find(x => x.externalId === "root1child1id").progress)
       .toEqual(100);
     expect(tasks.find(x => x.externalId === "root2child1id").progress)
-      .toEqual(15);
+      .toEqual(100);
   });  
   it("converted tasks should have correct value of 'hasChildren' property", () => {
     expect(tasks.find(x => x.externalId === "root2id").hasChildren)
@@ -196,6 +196,41 @@ describe("TsGanttTask", () => {
       .toEqual(false);
     expect(tasks.find(x => x.externalId === "root1child1child1id").hasChildren)
       .toEqual(false);
+  });
+    
+  it("getState should return correct state", () => {
+    expect(tasks.find(x => x.externalId === "root1id").getState()).toEqual("in-progress");
+    expect(tasks.find(x => x.externalId === "root2id").getState()).toEqual("overdue");
+    expect(tasks.find(x => x.externalId === "root3id").getState()).toEqual("not-started");
+    expect(tasks.find(x => x.externalId === "root1child1id").getState()).toEqual("completed");
+    expect(tasks.find(x => x.externalId === "root1child2id").getState()).toEqual("not-started");
+    expect(tasks.find(x => x.externalId === "root1child1child1id").getState()).toEqual("completed");
+    expect(tasks.find(x => x.externalId === "root2child1id").getState()).toEqual("completed-late");
+  });
+  
+  it("equality test should show correct result", () => {
+    expect(tasks[0].equals(tasks[0])).toBeTruthy();
+    expect(tasks[0].equals(tasks[1])).toBeFalsy();
+    expect(tasks[0].equals(tasks[2])).toBeFalsy();
+    expect(tasks[0].equals(tasks[3])).toBeFalsy();
+    expect(tasks[0].equals(tasks[4])).toBeFalsy();
+    expect(tasks[0].equals(tasks[5])).toBeFalsy();
+    expect(tasks[0].equals(tasks[6])).toBeFalsy();
+  });
+
+  const sortedTasks = TsGanttTask.sortTasksRecursively(tasks, null);
+
+  it("sorted array should have same length (for correct tree)", () => {
+    expect(sortedTasks.length).toEqual(tasks.length);
+  });
+  it("sorted array elements should have correct order", () => {
+    expect(sortedTasks[0].externalId).toEqual("root1id");
+    expect(sortedTasks[1].externalId).toEqual("root1child1id");
+    expect(sortedTasks[2].externalId).toEqual("root1child1child1id");
+    expect(sortedTasks[3].externalId).toEqual("root1child2id");
+    expect(sortedTasks[4].externalId).toEqual("root2id");
+    expect(sortedTasks[5].externalId).toEqual("root2child1id");
+    expect(sortedTasks[6].externalId).toEqual("root3id");
   });
 
   const models = TsGanttTask.convertTasksToModels(tasks);
@@ -243,38 +278,5 @@ describe("TsGanttTask", () => {
     expect(changes.added.length).toEqual(1);
     expect(changes.changed.length).toEqual(3);
     expect(changes.all.length).toEqual(6);
-  });
-
-  const sortedTasks = TsGanttTask.sortTasksRecursively(tasks, null);
-
-  it("sorted array should have same length (for correct tree)", () => {
-    expect(sortedTasks.length).toEqual(tasks.length);
-  });
-  it("sorted array elements should have correct order", () => {
-    expect(sortedTasks[0].externalId).toEqual("root1id");
-    expect(sortedTasks[1].externalId).toEqual("root1child1id");
-    expect(sortedTasks[2].externalId).toEqual("root1child1child1id");
-    expect(sortedTasks[3].externalId).toEqual("root1child2id");
-    expect(sortedTasks[4].externalId).toEqual("root2id");
-    expect(sortedTasks[5].externalId).toEqual("root2child1id");
-    expect(sortedTasks[6].externalId).toEqual("root3id");
-  });
-
-  const equalityTest1 = tasks[0].equals(tasks[0]);
-  const equalityTest2 = tasks[0].equals(tasks[1]);
-  const equalityTest3 = tasks[0].equals(tasks[2]);
-  const equalityTest4 = tasks[0].equals(tasks[3]);
-  const equalityTest5 = tasks[0].equals(tasks[4]);
-  const equalityTest6 = tasks[0].equals(tasks[5]);
-  const equalityTest7 = tasks[0].equals(tasks[6]);
-  
-  it("equality test should show correct result", () => {
-    expect(equalityTest1).toBeTruthy();
-    expect(equalityTest2).toBeFalsy();
-    expect(equalityTest3).toBeFalsy();
-    expect(equalityTest4).toBeFalsy();
-    expect(equalityTest5).toBeFalsy();
-    expect(equalityTest6).toBeFalsy();
-    expect(equalityTest7).toBeFalsy();
   });
 });

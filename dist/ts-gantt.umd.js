@@ -21,6 +21,7 @@
 	TsGanttConst.ROW_UUID_ATTRIBUTE = "data-tsg-row-uuid";
 	TsGanttConst.ROW_UUID_DATASET_KEY = "tsgRowUuid";
 	TsGanttConst.ROW_SELECTED_CLASS = "selected";
+	TsGanttConst.ROW_OVERDUE_CLASS = "overdue";
 	TsGanttConst.ROW_CLICK = "tsgrowclick";
 	TsGanttConst.TABLE_CELL_TEXT_WRAPPER_CLASS = "tsg-cell-text-wrapper";
 	TsGanttConst.TABLE_CELL_TEXT_CLASS = "tsg-cell-text";
@@ -262,6 +263,24 @@
 	        }
 	        return this.name.localeCompare(another.name);
 	    }
+	    getState() {
+	        if (this.progress === 0) {
+	            return "not-started";
+	        }
+	        if (this.progress === 100) {
+	            if (this.datePlannedEnd) {
+	                if ((this.dateActualEnd && this.dateActualEnd.isAfter(this.datePlannedEnd))
+	                    || (this.dateActualStart && this.dateActualStart.isAfter(this.datePlannedEnd))) {
+	                    return "completed-late";
+	                }
+	            }
+	            return "completed";
+	        }
+	        if (this.datePlannedEnd && this.datePlannedEnd.isBefore(dayjs_min().startOf("day"))) {
+	            return "overdue";
+	        }
+	        return "in-progress";
+	    }
 	}
 
 	class TsGanttOptions {
@@ -272,6 +291,7 @@
 	        this.bindParentDatesToChild = true;
 	        this.enableProgressEdit = true;
 	        this.drawTodayLine = true;
+	        this.highlightRowsDependingOnTaskState = true;
 	        this.columnsMinWidthPx = [200, 100, 100, 100, 100, 100, 100, 100];
 	        this.columnsContentAlign = ["start", "end", "center", "center", "center", "center", "center", "center"];
 	        this.separatorWidthPx = 5;
@@ -1032,12 +1052,12 @@
 	    }
 	}
 	class TsGanttTableRow {
-	    constructor(task, columns) {
+	    constructor(task, columns, addStateClass) {
 	        this.task = task;
 	        this.expander = this.createExpander();
-	        this.html = this.createRow(columns);
+	        this.html = this.createRow(columns, addStateClass);
 	    }
-	    createRow(columns) {
+	    createRow(columns, addStateClass) {
 	        const row = document.createElement("tr");
 	        row.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
 	        row.addEventListener("click", (e) => {
@@ -1049,6 +1069,9 @@
 	                }));
 	            }
 	        });
+	        if (addStateClass) {
+	            row.classList.add(this.task.getState());
+	        }
 	        columns.forEach((x, i) => {
 	            const cell = document.createElement("td");
 	            const cellInnerDiv = document.createElement("div");
@@ -1142,19 +1165,22 @@
 	        this._tableColumns = columns;
 	    }
 	    updateRows(data) {
+	        const columns = this._tableColumns;
+	        const rows = this._tableRows;
+	        const addStateClass = this._options.highlightRowsDependingOnTaskState;
 	        data.deleted.forEach(x => {
-	            const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
+	            const index = rows.findIndex(y => y.task.uuid === x.uuid);
 	            if (index !== 1) {
-	                this._tableRows.splice(index, 1);
+	                rows.splice(index, 1);
 	            }
 	        });
 	        data.changed.forEach(x => {
-	            const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
+	            const index = rows.findIndex(y => y.task.uuid === x.uuid);
 	            if (index !== -1) {
-	                this._tableRows[index] = new TsGanttTableRow(x, this._tableColumns);
+	                rows[index] = new TsGanttTableRow(x, columns, addStateClass);
 	            }
 	        });
-	        data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns)));
+	        data.added.forEach(x => rows.push(new TsGanttTableRow(x, columns, addStateClass)));
 	    }
 	    redraw() {
 	        const headerRow = document.createElement("tr");

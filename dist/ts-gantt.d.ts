@@ -33,6 +33,7 @@ declare class TsGanttTask {
 	static sortTasksRecursively(tasks: TsGanttTask[], parentUuid: string): TsGanttTask[];
 	equals(another: TsGanttTask): boolean;
 	compareTo(another: TsGanttTask): number;
+	getState(): "not-started" | "in-progress" | "overdue" | "completed" | "completed-late";
 }
 export interface TsGanttTaskModel {
 	id: string;
@@ -64,6 +65,7 @@ export declare class TsGanttOptions {
 	bindParentDatesToChild: boolean;
 	enableProgressEdit: boolean;
 	drawTodayLine: boolean;
+	highlightRowsDependingOnTaskState: boolean;
 	columnsMinWidthPx: number[];
 	columnsContentAlign: ("start" | "center" | "end")[];
 	separatorWidthPx: number;

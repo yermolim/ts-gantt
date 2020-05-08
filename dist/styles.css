@@ -5,12 +5,19 @@
 
   --tsg-background-color: white;
   --tsg-foreground-color: black;
-  --tsg-separator-color: rgb(80, 80, 80);
-  --tsg-header-color: rgb(210, 210, 210);
-  --tsg-border-color: rgb(190, 190, 190);
-  --tsg-symbol-color: rgb(80, 80, 80);
-  --tsg-selection-color: rgb(230, 230, 230);
-  --tsg-today-line-color: orangered;
+  --tsg-separator-color: dimgray;
+  --tsg-header-color: lightgray;
+  --tsg-border-color: lightgray;
+  --tsg-symbol-color: dimgray;
+  --tsg-selection-color: ghostwhite;
+
+  --tsg-not-started-fg-color: dimgray;
+  --tsg-in-progress-fg-color: black;
+  --tsg-overdue-fg-color: darkred;
+  --tsg-completed-fg-color: darkgreen;
+  --tsg-completed-late-fg-color: sienna;
+
+  --tsg-today-line-color: orangered;  
   --tsg-chart-bar-color-1: skyblue;
   --tsg-chart-bar-color-2: lightcoral;
   --tsg-chart-bar-accent-1: darkcyan;
@@ -91,6 +98,22 @@
 .tsg-table tbody tr.selected td {
   font-weight: bold;
 }
+.tsg-table tbody tr.not-started td {
+  color: var(--tsg-not-started-fg-color);
+}
+.tsg-table tbody tr.in-progress td {
+  color: var(--tsg-in-progress-fg-color);
+}
+.tsg-table tbody tr.overdue td {
+  color: var(--tsg-overdue-fg-color);
+}
+.tsg-table tbody tr.completed td {
+  color: var(--tsg-completed-fg-color);
+}
+.tsg-table tbody tr.completed-late td {
+  color: var(--tsg-completed-late-fg-color);
+}
+
 .tsg-table tbody td {
   padding: 0;
   cursor: default;

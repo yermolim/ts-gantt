@@ -38,13 +38,13 @@ class TsGanttTableRow {
   readonly html: HTMLTableRowElement;
   readonly expander: HTMLParagraphElement;
 
-  constructor(task: TsGanttTask, columns: TsGanttTableColumn[]) {
+  constructor(task: TsGanttTask, columns: TsGanttTableColumn[], addStateClass: boolean) {
     this.task = task;
     this.expander = this.createExpander();
-    this.html = this.createRow(columns);
+    this.html = this.createRow(columns, addStateClass);
   }
 
-  private createRow(columns: TsGanttTableColumn[]): HTMLTableRowElement {
+  private createRow(columns: TsGanttTableColumn[], addStateClass: boolean): HTMLTableRowElement {
 
     const row = document.createElement("tr");
     row.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
@@ -57,6 +57,9 @@ class TsGanttTableRow {
         }));
       }
     });
+    if (addStateClass) {
+      row.classList.add(this.task.getState());
+    }
     
     columns.forEach((x, i) => {
       const cell = document.createElement("td");
