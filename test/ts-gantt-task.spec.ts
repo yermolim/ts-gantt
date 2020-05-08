@@ -165,8 +165,7 @@ describe("TsGanttTask", () => {
     expect(tasks.find(x => x.externalId === "root1id").localizedNames["en"]).toEqual("Root one");
   });
   it("converted tasks should preserve predefined uuids", () => {
-    expect(tasks.find(x => x.externalId === "root1id").uuid)
-      .toEqual("some-generated-id");
+    expect(tasks.find(x => x.externalId === "root1id").uuid).toEqual("some-generated-id");
   });
   it("converted tasks should have correct nesting levels", () => {
     expect(tasks.filter(x => x.nestingLvl === 0).length).toEqual(3);
@@ -174,28 +173,21 @@ describe("TsGanttTask", () => {
     expect(tasks.filter(x => x.nestingLvl === 2).length).toEqual(1);
   });
   it("converted tasks should have correct parent uuid inheritance", () => {
-    expect(tasks.find(x => x.externalId === "root1id").parentUuid)
-      .toEqual(null);
+    expect(tasks.find(x => x.externalId === "root1id").parentUuid).toEqual(null);
     expect(tasks.find(x => x.externalId === "root1child1id").parentUuid)
       .toEqual(tasks.find(x => x.externalId === "root1id").uuid);
     expect(tasks.find(x => x.externalId === "root1child1child1id").parentUuid)
       .toEqual(tasks.find(x => x.externalId === "root1child1id").uuid);
   });  
   it("converted tasks should have correct progress value", () => {
-    expect(tasks.find(x => x.externalId === "root3id").progress)
-      .toEqual(0);
-    expect(tasks.find(x => x.externalId === "root1child1id").progress)
-      .toEqual(100);
-    expect(tasks.find(x => x.externalId === "root2child1id").progress)
-      .toEqual(100);
+    expect(tasks.find(x => x.externalId === "root3id").progress).toEqual(0);
+    expect(tasks.find(x => x.externalId === "root1child1id").progress).toEqual(100);
+    expect(tasks.find(x => x.externalId === "root2child1id").progress).toEqual(100);
   });  
   it("converted tasks should have correct value of 'hasChildren' property", () => {
-    expect(tasks.find(x => x.externalId === "root2id").hasChildren)
-      .toEqual(true);
-    expect(tasks.find(x => x.externalId === "root3id").hasChildren)
-      .toEqual(false);
-    expect(tasks.find(x => x.externalId === "root1child1child1id").hasChildren)
-      .toEqual(false);
+    expect(tasks.find(x => x.externalId === "root2id").hasChildren).toEqual(true);
+    expect(tasks.find(x => x.externalId === "root3id").hasChildren).toEqual(false);
+    expect(tasks.find(x => x.externalId === "root1child1child1id").hasChildren).toEqual(false);
   });
     
   it("getState should return correct state", () => {
@@ -208,7 +200,7 @@ describe("TsGanttTask", () => {
     expect(tasks.find(x => x.externalId === "root2child1id").getState()).toEqual("completed-late");
   });
   
-  it("equality test should show correct result", () => {
+  it("equality test should return correct result", () => {
     expect(tasks[0].equals(tasks[0])).toBeTruthy();
     expect(tasks[0].equals(tasks[1])).toBeFalsy();
     expect(tasks[0].equals(tasks[2])).toBeFalsy();
@@ -216,6 +208,24 @@ describe("TsGanttTask", () => {
     expect(tasks[0].equals(tasks[4])).toBeFalsy();
     expect(tasks[0].equals(tasks[5])).toBeFalsy();
     expect(tasks[0].equals(tasks[6])).toBeFalsy();
+  });
+  
+  it("paternity check should return correct results", () => {
+    expect(TsGanttTask.checkPaternity(tasks,
+      tasks.find(x => x.externalId === "root1id"),
+      tasks.find(x => x.externalId === "root1id"))).toBeFalsy();
+    expect(TsGanttTask.checkPaternity(tasks,
+      tasks.find(x => x.externalId === "root1id"),
+      tasks.find(x => x.externalId === "root2id"))).toBeFalsy();
+    expect(TsGanttTask.checkPaternity(tasks,
+      tasks.find(x => x.externalId === "root1id"),
+      tasks.find(x => x.externalId === "root2child1id"))).toBeFalsy();
+    expect(TsGanttTask.checkPaternity(tasks,
+      tasks.find(x => x.externalId === "root1id"),
+      tasks.find(x => x.externalId === "root1child1id"))).toBeTruthy();
+    expect(TsGanttTask.checkPaternity(tasks,
+      tasks.find(x => x.externalId === "root1id"),
+      tasks.find(x => x.externalId === "root1child1child1id"))).toBeTruthy();
   });
 
   const sortedTasks = TsGanttTask.sortTasksRecursively(tasks, null);
