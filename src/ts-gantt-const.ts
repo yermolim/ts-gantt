@@ -31,6 +31,7 @@ class TsGanttConst {
   static readonly CHART_BODY_CLASS = "tsg-chart-body";
   static readonly CHART_BODY_BACKGROUND_CLASS = "tsg-chart-body-bg";
   static readonly CHART_BODY_GRIDLINES_CLASS = "tsg-chart-body-gl";  
+  static readonly CHART_BODY_TODAY_LINE_CLASS = "today";  
   static readonly CHART_ROW_WRAPPER_CLASS = "tsg-chart-row-wrapper";
   static readonly CHART_ROW_CLASS = "tsg-chart-row";
   static readonly CHART_ROW_BACKGROUND_CLASS = "tsg-chart-row-bg";

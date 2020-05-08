@@ -63,6 +63,7 @@ export declare class TsGanttOptions {
 	enableActualDatesEdit: boolean;
 	bindParentDatesToChild: boolean;
 	enableProgressEdit: boolean;
+	drawTodayLine: boolean;
 	columnsMinWidthPx: number[];
 	columnsContentAlign: ("start" | "center" | "end")[];
 	separatorWidthPx: number;

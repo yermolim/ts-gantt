@@ -10,6 +10,7 @@
   --tsg-border-color: rgb(190, 190, 190);
   --tsg-symbol-color: rgb(80, 80, 80);
   --tsg-selection-color: rgb(230, 230, 230);
+  --tsg-today-line-color: orangered;
   --tsg-chart-bar-color-1: skyblue;
   --tsg-chart-bar-color-2: lightcoral;
   --tsg-chart-bar-accent-1: darkcyan;
@@ -202,6 +203,10 @@ tr.selected .tsg-cell-text:after {
   stroke-width: var(--tsg-gridlines-width);
   stroke: var(--tsg-border-color);
   shape-rendering: crispEdges;
+}
+.tsg-chart-body-gl.today {  
+  stroke-width: calc(var(--tsg-gridlines-width) + 2px);
+  stroke: var(--tsg-today-line-color);
 }
 
 .tsg-chart-body-bg {

@@ -34,6 +34,7 @@
 	TsGanttConst.CHART_BODY_CLASS = "tsg-chart-body";
 	TsGanttConst.CHART_BODY_BACKGROUND_CLASS = "tsg-chart-body-bg";
 	TsGanttConst.CHART_BODY_GRIDLINES_CLASS = "tsg-chart-body-gl";
+	TsGanttConst.CHART_BODY_TODAY_LINE_CLASS = "today";
 	TsGanttConst.CHART_ROW_WRAPPER_CLASS = "tsg-chart-row-wrapper";
 	TsGanttConst.CHART_ROW_CLASS = "tsg-chart-row";
 	TsGanttConst.CHART_ROW_BACKGROUND_CLASS = "tsg-chart-row-bg";
@@ -270,6 +271,7 @@
 	        this.enableActualDatesEdit = true;
 	        this.bindParentDatesToChild = true;
 	        this.enableProgressEdit = true;
+	        this.drawTodayLine = true;
 	        this.columnsMinWidthPx = [200, 100, 100, 100, 100, 100, 100, 100];
 	        this.columnsContentAlign = ["start", "end", "center", "center", "center", "center", "center", "center"];
 	        this.separatorWidthPx = 5;
@@ -280,9 +282,9 @@
 	        this.barMarginPx = 2;
 	        this.barCornerRadiusPx = 6;
 	        this.rowSymbols = {
-	            childless: "◆",
-	            collapsed: "⬘",
-	            expanded: "⬙",
+	            childless: "•",
+	            collapsed: "▾",
+	            expanded: "▴",
 	        };
 	        this.chartShowProgress = true;
 	        this.chartDisplayMode = "both";
@@ -924,6 +926,7 @@
 	        const width = this._width;
 	        const height = rowHeight * barGroups.length;
 	        const y0 = this._headerHeight;
+	        const drawTodayLine = this._options.drawTodayLine;
 	        const body = createSvgElement("svg", [TsGanttConst.CHART_BODY_CLASS], [
 	            ["y", y0 + ""],
 	            ["width", width + ""],
@@ -958,6 +961,7 @@
 	                ["y2", height + ""],
 	            ], body);
 	        });
+	        const todayX = dayjs_min().startOf("day").diff(minDate, "day") * dayWidth;
 	        const rowFgs = new Map();
 	        const offsetsX = new Map();
 	        barGroups.forEach((x, i) => {
@@ -986,6 +990,14 @@
 	                rowWrapper.append(x.barSvg);
 	            }
 	        });
+	        if (drawTodayLine) {
+	            const todayVerticalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS, TsGanttConst.CHART_BODY_TODAY_LINE_CLASS], [
+	                ["x1", todayX + ""],
+	                ["y1", 0 + ""],
+	                ["x2", todayX + ""],
+	                ["y2", height + ""],
+	            ], body);
+	        }
 	        this._chartRowBgs = rowBgs;
 	        this._chartRowFgs = rowFgs;
 	        this._chartOffsetsX = offsetsX;
@@ -1020,11 +1032,12 @@
 	    }
 	}
 	class TsGanttTableRow {
-	    constructor(task, columns, symbols) {
+	    constructor(task, columns) {
 	        this.task = task;
-	        this.html = this.generateHtml(columns, symbols);
+	        this.expander = this.createExpander();
+	        this.html = this.createRow(columns);
 	    }
-	    generateHtml(columns, symbols) {
+	    createRow(columns) {
 	        const row = document.createElement("tr");
 	        row.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
 	        row.addEventListener("click", (e) => {
@@ -1044,24 +1057,7 @@
 	                for (let j = 0; j < this.task.nestingLvl; j++) {
 	                    cellInnerDiv.append(this.createSimpleIndent());
 	                }
-	                if (!this.task.hasChildren) {
-	                    cellInnerDiv.append(this.createSimpleIndent(symbols.childless));
-	                }
-	                else {
-	                    const expander = document.createElement("p");
-	                    expander.classList.add(TsGanttConst.TABLE_CELL_EXPANDER_CLASS);
-	                    expander.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
-	                    expander.innerHTML = this.task.expanded
-	                        ? symbols.expanded
-	                        : symbols.collapsed;
-	                    expander.addEventListener("click", (e) => {
-	                        expander.dispatchEvent(new CustomEvent(TsGanttConst.CELL_EXPANDER_CLICK, {
-	                            bubbles: true,
-	                            detail: this.task.uuid,
-	                        }));
-	                    });
-	                    cellInnerDiv.append(expander);
-	                }
+	                cellInnerDiv.append(this.expander);
 	            }
 	            const cellText = document.createElement("p");
 	            cellText.classList.add(TsGanttConst.TABLE_CELL_TEXT_CLASS);
@@ -1077,6 +1073,20 @@
 	        indent.classList.add(TsGanttConst.TABLE_CELL_INDENT_CLASS);
 	        indent.innerHTML = innerHtml;
 	        return indent;
+	    }
+	    createExpander() {
+	        const expander = document.createElement("p");
+	        expander.classList.add(TsGanttConst.TABLE_CELL_EXPANDER_CLASS);
+	        expander.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
+	        if (this.task.hasChildren) {
+	            expander.addEventListener("click", (e) => {
+	                expander.dispatchEvent(new CustomEvent(TsGanttConst.CELL_EXPANDER_CLICK, {
+	                    bubbles: true,
+	                    detail: this.task.uuid,
+	                }));
+	            });
+	        }
+	        return expander;
 	    }
 	}
 
@@ -1132,7 +1142,6 @@
 	        this._tableColumns = columns;
 	    }
 	    updateRows(data) {
-	        const symbols = this._options.rowSymbols;
 	        data.deleted.forEach(x => {
 	            const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
 	            if (index !== 1) {
@@ -1142,10 +1151,10 @@
 	        data.changed.forEach(x => {
 	            const index = this._tableRows.findIndex(y => y.task.uuid === x.uuid);
 	            if (index !== -1) {
-	                this._tableRows[index] = new TsGanttTableRow(x, this._tableColumns, symbols);
+	                this._tableRows[index] = new TsGanttTableRow(x, this._tableColumns);
 	            }
 	        });
-	        data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns, symbols)));
+	        data.added.forEach(x => this._tableRows.push(new TsGanttTableRow(x, this._tableColumns)));
 	    }
 	    redraw() {
 	        const headerRow = document.createElement("tr");
@@ -1156,6 +1165,7 @@
 	        this._htmlBody.append(...this.getRowsHtmlRecursively(this._tableRows, null));
 	    }
 	    getRowsHtmlRecursively(rows, parentUuid) {
+	        const symbols = this._options.rowSymbols;
 	        const rowsFiltered = rows.filter(x => x.task.parentUuid === parentUuid)
 	            .sort((a, b) => a.task.compareTo(b.task));
 	        const rowsHtml = [];
@@ -1164,8 +1174,15 @@
 	                continue;
 	            }
 	            rowsHtml.push(row.html);
-	            if (row.task.expanded) {
+	            if (!row.task.hasChildren) {
+	                row.expander.innerHTML = symbols.childless;
+	            }
+	            else if (row.task.expanded) {
+	                row.expander.innerHTML = symbols.expanded;
 	                rowsHtml.push(...this.getRowsHtmlRecursively(rows, row.task.uuid));
+	            }
+	            else {
+	                row.expander.innerHTML = symbols.collapsed;
 	            }
 	        }
 	        return rowsHtml;

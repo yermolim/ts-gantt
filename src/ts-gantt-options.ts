@@ -9,6 +9,8 @@ class TsGanttOptions {
   bindParentDatesToChild = true;
   enableProgressEdit = true;
 
+  drawTodayLine = true;
+
   columnsMinWidthPx: number[] = [200, 100, 100, 100, 100, 100, 100, 100];
   columnsContentAlign: ("start" | "center" | "end")[] = ["start", "end", "center", "center", "center", "center", "center", "center"];
 
@@ -21,9 +23,9 @@ class TsGanttOptions {
   barCornerRadiusPx = 6;
 
   rowSymbols: TsGanttRowSymbols = {
-    childless: "◆",
-    collapsed: "⬘",
-    expanded: "⬙",
+    childless: "•",
+    collapsed: "▾",
+    expanded: "▴",
   };
 
   chartShowProgress = true;

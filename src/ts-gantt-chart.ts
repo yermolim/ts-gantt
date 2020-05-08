@@ -440,6 +440,8 @@ class TsGanttChart {
     const width = this._width;
     const height = rowHeight * barGroups.length;
     const y0 = this._headerHeight;
+
+    const drawTodayLine = this._options.drawTodayLine;
     
     const body = createSvgElement("svg", [TsGanttConst.CHART_BODY_CLASS], [
       ["y", y0 + ""],
@@ -478,7 +480,8 @@ class TsGanttChart {
         ["x2", x + ""],
         ["y2", height + ""],
       ], body);    
-    });
+    });     
+    const todayX = dayjs().startOf("day").diff(minDate, "day") * dayWidth;
 
     const rowFgs = new Map<string, SVGElement>();
     const offsetsX = new Map<string, number>();
@@ -508,6 +511,16 @@ class TsGanttChart {
         rowWrapper.append(x.barSvg);
       }
     });
+    
+    if (drawTodayLine) {
+      const todayVerticalLine = createSvgElement("line", 
+        [TsGanttConst.CHART_BODY_GRIDLINES_CLASS, TsGanttConst.CHART_BODY_TODAY_LINE_CLASS], [
+          ["x1", todayX + ""],
+          ["y1", 0 + ""],
+          ["x2", todayX + ""],
+          ["y2", height + ""],
+        ], body);  
+    }
 
     this._chartRowBgs = rowBgs;
     this._chartRowFgs = rowFgs;
