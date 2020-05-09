@@ -1,51 +1,39 @@
 import { TsGanttTaskModel, TsGanttTask } from "../src/ts-gantt-task";
 
 const inputModels = [
-  <TsGanttTaskModel>{
+  {
     id: "root1id", 
-    parentId: null, 
     name: "Root1", 
     progress: 55, 
     datePlannedStart: new Date(2020, 4, 1), 
     datePlannedEnd: new Date(2021, 4, 30), 
-    dateActualStart: null, 
-    dateActualEnd: null, 
     localizedNames: {en: "Root one", uk: "Корінь один", ru: "Корень один"},
   },
-  <TsGanttTaskModel>{
+  {
     id: "root2id", 
-    parentId: null, 
     name: "Root2", 
     progress: 75, 
     datePlannedStart: new Date(2020, 4, 6), 
     datePlannedEnd: new Date(2020, 4, 7), 
-    dateActualStart: null,
-    dateActualEnd: null, 
-    localizedNames: null,
   },
-  <TsGanttTaskModel>{
+  {
     id: "root3id", 
-    parentId: null, 
     name: "Root3", 
     progress: -5, 
     datePlannedStart: new Date(2020, 6, 5), 
     datePlannedEnd: new Date(2020, 6, 20), 
     dateActualStart: new Date(2020, 7, 2), 
     dateActualEnd: new Date(2020, 7, 28), 
-    localizedNames: null,
   },
-  <TsGanttTaskModel>{
+  {
     id: "root1child1id", 
     parentId: "root1id", 
     name: "Root1child1", 
     progress: 120, 
     datePlannedStart: new Date(2020, 5, 1), 
     datePlannedEnd: new Date(2020, 5, 15), 
-    dateActualStart: null, 
-    dateActualEnd: null, 
-    localizedNames: null,
   },
-  <TsGanttTaskModel>{
+  {
     id: "root1child2id", 
     parentId: "root1id", 
     name: "Root1child2", 
@@ -53,21 +41,16 @@ const inputModels = [
     datePlannedStart: new Date(2020, 5, 16), 
     datePlannedEnd: new Date(2020, 5, 30), 
     dateActualStart: new Date(2020, 5, 30), 
-    dateActualEnd: null, 
-    localizedNames: null,
   },
-  <TsGanttTaskModel>{
+  {
     id: "root1child1child1id", 
     parentId: "root1child1id", 
     name: "Root1child1child1", 
     progress: 100, 
     datePlannedStart: new Date(2020, 5, 1), 
     datePlannedEnd: new Date(2020, 5, 10), 
-    dateActualStart: null, 
-    dateActualEnd: null, 
-    localizedNames: null,
   },
-  <TsGanttTaskModel>{
+  {
     id: "root2child1id", 
     parentId: "root2id", 
     name: "Root2child1", 
@@ -76,32 +59,24 @@ const inputModels = [
     datePlannedEnd: new Date(2020, 5, 16), 
     dateActualStart: new Date(2020, 5, 6), 
     dateActualEnd: new Date(2020, 5, 26), 
-    localizedNames: null,
   },
 ];
 
 const inputModelsUpdated = [
   <TsGanttTaskModel>{
     id: "root1id", 
-    parentId: null, 
     name: "Root1", 
     progress: 95, 
     datePlannedStart: new Date(2020, 4, 1), 
     datePlannedEnd: new Date(2020, 4, 30), 
-    dateActualStart: null, 
-    dateActualEnd: null, 
-    localizedNames: null,
   },
   <TsGanttTaskModel>{
     id: "root2id", 
-    parentId: null, 
     name: "Root2", 
     progress: 75, 
     datePlannedStart: new Date(2020, 4, 6), 
     datePlannedEnd: new Date(2020, 4, 26), 
     dateActualStart: new Date(2020, 4, 2), 
-    dateActualEnd: null, 
-    localizedNames: null,
   },
   <TsGanttTaskModel>{
     id: "root1child1id", 
@@ -110,9 +85,6 @@ const inputModelsUpdated = [
     progress: 120, 
     datePlannedStart: new Date(2020, 5, 1), 
     datePlannedEnd: new Date(2020, 5, 15), 
-    dateActualStart: null, 
-    dateActualEnd: null, 
-    localizedNames: null,
   },
   <TsGanttTaskModel>{
     id: "root1child1child1id", 
@@ -121,9 +93,6 @@ const inputModelsUpdated = [
     progress: 100, 
     datePlannedStart: new Date(2020, 5, 1), 
     datePlannedEnd: new Date(2020, 5, 10), 
-    dateActualStart: null, 
-    dateActualEnd: null, 
-    localizedNames: null,
   },
   <TsGanttTaskModel>{
     id: "root2child1id", 
@@ -132,9 +101,6 @@ const inputModelsUpdated = [
     progress: 15, 
     datePlannedStart: new Date(2020, 5, 6), 
     datePlannedEnd: new Date(2020, 5, 16), 
-    dateActualStart: null, 
-    dateActualEnd: null, 
-    localizedNames: null,
   },
   <TsGanttTaskModel>{
     id: "root2child1child1id", 
@@ -143,15 +109,12 @@ const inputModelsUpdated = [
     progress: 15, 
     datePlannedStart: new Date(2020, 5, 6), 
     datePlannedEnd: new Date(2020, 5, 16), 
-    dateActualStart: null, 
-    dateActualEnd: null, 
-    localizedNames: null,
   },
 ];
 
 describe("TsGanttTask", () => {
   
-  const tasks = TsGanttTask.convertModelsToTasks(inputModels);    
+  const tasks = TsGanttTask.convertModelsToTasks(<TsGanttTaskModel[]>inputModels);    
 
   it("converted tasks should be instanciated from models", () => {
     expect(tasks).toBeTruthy();
@@ -252,13 +215,13 @@ describe("TsGanttTask", () => {
     const firstModelOut = models.find(x => x.id === "root1id");
     expect(firstModelOut).toBeTruthy();
     expect(firstModelOut.id).toEqual(firstModelIn.id);
-    expect(firstModelOut.parentId).toEqual(firstModelIn.parentId);
     expect(firstModelOut.name).toEqual(firstModelIn.name);
     expect(firstModelOut.progress).toEqual(firstModelIn.progress);
-    expect(firstModelOut.datePlannedStart).toEqual(firstModelIn.datePlannedStart);
-    expect(firstModelOut.datePlannedEnd).toEqual(firstModelIn.datePlannedEnd);
-    expect(firstModelOut.dateActualStart).toEqual(firstModelIn.dateActualStart);
-    expect(firstModelOut.dateActualEnd).toEqual(firstModelIn.dateActualEnd);
+    expect(firstModelOut.parentId || null).toEqual(firstModelIn.parentId || null);
+    expect(firstModelOut.datePlannedStart || null).toEqual(firstModelIn.datePlannedStart || null);
+    expect(firstModelOut.datePlannedEnd || null).toEqual(firstModelIn.datePlannedEnd || null);
+    expect(firstModelOut.dateActualStart || null).toEqual(firstModelIn.dateActualStart || null);
+    expect(firstModelOut.dateActualEnd || null).toEqual(firstModelIn.dateActualEnd || null);
   });
   
   const tasksUpdated = TsGanttTask.convertModelsToTasks(inputModelsUpdated);

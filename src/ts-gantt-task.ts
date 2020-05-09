@@ -2,10 +2,11 @@ import dayjs from "dayjs";
 import { getRandomUuid } from "./ts-gantt-common";
 
 class TsGanttTask {
-  readonly externalId: string;
   readonly uuid: string;
-  readonly parentExternalId: string;
   readonly parentUuid: string;
+  
+  readonly externalId: string;
+  readonly parentExternalId: string;
 
   readonly nestingLvl: number;
   readonly hasChildren: boolean;
@@ -13,10 +14,10 @@ class TsGanttTask {
   readonly name: string;
   readonly localizedNames: {[key: string]: string};
 
-  readonly datePlannedStart: dayjs.Dayjs | null;
-  readonly datePlannedEnd: dayjs.Dayjs | null;
-  readonly dateActualStart: dayjs.Dayjs | null;
-  readonly dateActualEnd: dayjs.Dayjs | null;  
+  readonly datePlannedStart: dayjs.Dayjs;
+  readonly datePlannedEnd: dayjs.Dayjs;
+  readonly dateActualStart: dayjs.Dayjs;
+  readonly dateActualEnd: dayjs.Dayjs;  
 
   readonly progress: number;
 
@@ -28,10 +29,10 @@ class TsGanttTask {
     name: string,
     localizedNames: {[key: string]: string},
     progress: number,
-    datePlannedStart: Date | null = null, 
-    datePlannedEnd: Date | null = null,
-    dateActualStart: Date | null = null, 
-    dateActualEnd: Date | null = null,
+    datePlannedStart: Date = null, 
+    datePlannedEnd: Date = null,
+    dateActualStart: Date = null, 
+    dateActualEnd: Date = null,
     nestingLvl = 0,
     hasChildren = false,
     parentUuid: string = null,
