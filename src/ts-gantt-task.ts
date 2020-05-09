@@ -103,20 +103,6 @@ class TsGanttTask {
 
     return tasks;
   }
-  
-  static convertTasksToModels(tasks: TsGanttTask[]): TsGanttTaskModel[] {
-    return tasks.map(x => <TsGanttTaskModel>{
-      id: x.externalId,
-      parentId: x.parentExternalId,
-      name: x.name,
-      progress: x.progress,
-      datePlannedStart: x.datePlannedStart?.toDate() || null,
-      datePlannedEnd: x.datePlannedEnd?.toDate() || null,
-      dateActualStart: x.dateActualStart?.toDate() || null,
-      dateActualEnd: x.dateActualEnd?.toDate() || null,
-      localizedNames: x.localizedNames
-    });
-  }
     
   static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult {
     const { oldTasks, newTasks } = data;
@@ -242,6 +228,20 @@ class TsGanttTask {
       return "overdue";
     }
     return "in-progress";
+  }  
+  
+  convertToModel(): TsGanttTaskModel {
+    return <TsGanttTaskModel>{
+      id: this.externalId,
+      parentId: this.parentExternalId,
+      name: this.name,
+      progress: this.progress,
+      datePlannedStart: this.datePlannedStart?.toDate() || null,
+      datePlannedEnd: this.datePlannedEnd?.toDate() || null,
+      dateActualStart: this.dateActualStart?.toDate() || null,
+      dateActualEnd: this.dateActualEnd?.toDate() || null,
+      localizedNames: this.localizedNames
+    };
   }
 }
 
@@ -273,8 +273,8 @@ interface TsGanttTaskChangeResult {
 }
 
 interface TsGanttTaskSelectionChangeResult {
-  deselected: TsGanttTask[];
-  selected: TsGanttTask[];
+  deselected: string[];
+  selected: string[];
 }
 
 export { TsGanttTask, TsGanttTaskModel, TsGanttTaskUpdateResult, 

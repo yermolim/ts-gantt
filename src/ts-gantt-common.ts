@@ -4,6 +4,14 @@ function getRandomUuid(): string {
   return crypto.getRandomValues(new Uint32Array(4)).join("-");
 }
 
+function compareTwoStringSets(setA: Set<string>, setB: Set<string>): boolean {
+  if (setA.size !== setB.size) {
+    return false;
+  }
+  const commonSet = new Set([...setA, ...setB]);
+  return setA.size === commonSet.size;
+}
+
 function createSvgElement(elementTag: string, 
   classList: string[] = [],
   attributes: [string, string][] = [], 
@@ -44,4 +52,5 @@ function getAllDatesBetweenTwoDates(start: dayjs.Dayjs, end: dayjs.Dayjs): dayjs
   return dates;
 }
 
-export { getRandomUuid, createSvgElement, getAllDatesBetweenTwoDates };
+export { getRandomUuid, createSvgElement, 
+  getAllDatesBetweenTwoDates, compareTwoStringSets };

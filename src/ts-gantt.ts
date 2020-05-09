@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import "./styles.css";
 import { TsGanttConst } from "./ts-gantt-const";
-import { TsGanttTask, TsGanttTaskModel, TsGanttTaskUpdateResult, 
-  TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "./ts-gantt-task";
+import { compareTwoStringSets } from "./ts-gantt-common";
 import { TsGanttOptions } from "./ts-gantt-options";
-import { TsGanttChart } from "./ts-gantt-chart";
+import { TsGanttTask, TsGanttTaskModel,
+  TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "./ts-gantt-task";
 import { TsGanttTable } from "./ts-gantt-table";
+import { TsGanttChart } from "./ts-gantt-chart";
 
 class TsGantt {  
 
@@ -13,24 +14,21 @@ class TsGantt {
 
   private _tasks: TsGanttTask[] = [];
   get tasks(): TsGanttTaskModel[] {
-    return TsGanttTask.convertTasksToModels(this._tasks);
+    return this._tasks.map(x => x.convertToModel());
   }  
   set tasks(models: TsGanttTaskModel[]) {
     const changeDetectionResult = this.updateTasks(models);
     this.update(changeDetectionResult);
   }
 
-  private _selectedTask: TsGanttTask;
-  get selectedTask(): TsGanttTaskModel {
-    return this._selectedTask
-      ? TsGanttTask.convertTasksToModels([this._selectedTask])[0]
-      : null;
+  private _selectedTasks: TsGanttTask[] = [];
+  get selectedTasks(): TsGanttTaskModel[] {
+    return this._selectedTasks.map(x => x.convertToModel());
   }
-  set selectedTask(model: TsGanttTaskModel) {
-    const targetTask = this._tasks.find(x => x.externalId === model.id);
-    if (targetTask !== this._selectedTask) {
-      this.selectTask(targetTask);
-    }
+  set selectedTasks(models: TsGanttTaskModel[]) {
+    const ids = models.map(x => x.id);
+    const targetTasks = this._tasks.filter(x => ids.includes(x.externalId));
+    this.selectTasks(targetTasks);
   }
 
   private _htmlContainer: HTMLElement;
@@ -142,7 +140,8 @@ class TsGantt {
       return;
     }
     const newSelectedTask = this._tasks.find(x => x.uuid === detail.uuid);
-    this.selectTask(newSelectedTask, detail.ctrl);
+    // MOVE TO SEPARATE METHOD
+    this.selectTasks([newSelectedTask], detail.ctrl);
   });    
   onRowExpanderClick = <EventListener>((e: CustomEvent) => {
     this.toggleTaskExpanded(e.detail.uuid);
@@ -231,28 +230,35 @@ class TsGantt {
     this.update(null);
   }
 
-  private selectTask(newSelectedTask: TsGanttTask, keepPreviousSelection = false, forceSelection = false) {
-    const oldSelectedTask: TsGanttTask = this._selectedTask;
-    if (!forceSelection && ((!oldSelectedTask && !newSelectedTask) 
-        || oldSelectedTask === newSelectedTask)) {
+  private selectTasks(newSelectedTasks: TsGanttTask[], keepPreviousSelection = false) {
+    const oldSelectedTasks = this._selectedTasks;
+    const selectionEmpty = oldSelectedTasks.length === 0 && newSelectedTasks.length === 0;
+    if (selectionEmpty) {
       return;
     }
-    this._selectedTask = newSelectedTask;    
-    this._table.applySelection(<TsGanttTaskSelectionChangeResult>{
-      selected: [newSelectedTask],
-      deselected: [oldSelectedTask],
-    });
-    this._chart.applySelection(<TsGanttTaskSelectionChangeResult>{
-      selected: [newSelectedTask],
-      deselected: [oldSelectedTask],
-    });
-    if (newSelectedTask) {
-      this.scrollChartToTask(newSelectedTask.uuid);
+
+    const oldUuids = oldSelectedTasks.map(x => x.uuid);
+    const newUuids = newSelectedTasks.map(x => x.uuid);
+    const selectionNotChanged = compareTwoStringSets(new Set(oldUuids), new Set(newUuids));
+    if (selectionNotChanged) {
+      return;
+    } 
+
+    const selected = newUuids;
+    const deselected = oldUuids.filter(x => !newUuids.includes(x));
+    
+    this._selectedTasks = newSelectedTasks; 
+    const result = <TsGanttTaskSelectionChangeResult>{selected, deselected};    
+    this._table.applySelection(result);
+    this._chart.applySelection(result);
+
+    if (newSelectedTasks) {
+      this.scrollChartToTasks(newUuids);
     }
   } 
 
-  scrollChartToTask(uuid: string) {
-    const offset = this._chart.getBarOffsetByTaskUuid(uuid);
+  scrollChartToTasks(uuids: string[]) {    
+    const offset = Math.min(...uuids.map(x => this._chart.getBarOffsetByTaskUuid(x)));
     if (offset) {
       this._htmlChartWrapper.scrollLeft = offset - 20;
     }
@@ -295,12 +301,10 @@ class TsGantt {
     this.refreshSelection();
   }
 
-  private refreshSelection() {    
-    if (TsGanttTask.checkForCollapsedParent(this._tasks, this._selectedTask)) {
-      this.selectTask(null);
-    } else {  
-      this.selectTask(this._selectedTask, false, true);    
-    }
+  private refreshSelection() {   
+    const tasks = this._selectedTasks.filter(x => !TsGanttTask
+      .checkForCollapsedParent(this._tasks, x));
+    this.selectTasks(tasks);   
   }
   // #endregion
 }

@@ -24,7 +24,6 @@ declare class TsGanttTask {
 		[key: string]: string;
 	}, progress: number, datePlannedStart?: Date, datePlannedEnd?: Date, dateActualStart?: Date, dateActualEnd?: Date, nestingLvl?: number, hasChildren?: boolean, parentUuid?: string, uuid?: string);
 	static convertModelsToTasks(taskModels: TsGanttTaskModel[]): TsGanttTask[];
-	static convertTasksToModels(tasks: TsGanttTask[]): TsGanttTaskModel[];
 	static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult;
 	static checkPaternity(tasks: TsGanttTask[], parent: TsGanttTask, child: TsGanttTask): boolean;
 	static checkForCollapsedParent(tasks: TsGanttTask[], task: TsGanttTask): boolean;
@@ -32,6 +31,7 @@ declare class TsGanttTask {
 	equals(another: TsGanttTask): boolean;
 	compareTo(another: TsGanttTask): number;
 	getState(): "not-started" | "in-progress" | "overdue" | "completed" | "completed-late";
+	convertToModel(): TsGanttTaskModel;
 }
 export interface TsGanttTaskModel {
 	id: string;
@@ -125,9 +125,9 @@ export declare class TsGantt {
 	private _tasks;
 	get tasks(): TsGanttTaskModel[];
 	set tasks(models: TsGanttTaskModel[]);
-	private _selectedTask;
-	get selectedTask(): TsGanttTaskModel;
-	set selectedTask(model: TsGanttTaskModel);
+	private _selectedTasks;
+	get selectedTasks(): TsGanttTaskModel[];
+	set selectedTasks(models: TsGanttTaskModel[]);
 	private _htmlContainer;
 	private _htmlWrapper;
 	private _htmlTableWrapper;
@@ -155,8 +155,8 @@ export declare class TsGantt {
 	private createLayout;
 	private updateTasks;
 	private toggleTaskExpanded;
-	private selectTask;
-	scrollChartToTask(uuid: string): void;
+	private selectTasks;
+	scrollChartToTasks(uuids: string[]): void;
 	private update;
 	private updateLocale;
 	private updateChartScale;

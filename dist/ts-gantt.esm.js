@@ -40,18 +40,15 @@ TsGanttConst.CHART_BAR_PLANNED_PROGRESS_CLASS = "tsg-chart-bar-planned-progress"
 TsGanttConst.CHART_BAR_ACTUAL_CLASS = "tsg-chart-bar-actual";
 TsGanttConst.CHART_BAR_ACTUAL_PROGRESS_CLASS = "tsg-chart-bar-actual-progress";
 
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-function createCommonjsModule(fn, module) {
-	return module = { exports: {} }, fn(module, module.exports), module.exports;
-}
-
-var dayjs_min = createCommonjsModule(function (module, exports) {
-!function(t,e){module.exports=e();}(commonjsGlobal,function(){var t="millisecond",e="second",n="minute",r="hour",i="day",s="week",u="month",o="quarter",a="year",h=/^(\d{4})-?(\d{1,2})-?(\d{0,2})[^0-9]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?.?(\d{1,3})?$/,f=/\[([^\]]+)]|Y{2,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g,c=function(t,e,n){var r=String(t);return !r||r.length>=e?t:""+Array(e+1-r.length).join(n)+t},d={s:c,z:function(t){var e=-t.utcOffset(),n=Math.abs(e),r=Math.floor(n/60),i=n%60;return (e<=0?"+":"-")+c(r,2,"0")+":"+c(i,2,"0")},m:function(t,e){var n=12*(e.year()-t.year())+(e.month()-t.month()),r=t.clone().add(n,u),i=e-r<0,s=t.clone().add(n+(i?-1:1),u);return Number(-(n+(e-r)/(i?r-s:s-r))||0)},a:function(t){return t<0?Math.ceil(t)||0:Math.floor(t)},p:function(h){return {M:u,y:a,w:s,d:i,D:"date",h:r,m:n,s:e,ms:t,Q:o}[h]||String(h||"").toLowerCase().replace(/s$/,"")},u:function(t){return void 0===t}},$={name:"en",weekdays:"Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),months:"January_February_March_April_May_June_July_August_September_October_November_December".split("_")},l="en",m={};m[l]=$;var y=function(t){return t instanceof v},M=function(t,e,n){var r;if(!t)return l;if("string"==typeof t)m[t]&&(r=t),e&&(m[t]=e,r=t);else {var i=t.name;m[i]=t,r=i;}return !n&&r&&(l=r),r||!n&&l},g=function(t,e){if(y(t))return t.clone();var n="object"==typeof e?e:{};return n.date=t,n.args=arguments,new v(n)},D=d;D.l=M,D.i=y,D.w=function(t,e){return g(t,{locale:e.$L,utc:e.$u,$offset:e.$offset})};var v=function(){function c(t){this.$L=this.$L||M(t.locale,null,!0),this.parse(t);}var d=c.prototype;return d.parse=function(t){this.$d=function(t){var e=t.date,n=t.utc;if(null===e)return new Date(NaN);if(D.u(e))return new Date;if(e instanceof Date)return new Date(e);if("string"==typeof e&&!/Z$/i.test(e)){var r=e.match(h);if(r)return n?new Date(Date.UTC(r[1],r[2]-1,r[3]||1,r[4]||0,r[5]||0,r[6]||0,r[7]||0)):new Date(r[1],r[2]-1,r[3]||1,r[4]||0,r[5]||0,r[6]||0,r[7]||0)}return new Date(e)}(t),this.init();},d.init=function(){var t=this.$d;this.$y=t.getFullYear(),this.$M=t.getMonth(),this.$D=t.getDate(),this.$W=t.getDay(),this.$H=t.getHours(),this.$m=t.getMinutes(),this.$s=t.getSeconds(),this.$ms=t.getMilliseconds();},d.$utils=function(){return D},d.isValid=function(){return !("Invalid Date"===this.$d.toString())},d.isSame=function(t,e){var n=g(t);return this.startOf(e)<=n&&n<=this.endOf(e)},d.isAfter=function(t,e){return g(t)<this.startOf(e)},d.isBefore=function(t,e){return this.endOf(e)<g(t)},d.$g=function(t,e,n){return D.u(t)?this[e]:this.set(n,t)},d.year=function(t){return this.$g(t,"$y",a)},d.month=function(t){return this.$g(t,"$M",u)},d.day=function(t){return this.$g(t,"$W",i)},d.date=function(t){return this.$g(t,"$D","date")},d.hour=function(t){return this.$g(t,"$H",r)},d.minute=function(t){return this.$g(t,"$m",n)},d.second=function(t){return this.$g(t,"$s",e)},d.millisecond=function(e){return this.$g(e,"$ms",t)},d.unix=function(){return Math.floor(this.valueOf()/1e3)},d.valueOf=function(){return this.$d.getTime()},d.startOf=function(t,o){var h=this,f=!!D.u(o)||o,c=D.p(t),d=function(t,e){var n=D.w(h.$u?Date.UTC(h.$y,e,t):new Date(h.$y,e,t),h);return f?n:n.endOf(i)},$=function(t,e){return D.w(h.toDate()[t].apply(h.toDate("s"),(f?[0,0,0,0]:[23,59,59,999]).slice(e)),h)},l=this.$W,m=this.$M,y=this.$D,M="set"+(this.$u?"UTC":"");switch(c){case a:return f?d(1,0):d(31,11);case u:return f?d(1,m):d(0,m+1);case s:var g=this.$locale().weekStart||0,v=(l<g?l+7:l)-g;return d(f?y-v:y+(6-v),m);case i:case"date":return $(M+"Hours",0);case r:return $(M+"Minutes",1);case n:return $(M+"Seconds",2);case e:return $(M+"Milliseconds",3);default:return this.clone()}},d.endOf=function(t){return this.startOf(t,!1)},d.$set=function(s,o){var h,f=D.p(s),c="set"+(this.$u?"UTC":""),d=(h={},h[i]=c+"Date",h.date=c+"Date",h[u]=c+"Month",h[a]=c+"FullYear",h[r]=c+"Hours",h[n]=c+"Minutes",h[e]=c+"Seconds",h[t]=c+"Milliseconds",h)[f],$=f===i?this.$D+(o-this.$W):o;if(f===u||f===a){var l=this.clone().set("date",1);l.$d[d]($),l.init(),this.$d=l.set("date",Math.min(this.$D,l.daysInMonth())).toDate();}else d&&this.$d[d]($);return this.init(),this},d.set=function(t,e){return this.clone().$set(t,e)},d.get=function(t){return this[D.p(t)]()},d.add=function(t,o){var h,f=this;t=Number(t);var c=D.p(o),d=function(e){var n=g(f);return D.w(n.date(n.date()+Math.round(e*t)),f)};if(c===u)return this.set(u,this.$M+t);if(c===a)return this.set(a,this.$y+t);if(c===i)return d(1);if(c===s)return d(7);var $=(h={},h[n]=6e4,h[r]=36e5,h[e]=1e3,h)[c]||1,l=this.$d.getTime()+t*$;return D.w(l,this)},d.subtract=function(t,e){return this.add(-1*t,e)},d.format=function(t){var e=this;if(!this.isValid())return "Invalid Date";var n=t||"YYYY-MM-DDTHH:mm:ssZ",r=D.z(this),i=this.$locale(),s=this.$H,u=this.$m,o=this.$M,a=i.weekdays,h=i.months,c=function(t,r,i,s){return t&&(t[r]||t(e,n))||i[r].substr(0,s)},d=function(t){return D.s(s%12||12,t,"0")},$=i.meridiem||function(t,e,n){var r=t<12?"AM":"PM";return n?r.toLowerCase():r},l={YY:String(this.$y).slice(-2),YYYY:this.$y,M:o+1,MM:D.s(o+1,2,"0"),MMM:c(i.monthsShort,o,h,3),MMMM:h[o]||h(this,n),D:this.$D,DD:D.s(this.$D,2,"0"),d:String(this.$W),dd:c(i.weekdaysMin,this.$W,a,2),ddd:c(i.weekdaysShort,this.$W,a,3),dddd:a[this.$W],H:String(s),HH:D.s(s,2,"0"),h:d(1),hh:d(2),a:$(s,u,!0),A:$(s,u,!1),m:String(u),mm:D.s(u,2,"0"),s:String(this.$s),ss:D.s(this.$s,2,"0"),SSS:D.s(this.$ms,3,"0"),Z:r};return n.replace(f,function(t,e){return e||l[t]||r.replace(":","")})},d.utcOffset=function(){return 15*-Math.round(this.$d.getTimezoneOffset()/15)},d.diff=function(t,h,f){var c,d=D.p(h),$=g(t),l=6e4*($.utcOffset()-this.utcOffset()),m=this-$,y=D.m(this,$);return y=(c={},c[a]=y/12,c[u]=y,c[o]=y/3,c[s]=(m-l)/6048e5,c[i]=(m-l)/864e5,c[r]=m/36e5,c[n]=m/6e4,c[e]=m/1e3,c)[d]||m,f?y:D.a(y)},d.daysInMonth=function(){return this.endOf(u).$D},d.$locale=function(){return m[this.$L]},d.locale=function(t,e){if(!t)return this.$L;var n=this.clone(),r=M(t,e,!0);return r&&(n.$L=r),n},d.clone=function(){return D.w(this.$d,this)},d.toDate=function(){return new Date(this.valueOf())},d.toJSON=function(){return this.isValid()?this.toISOString():null},d.toISOString=function(){return this.$d.toISOString()},d.toString=function(){return this.$d.toUTCString()},c}();return g.prototype=v.prototype,g.extend=function(t,e){return t(e,v,g),g},g.locale=M,g.isDayjs=y,g.unix=function(t){return g(1e3*t)},g.en=m[l],g.Ls=m,g});
-});
-
 function getRandomUuid() {
     return crypto.getRandomValues(new Uint32Array(4)).join("-");
+}
+function compareTwoStringSets(setA, setB) {
+    if (setA.size !== setB.size) {
+        return false;
+    }
+    const commonSet = new Set([...setA, ...setB]);
+    return setA.size === commonSet.size;
 }
 function createSvgElement(elementTag, classList = [], attributes = [], parent = null, innerHtml = null) {
     const element = document.createElementNS("http://www.w3.org/2000/svg", elementTag);
@@ -85,189 +82,6 @@ function getAllDatesBetweenTwoDates(start, end) {
         currentDate = currentDate.add(1, "day");
     }
     return dates;
-}
-
-class TsGanttTask {
-    constructor(id, parentId, name, localizedNames, progress, datePlannedStart = null, datePlannedEnd = null, dateActualStart = null, dateActualEnd = null, nestingLvl = 0, hasChildren = false, parentUuid = null, uuid = null) {
-        this.externalId = id;
-        this.parentExternalId = parentId;
-        this.name = name;
-        this.localizedNames = localizedNames;
-        this.progress = progress < 0 ? 0 : progress > 100 ? 100 : progress;
-        this.datePlannedStart = datePlannedStart ? dayjs_min(datePlannedStart) : null;
-        this.datePlannedEnd = datePlannedEnd ? dayjs_min(datePlannedEnd) : null;
-        this.dateActualStart = dateActualStart ? dayjs_min(dateActualStart) : null;
-        this.dateActualEnd = dateActualEnd ? dayjs_min(dateActualEnd) : null;
-        this.nestingLvl = nestingLvl;
-        this.hasChildren = hasChildren;
-        this.parentUuid = parentUuid;
-        this.uuid = uuid || getRandomUuid();
-        this.shown = !parentUuid;
-        this.expanded = false;
-    }
-    static convertModelsToTasks(taskModels) {
-        const models = taskModels.slice();
-        const allParentIds = new Set(models.map(x => x.parentId));
-        const tasks = [];
-        let currentLevelTasks = [];
-        for (let i = models.length - 1; i >= 0; i--) {
-            const model = models[i];
-            if (!model.parentId) {
-                const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 0, allParentIds.has(model.id));
-                tasks.push(newTask);
-                currentLevelTasks.push(newTask);
-                models.splice(i, 1);
-            }
-        }
-        let currentNestingLvl = 1;
-        while (currentLevelTasks.length !== 0) {
-            const nextLevelTasks = [];
-            currentLevelTasks.filter(x => x.hasChildren).forEach(task => {
-                for (let i = models.length - 1; i >= 0; i--) {
-                    const model = models[i];
-                    if (model.parentId === task.externalId) {
-                        const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, currentNestingLvl, allParentIds.has(model.id), task.uuid);
-                        tasks.push(newTask);
-                        nextLevelTasks.push(newTask);
-                        models.splice(i, 1);
-                    }
-                }
-            });
-            currentLevelTasks = nextLevelTasks;
-            currentNestingLvl++;
-        }
-        return tasks;
-    }
-    static convertTasksToModels(tasks) {
-        return tasks.map(x => {
-            var _a, _b, _c, _d;
-            return ({
-                id: x.externalId,
-                parentId: x.parentExternalId,
-                name: x.name,
-                progress: x.progress,
-                datePlannedStart: ((_a = x.datePlannedStart) === null || _a === void 0 ? void 0 : _a.toDate()) || null,
-                datePlannedEnd: ((_b = x.datePlannedEnd) === null || _b === void 0 ? void 0 : _b.toDate()) || null,
-                dateActualStart: ((_c = x.dateActualStart) === null || _c === void 0 ? void 0 : _c.toDate()) || null,
-                dateActualEnd: ((_d = x.dateActualEnd) === null || _d === void 0 ? void 0 : _d.toDate()) || null,
-                localizedNames: x.localizedNames
-            });
-        });
-    }
-    static detectTaskChanges(data) {
-        const { oldTasks, newTasks } = data;
-        const oldIds = oldTasks.map(x => x.externalId);
-        const newIds = newTasks.map(x => x.externalId);
-        const deleted = oldTasks.filter(x => !newIds.includes(x.externalId));
-        const added = [];
-        const changed = [];
-        for (const newTask of newTasks) {
-            if (!oldIds.includes(newTask.externalId)) {
-                added.push(newTask);
-                continue;
-            }
-            const oldTask = oldTasks.find(x => x.externalId === newTask.externalId);
-            if (!newTask.equals(oldTask)) {
-                changed.push(newTask);
-            }
-        }
-        return { deleted, added, changed, all: newTasks };
-    }
-    static checkPaternity(tasks, parent, child) {
-        var _a;
-        let parentUuid = child.parentUuid;
-        while (parentUuid) {
-            if (parentUuid === parent.uuid) {
-                return true;
-            }
-            parentUuid = (_a = tasks.find(x => x.uuid === parentUuid)) === null || _a === void 0 ? void 0 : _a.parentUuid;
-        }
-        return false;
-    }
-    static checkForCollapsedParent(tasks, task) {
-        while (task.parentUuid) {
-            task = tasks.find(x => x.uuid === task.parentUuid);
-            if (!task.expanded) {
-                return true;
-            }
-        }
-        return false;
-    }
-    static sortTasksRecursively(tasks, parentUuid) {
-        const tasksFiltered = tasks.filter(x => x.parentUuid === parentUuid)
-            .sort((a, b) => a.compareTo(b));
-        const sorted = [];
-        for (const task of tasksFiltered) {
-            sorted.push(task);
-            sorted.push(...this.sortTasksRecursively(tasks, task.uuid));
-        }
-        return sorted;
-    }
-    equals(another) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
-        return this.externalId === another.externalId
-            && this.parentExternalId === another.parentExternalId
-            && this.nestingLvl === another.nestingLvl
-            && this.hasChildren === another.hasChildren
-            && this.name === another.name
-            && this.progress === another.progress
-            && ((_a = this.datePlannedStart) === null || _a === void 0 ? void 0 : _a.unix()) === ((_b = another.datePlannedStart) === null || _b === void 0 ? void 0 : _b.unix())
-            && ((_c = this.datePlannedEnd) === null || _c === void 0 ? void 0 : _c.unix()) === ((_d = another.datePlannedEnd) === null || _d === void 0 ? void 0 : _d.unix())
-            && ((_e = this.dateActualStart) === null || _e === void 0 ? void 0 : _e.unix()) === ((_f = another.dateActualStart) === null || _f === void 0 ? void 0 : _f.unix())
-            && ((_g = this.dateActualEnd) === null || _g === void 0 ? void 0 : _g.unix()) === ((_h = another.dateActualEnd) === null || _h === void 0 ? void 0 : _h.unix());
-    }
-    compareTo(another) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
-        if (this.nestingLvl > another.nestingLvl) {
-            return 1;
-        }
-        if (this.nestingLvl < another.nestingLvl) {
-            return -1;
-        }
-        if (((_a = this.datePlannedStart) === null || _a === void 0 ? void 0 : _a.unix()) > ((_b = another.datePlannedStart) === null || _b === void 0 ? void 0 : _b.unix())) {
-            return 1;
-        }
-        if (((_c = this.datePlannedStart) === null || _c === void 0 ? void 0 : _c.unix()) < ((_d = another.datePlannedStart) === null || _d === void 0 ? void 0 : _d.unix())) {
-            return -1;
-        }
-        if (((_e = this.datePlannedEnd) === null || _e === void 0 ? void 0 : _e.unix()) > ((_f = another.datePlannedEnd) === null || _f === void 0 ? void 0 : _f.unix())) {
-            return 1;
-        }
-        if (((_g = this.datePlannedEnd) === null || _g === void 0 ? void 0 : _g.unix()) < ((_h = another.datePlannedEnd) === null || _h === void 0 ? void 0 : _h.unix())) {
-            return -1;
-        }
-        if (((_j = this.dateActualStart) === null || _j === void 0 ? void 0 : _j.unix()) > ((_k = another.dateActualStart) === null || _k === void 0 ? void 0 : _k.unix())) {
-            return 1;
-        }
-        if (((_l = this.dateActualStart) === null || _l === void 0 ? void 0 : _l.unix()) < ((_m = another.dateActualStart) === null || _m === void 0 ? void 0 : _m.unix())) {
-            return -1;
-        }
-        if (((_o = this.dateActualEnd) === null || _o === void 0 ? void 0 : _o.unix()) > ((_p = another.dateActualEnd) === null || _p === void 0 ? void 0 : _p.unix())) {
-            return 1;
-        }
-        if (((_q = this.dateActualEnd) === null || _q === void 0 ? void 0 : _q.unix()) < ((_r = another.dateActualEnd) === null || _r === void 0 ? void 0 : _r.unix())) {
-            return -1;
-        }
-        return this.name.localeCompare(another.name);
-    }
-    getState() {
-        if (this.progress === 0) {
-            return "not-started";
-        }
-        if (this.progress === 100) {
-            if (this.datePlannedEnd) {
-                if ((this.dateActualEnd && this.dateActualEnd.isAfter(this.datePlannedEnd))
-                    || (this.dateActualStart && this.dateActualStart.isAfter(this.datePlannedEnd))) {
-                    return "completed-late";
-                }
-            }
-            return "completed";
-        }
-        if (this.datePlannedEnd && this.datePlannedEnd.isBefore(dayjs_min().startOf("day"))) {
-            return "overdue";
-        }
-        return "in-progress";
-    }
 }
 
 class TsGanttOptions {
@@ -445,6 +259,379 @@ class TsGanttOptions {
     }
 }
 
+var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+function createCommonjsModule(fn, module) {
+	return module = { exports: {} }, fn(module, module.exports), module.exports;
+}
+
+var dayjs_min = createCommonjsModule(function (module, exports) {
+!function(t,e){module.exports=e();}(commonjsGlobal,function(){var t="millisecond",e="second",n="minute",r="hour",i="day",s="week",u="month",o="quarter",a="year",h=/^(\d{4})-?(\d{1,2})-?(\d{0,2})[^0-9]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?.?(\d{1,3})?$/,f=/\[([^\]]+)]|Y{2,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g,c=function(t,e,n){var r=String(t);return !r||r.length>=e?t:""+Array(e+1-r.length).join(n)+t},d={s:c,z:function(t){var e=-t.utcOffset(),n=Math.abs(e),r=Math.floor(n/60),i=n%60;return (e<=0?"+":"-")+c(r,2,"0")+":"+c(i,2,"0")},m:function(t,e){var n=12*(e.year()-t.year())+(e.month()-t.month()),r=t.clone().add(n,u),i=e-r<0,s=t.clone().add(n+(i?-1:1),u);return Number(-(n+(e-r)/(i?r-s:s-r))||0)},a:function(t){return t<0?Math.ceil(t)||0:Math.floor(t)},p:function(h){return {M:u,y:a,w:s,d:i,D:"date",h:r,m:n,s:e,ms:t,Q:o}[h]||String(h||"").toLowerCase().replace(/s$/,"")},u:function(t){return void 0===t}},$={name:"en",weekdays:"Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),months:"January_February_March_April_May_June_July_August_September_October_November_December".split("_")},l="en",m={};m[l]=$;var y=function(t){return t instanceof v},M=function(t,e,n){var r;if(!t)return l;if("string"==typeof t)m[t]&&(r=t),e&&(m[t]=e,r=t);else {var i=t.name;m[i]=t,r=i;}return !n&&r&&(l=r),r||!n&&l},g=function(t,e){if(y(t))return t.clone();var n="object"==typeof e?e:{};return n.date=t,n.args=arguments,new v(n)},D=d;D.l=M,D.i=y,D.w=function(t,e){return g(t,{locale:e.$L,utc:e.$u,$offset:e.$offset})};var v=function(){function c(t){this.$L=this.$L||M(t.locale,null,!0),this.parse(t);}var d=c.prototype;return d.parse=function(t){this.$d=function(t){var e=t.date,n=t.utc;if(null===e)return new Date(NaN);if(D.u(e))return new Date;if(e instanceof Date)return new Date(e);if("string"==typeof e&&!/Z$/i.test(e)){var r=e.match(h);if(r)return n?new Date(Date.UTC(r[1],r[2]-1,r[3]||1,r[4]||0,r[5]||0,r[6]||0,r[7]||0)):new Date(r[1],r[2]-1,r[3]||1,r[4]||0,r[5]||0,r[6]||0,r[7]||0)}return new Date(e)}(t),this.init();},d.init=function(){var t=this.$d;this.$y=t.getFullYear(),this.$M=t.getMonth(),this.$D=t.getDate(),this.$W=t.getDay(),this.$H=t.getHours(),this.$m=t.getMinutes(),this.$s=t.getSeconds(),this.$ms=t.getMilliseconds();},d.$utils=function(){return D},d.isValid=function(){return !("Invalid Date"===this.$d.toString())},d.isSame=function(t,e){var n=g(t);return this.startOf(e)<=n&&n<=this.endOf(e)},d.isAfter=function(t,e){return g(t)<this.startOf(e)},d.isBefore=function(t,e){return this.endOf(e)<g(t)},d.$g=function(t,e,n){return D.u(t)?this[e]:this.set(n,t)},d.year=function(t){return this.$g(t,"$y",a)},d.month=function(t){return this.$g(t,"$M",u)},d.day=function(t){return this.$g(t,"$W",i)},d.date=function(t){return this.$g(t,"$D","date")},d.hour=function(t){return this.$g(t,"$H",r)},d.minute=function(t){return this.$g(t,"$m",n)},d.second=function(t){return this.$g(t,"$s",e)},d.millisecond=function(e){return this.$g(e,"$ms",t)},d.unix=function(){return Math.floor(this.valueOf()/1e3)},d.valueOf=function(){return this.$d.getTime()},d.startOf=function(t,o){var h=this,f=!!D.u(o)||o,c=D.p(t),d=function(t,e){var n=D.w(h.$u?Date.UTC(h.$y,e,t):new Date(h.$y,e,t),h);return f?n:n.endOf(i)},$=function(t,e){return D.w(h.toDate()[t].apply(h.toDate("s"),(f?[0,0,0,0]:[23,59,59,999]).slice(e)),h)},l=this.$W,m=this.$M,y=this.$D,M="set"+(this.$u?"UTC":"");switch(c){case a:return f?d(1,0):d(31,11);case u:return f?d(1,m):d(0,m+1);case s:var g=this.$locale().weekStart||0,v=(l<g?l+7:l)-g;return d(f?y-v:y+(6-v),m);case i:case"date":return $(M+"Hours",0);case r:return $(M+"Minutes",1);case n:return $(M+"Seconds",2);case e:return $(M+"Milliseconds",3);default:return this.clone()}},d.endOf=function(t){return this.startOf(t,!1)},d.$set=function(s,o){var h,f=D.p(s),c="set"+(this.$u?"UTC":""),d=(h={},h[i]=c+"Date",h.date=c+"Date",h[u]=c+"Month",h[a]=c+"FullYear",h[r]=c+"Hours",h[n]=c+"Minutes",h[e]=c+"Seconds",h[t]=c+"Milliseconds",h)[f],$=f===i?this.$D+(o-this.$W):o;if(f===u||f===a){var l=this.clone().set("date",1);l.$d[d]($),l.init(),this.$d=l.set("date",Math.min(this.$D,l.daysInMonth())).toDate();}else d&&this.$d[d]($);return this.init(),this},d.set=function(t,e){return this.clone().$set(t,e)},d.get=function(t){return this[D.p(t)]()},d.add=function(t,o){var h,f=this;t=Number(t);var c=D.p(o),d=function(e){var n=g(f);return D.w(n.date(n.date()+Math.round(e*t)),f)};if(c===u)return this.set(u,this.$M+t);if(c===a)return this.set(a,this.$y+t);if(c===i)return d(1);if(c===s)return d(7);var $=(h={},h[n]=6e4,h[r]=36e5,h[e]=1e3,h)[c]||1,l=this.$d.getTime()+t*$;return D.w(l,this)},d.subtract=function(t,e){return this.add(-1*t,e)},d.format=function(t){var e=this;if(!this.isValid())return "Invalid Date";var n=t||"YYYY-MM-DDTHH:mm:ssZ",r=D.z(this),i=this.$locale(),s=this.$H,u=this.$m,o=this.$M,a=i.weekdays,h=i.months,c=function(t,r,i,s){return t&&(t[r]||t(e,n))||i[r].substr(0,s)},d=function(t){return D.s(s%12||12,t,"0")},$=i.meridiem||function(t,e,n){var r=t<12?"AM":"PM";return n?r.toLowerCase():r},l={YY:String(this.$y).slice(-2),YYYY:this.$y,M:o+1,MM:D.s(o+1,2,"0"),MMM:c(i.monthsShort,o,h,3),MMMM:h[o]||h(this,n),D:this.$D,DD:D.s(this.$D,2,"0"),d:String(this.$W),dd:c(i.weekdaysMin,this.$W,a,2),ddd:c(i.weekdaysShort,this.$W,a,3),dddd:a[this.$W],H:String(s),HH:D.s(s,2,"0"),h:d(1),hh:d(2),a:$(s,u,!0),A:$(s,u,!1),m:String(u),mm:D.s(u,2,"0"),s:String(this.$s),ss:D.s(this.$s,2,"0"),SSS:D.s(this.$ms,3,"0"),Z:r};return n.replace(f,function(t,e){return e||l[t]||r.replace(":","")})},d.utcOffset=function(){return 15*-Math.round(this.$d.getTimezoneOffset()/15)},d.diff=function(t,h,f){var c,d=D.p(h),$=g(t),l=6e4*($.utcOffset()-this.utcOffset()),m=this-$,y=D.m(this,$);return y=(c={},c[a]=y/12,c[u]=y,c[o]=y/3,c[s]=(m-l)/6048e5,c[i]=(m-l)/864e5,c[r]=m/36e5,c[n]=m/6e4,c[e]=m/1e3,c)[d]||m,f?y:D.a(y)},d.daysInMonth=function(){return this.endOf(u).$D},d.$locale=function(){return m[this.$L]},d.locale=function(t,e){if(!t)return this.$L;var n=this.clone(),r=M(t,e,!0);return r&&(n.$L=r),n},d.clone=function(){return D.w(this.$d,this)},d.toDate=function(){return new Date(this.valueOf())},d.toJSON=function(){return this.isValid()?this.toISOString():null},d.toISOString=function(){return this.$d.toISOString()},d.toString=function(){return this.$d.toUTCString()},c}();return g.prototype=v.prototype,g.extend=function(t,e){return t(e,v,g),g},g.locale=M,g.isDayjs=y,g.unix=function(t){return g(1e3*t)},g.en=m[l],g.Ls=m,g});
+});
+
+class TsGanttTask {
+    constructor(id, parentId, name, localizedNames, progress, datePlannedStart = null, datePlannedEnd = null, dateActualStart = null, dateActualEnd = null, nestingLvl = 0, hasChildren = false, parentUuid = null, uuid = null) {
+        this.externalId = id;
+        this.parentExternalId = parentId;
+        this.name = name;
+        this.localizedNames = localizedNames;
+        this.progress = progress < 0 ? 0 : progress > 100 ? 100 : progress;
+        this.datePlannedStart = datePlannedStart ? dayjs_min(datePlannedStart) : null;
+        this.datePlannedEnd = datePlannedEnd ? dayjs_min(datePlannedEnd) : null;
+        this.dateActualStart = dateActualStart ? dayjs_min(dateActualStart) : null;
+        this.dateActualEnd = dateActualEnd ? dayjs_min(dateActualEnd) : null;
+        this.nestingLvl = nestingLvl;
+        this.hasChildren = hasChildren;
+        this.parentUuid = parentUuid;
+        this.uuid = uuid || getRandomUuid();
+        this.shown = !parentUuid;
+        this.expanded = false;
+    }
+    static convertModelsToTasks(taskModels) {
+        const models = taskModels.slice();
+        const allParentIds = new Set(models.map(x => x.parentId));
+        const tasks = [];
+        let currentLevelTasks = [];
+        for (let i = models.length - 1; i >= 0; i--) {
+            const model = models[i];
+            if (!model.parentId) {
+                const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 0, allParentIds.has(model.id));
+                tasks.push(newTask);
+                currentLevelTasks.push(newTask);
+                models.splice(i, 1);
+            }
+        }
+        let currentNestingLvl = 1;
+        while (currentLevelTasks.length !== 0) {
+            const nextLevelTasks = [];
+            currentLevelTasks.filter(x => x.hasChildren).forEach(task => {
+                for (let i = models.length - 1; i >= 0; i--) {
+                    const model = models[i];
+                    if (model.parentId === task.externalId) {
+                        const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, currentNestingLvl, allParentIds.has(model.id), task.uuid);
+                        tasks.push(newTask);
+                        nextLevelTasks.push(newTask);
+                        models.splice(i, 1);
+                    }
+                }
+            });
+            currentLevelTasks = nextLevelTasks;
+            currentNestingLvl++;
+        }
+        return tasks;
+    }
+    static detectTaskChanges(data) {
+        const { oldTasks, newTasks } = data;
+        const oldIds = oldTasks.map(x => x.externalId);
+        const newIds = newTasks.map(x => x.externalId);
+        const deleted = oldTasks.filter(x => !newIds.includes(x.externalId));
+        const added = [];
+        const changed = [];
+        for (const newTask of newTasks) {
+            if (!oldIds.includes(newTask.externalId)) {
+                added.push(newTask);
+                continue;
+            }
+            const oldTask = oldTasks.find(x => x.externalId === newTask.externalId);
+            if (!newTask.equals(oldTask)) {
+                changed.push(newTask);
+            }
+        }
+        return { deleted, added, changed, all: newTasks };
+    }
+    static checkPaternity(tasks, parent, child) {
+        var _a;
+        let parentUuid = child.parentUuid;
+        while (parentUuid) {
+            if (parentUuid === parent.uuid) {
+                return true;
+            }
+            parentUuid = (_a = tasks.find(x => x.uuid === parentUuid)) === null || _a === void 0 ? void 0 : _a.parentUuid;
+        }
+        return false;
+    }
+    static checkForCollapsedParent(tasks, task) {
+        while (task.parentUuid) {
+            task = tasks.find(x => x.uuid === task.parentUuid);
+            if (!task.expanded) {
+                return true;
+            }
+        }
+        return false;
+    }
+    static sortTasksRecursively(tasks, parentUuid) {
+        const tasksFiltered = tasks.filter(x => x.parentUuid === parentUuid)
+            .sort((a, b) => a.compareTo(b));
+        const sorted = [];
+        for (const task of tasksFiltered) {
+            sorted.push(task);
+            sorted.push(...this.sortTasksRecursively(tasks, task.uuid));
+        }
+        return sorted;
+    }
+    equals(another) {
+        var _a, _b, _c, _d, _e, _f, _g, _h;
+        return this.externalId === another.externalId
+            && this.parentExternalId === another.parentExternalId
+            && this.nestingLvl === another.nestingLvl
+            && this.hasChildren === another.hasChildren
+            && this.name === another.name
+            && this.progress === another.progress
+            && ((_a = this.datePlannedStart) === null || _a === void 0 ? void 0 : _a.unix()) === ((_b = another.datePlannedStart) === null || _b === void 0 ? void 0 : _b.unix())
+            && ((_c = this.datePlannedEnd) === null || _c === void 0 ? void 0 : _c.unix()) === ((_d = another.datePlannedEnd) === null || _d === void 0 ? void 0 : _d.unix())
+            && ((_e = this.dateActualStart) === null || _e === void 0 ? void 0 : _e.unix()) === ((_f = another.dateActualStart) === null || _f === void 0 ? void 0 : _f.unix())
+            && ((_g = this.dateActualEnd) === null || _g === void 0 ? void 0 : _g.unix()) === ((_h = another.dateActualEnd) === null || _h === void 0 ? void 0 : _h.unix());
+    }
+    compareTo(another) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+        if (this.nestingLvl > another.nestingLvl) {
+            return 1;
+        }
+        if (this.nestingLvl < another.nestingLvl) {
+            return -1;
+        }
+        if (((_a = this.datePlannedStart) === null || _a === void 0 ? void 0 : _a.unix()) > ((_b = another.datePlannedStart) === null || _b === void 0 ? void 0 : _b.unix())) {
+            return 1;
+        }
+        if (((_c = this.datePlannedStart) === null || _c === void 0 ? void 0 : _c.unix()) < ((_d = another.datePlannedStart) === null || _d === void 0 ? void 0 : _d.unix())) {
+            return -1;
+        }
+        if (((_e = this.datePlannedEnd) === null || _e === void 0 ? void 0 : _e.unix()) > ((_f = another.datePlannedEnd) === null || _f === void 0 ? void 0 : _f.unix())) {
+            return 1;
+        }
+        if (((_g = this.datePlannedEnd) === null || _g === void 0 ? void 0 : _g.unix()) < ((_h = another.datePlannedEnd) === null || _h === void 0 ? void 0 : _h.unix())) {
+            return -1;
+        }
+        if (((_j = this.dateActualStart) === null || _j === void 0 ? void 0 : _j.unix()) > ((_k = another.dateActualStart) === null || _k === void 0 ? void 0 : _k.unix())) {
+            return 1;
+        }
+        if (((_l = this.dateActualStart) === null || _l === void 0 ? void 0 : _l.unix()) < ((_m = another.dateActualStart) === null || _m === void 0 ? void 0 : _m.unix())) {
+            return -1;
+        }
+        if (((_o = this.dateActualEnd) === null || _o === void 0 ? void 0 : _o.unix()) > ((_p = another.dateActualEnd) === null || _p === void 0 ? void 0 : _p.unix())) {
+            return 1;
+        }
+        if (((_q = this.dateActualEnd) === null || _q === void 0 ? void 0 : _q.unix()) < ((_r = another.dateActualEnd) === null || _r === void 0 ? void 0 : _r.unix())) {
+            return -1;
+        }
+        return this.name.localeCompare(another.name);
+    }
+    getState() {
+        if (this.progress === 0) {
+            return "not-started";
+        }
+        if (this.progress === 100) {
+            if (this.datePlannedEnd) {
+                if ((this.dateActualEnd && this.dateActualEnd.isAfter(this.datePlannedEnd))
+                    || (this.dateActualStart && this.dateActualStart.isAfter(this.datePlannedEnd))) {
+                    return "completed-late";
+                }
+            }
+            return "completed";
+        }
+        if (this.datePlannedEnd && this.datePlannedEnd.isBefore(dayjs_min().startOf("day"))) {
+            return "overdue";
+        }
+        return "in-progress";
+    }
+    convertToModel() {
+        var _a, _b, _c, _d;
+        return {
+            id: this.externalId,
+            parentId: this.parentExternalId,
+            name: this.name,
+            progress: this.progress,
+            datePlannedStart: ((_a = this.datePlannedStart) === null || _a === void 0 ? void 0 : _a.toDate()) || null,
+            datePlannedEnd: ((_b = this.datePlannedEnd) === null || _b === void 0 ? void 0 : _b.toDate()) || null,
+            dateActualStart: ((_c = this.dateActualStart) === null || _c === void 0 ? void 0 : _c.toDate()) || null,
+            dateActualEnd: ((_d = this.dateActualEnd) === null || _d === void 0 ? void 0 : _d.toDate()) || null,
+            localizedNames: this.localizedNames
+        };
+    }
+}
+
+class TsGanttTableColumn {
+    constructor(minWidth, textAlign, header, valueGetter) {
+        this.minWidth = minWidth;
+        this.contentAlign = textAlign;
+        this.header = header;
+        this.valueGetter = valueGetter;
+        const headerCell = document.createElement("th");
+        headerCell.style.minWidth = this.minWidth + "px";
+        headerCell.innerHTML = this.header;
+        this.html = this.generateHtml();
+    }
+    generateHtml() {
+        const headerCell = document.createElement("th");
+        headerCell.style.minWidth = this.minWidth + "px";
+        headerCell.innerHTML = this.header;
+        return headerCell;
+    }
+}
+class TsGanttTableRow {
+    constructor(task, columns, addStateClass) {
+        this.task = task;
+        this.expander = this.createExpander();
+        this.html = this.createRow(columns, addStateClass);
+    }
+    createRow(columns, addStateClass) {
+        const row = document.createElement("tr");
+        row.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
+        row.addEventListener("click", (e) => {
+            const target = e.target;
+            if (!target.classList.contains(TsGanttConst.TABLE_CELL_EXPANDER_CLASS)) {
+                row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
+                    bubbles: true,
+                    detail: { uuid: this.task.uuid, ctrl: e.ctrlKey },
+                }));
+            }
+        });
+        if (addStateClass) {
+            row.classList.add(this.task.getState());
+        }
+        columns.forEach((x, i) => {
+            const cell = document.createElement("td");
+            const cellInnerDiv = document.createElement("div");
+            cellInnerDiv.classList.add(TsGanttConst.TABLE_CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
+            if (i === 0) {
+                for (let j = 0; j < this.task.nestingLvl; j++) {
+                    cellInnerDiv.append(this.createSimpleIndent());
+                }
+                cellInnerDiv.append(this.expander);
+            }
+            const cellText = document.createElement("p");
+            cellText.classList.add(TsGanttConst.TABLE_CELL_TEXT_CLASS);
+            cellText.innerHTML = x.valueGetter(this.task);
+            cellInnerDiv.append(cellText);
+            cell.append(cellInnerDiv);
+            row.append(cell);
+        });
+        return row;
+    }
+    createSimpleIndent(innerHtml = "") {
+        const indent = document.createElement("p");
+        indent.classList.add(TsGanttConst.TABLE_CELL_INDENT_CLASS);
+        indent.innerHTML = innerHtml;
+        return indent;
+    }
+    createExpander() {
+        const expander = document.createElement("p");
+        expander.classList.add(TsGanttConst.TABLE_CELL_EXPANDER_CLASS);
+        expander.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
+        if (this.task.hasChildren) {
+            expander.addEventListener("click", (e) => {
+                expander.dispatchEvent(new CustomEvent(TsGanttConst.CELL_EXPANDER_CLICK, {
+                    bubbles: true,
+                    detail: { uuid: this.task.uuid },
+                }));
+            });
+        }
+        return expander;
+    }
+}
+
+class TsGanttTable {
+    constructor(options) {
+        this._tableRows = [];
+        this._options = options;
+        const table = document.createElement("table");
+        table.classList.add(TsGanttConst.TABLE_CLASS);
+        const tableHead = table.createTHead();
+        const tableBody = table.createTBody();
+        this._htmlHead = tableHead;
+        this._htmlBody = tableBody;
+        this._html = table;
+        this.updateColumns();
+    }
+    get html() {
+        return this._html;
+    }
+    update(updateColumns, data) {
+        if (updateColumns) {
+            this.updateColumns();
+        }
+        if (data) {
+            this.updateRows(data);
+        }
+        this.redraw();
+    }
+    applySelection(selectionResult) {
+        const { selected, deselected } = selectionResult;
+        for (const uuid of deselected) {
+            const row = this._tableRows.find(x => x.task.uuid === uuid);
+            if (row) {
+                row.html.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
+            }
+        }
+        for (const uuid of selected) {
+            const row = this._tableRows.find(x => x.task.uuid === uuid);
+            if (row) {
+                row.html.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
+            }
+        }
+    }
+    updateColumns() {
+        const columns = [];
+        for (let i = 0; i < 9; i++) {
+            const minColumnWidth = this._options.columnsMinWidthPx[i];
+            const contentAlign = this._options.columnsContentAlign[i];
+            if (minColumnWidth) {
+                columns.push(new TsGanttTableColumn(minColumnWidth, contentAlign, this._options.localeHeaders[this._options.locale][i] || "", this._options.columnValueGetters[i] || ((task) => "")));
+            }
+        }
+        this._tableColumns = columns;
+    }
+    updateRows(data) {
+        const columns = this._tableColumns;
+        const rows = this._tableRows;
+        const addStateClass = this._options.highlightRowsDependingOnTaskState;
+        data.deleted.forEach(x => {
+            const index = rows.findIndex(y => y.task.uuid === x.uuid);
+            if (index !== 1) {
+                rows.splice(index, 1);
+            }
+        });
+        data.changed.forEach(x => {
+            const index = rows.findIndex(y => y.task.uuid === x.uuid);
+            if (index !== -1) {
+                rows[index] = new TsGanttTableRow(x, columns, addStateClass);
+            }
+        });
+        data.added.forEach(x => rows.push(new TsGanttTableRow(x, columns, addStateClass)));
+    }
+    redraw() {
+        const headerRow = document.createElement("tr");
+        this._tableColumns.forEach(x => headerRow.append(x.html));
+        this._htmlHead.innerHTML = "";
+        this._htmlHead.append(headerRow);
+        this._htmlBody.innerHTML = "";
+        this._htmlBody.append(...this.getRowsHtmlRecursively(this._tableRows, null));
+    }
+    getRowsHtmlRecursively(rows, parentUuid) {
+        const symbols = this._options.rowSymbols;
+        const rowsFiltered = rows.filter(x => x.task.parentUuid === parentUuid)
+            .sort((a, b) => a.task.compareTo(b.task));
+        const rowsHtml = [];
+        for (const row of rowsFiltered) {
+            if (!row.task.shown) {
+                continue;
+            }
+            rowsHtml.push(row.html);
+            if (!row.task.hasChildren) {
+                row.expander.innerHTML = symbols.childless;
+            }
+            else if (row.task.expanded) {
+                row.expander.innerHTML = symbols.expanded;
+                rowsHtml.push(...this.getRowsHtmlRecursively(rows, row.task.uuid));
+            }
+            else {
+                row.expander.innerHTML = symbols.collapsed;
+            }
+        }
+        return rowsHtml;
+    }
+}
+
 class TsGanttChartBarGroup {
     constructor(task, options) {
         const { mode, showProgress, dayWidth, rowHeight, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
@@ -575,28 +762,22 @@ class TsGanttChart {
     }
     applySelection(selectionResult) {
         const { selected, deselected } = selectionResult;
-        for (const task of deselected) {
-            if (!task) {
-                continue;
-            }
-            const rowBg = this._chartRowBgs.get(task.uuid);
+        for (const uuid of deselected) {
+            const rowBg = this._chartRowBgs.get(uuid);
             if (rowBg) {
                 rowBg.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
             }
-            const rowWrapper = this._chartRowFgs.get(task.uuid);
+            const rowWrapper = this._chartRowFgs.get(uuid);
             if (rowWrapper) {
                 rowWrapper.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
             }
         }
-        for (const task of selected) {
-            if (!task) {
-                continue;
-            }
-            const rowBg = this._chartRowBgs.get(task.uuid);
+        for (const uuid of selected) {
+            const rowBg = this._chartRowBgs.get(uuid);
             if (rowBg) {
                 rowBg.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
             }
-            const rowWrapper = this._chartRowFgs.get(task.uuid);
+            const rowWrapper = this._chartRowFgs.get(uuid);
             if (rowWrapper) {
                 rowWrapper.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
             }
@@ -1021,197 +1202,10 @@ class TsGanttChart {
     }
 }
 
-class TsGanttTableColumn {
-    constructor(minWidth, textAlign, header, valueGetter) {
-        this.minWidth = minWidth;
-        this.contentAlign = textAlign;
-        this.header = header;
-        this.valueGetter = valueGetter;
-        const headerCell = document.createElement("th");
-        headerCell.style.minWidth = this.minWidth + "px";
-        headerCell.innerHTML = this.header;
-        this.html = this.generateHtml();
-    }
-    generateHtml() {
-        const headerCell = document.createElement("th");
-        headerCell.style.minWidth = this.minWidth + "px";
-        headerCell.innerHTML = this.header;
-        return headerCell;
-    }
-}
-class TsGanttTableRow {
-    constructor(task, columns, addStateClass) {
-        this.task = task;
-        this.expander = this.createExpander();
-        this.html = this.createRow(columns, addStateClass);
-    }
-    createRow(columns, addStateClass) {
-        const row = document.createElement("tr");
-        row.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
-        row.addEventListener("click", (e) => {
-            const target = e.target;
-            if (!target.classList.contains(TsGanttConst.TABLE_CELL_EXPANDER_CLASS)) {
-                row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
-                    bubbles: true,
-                    detail: { uuid: this.task.uuid, ctrl: e.ctrlKey },
-                }));
-            }
-        });
-        if (addStateClass) {
-            row.classList.add(this.task.getState());
-        }
-        columns.forEach((x, i) => {
-            const cell = document.createElement("td");
-            const cellInnerDiv = document.createElement("div");
-            cellInnerDiv.classList.add(TsGanttConst.TABLE_CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
-            if (i === 0) {
-                for (let j = 0; j < this.task.nestingLvl; j++) {
-                    cellInnerDiv.append(this.createSimpleIndent());
-                }
-                cellInnerDiv.append(this.expander);
-            }
-            const cellText = document.createElement("p");
-            cellText.classList.add(TsGanttConst.TABLE_CELL_TEXT_CLASS);
-            cellText.innerHTML = x.valueGetter(this.task);
-            cellInnerDiv.append(cellText);
-            cell.append(cellInnerDiv);
-            row.append(cell);
-        });
-        return row;
-    }
-    createSimpleIndent(innerHtml = "") {
-        const indent = document.createElement("p");
-        indent.classList.add(TsGanttConst.TABLE_CELL_INDENT_CLASS);
-        indent.innerHTML = innerHtml;
-        return indent;
-    }
-    createExpander() {
-        const expander = document.createElement("p");
-        expander.classList.add(TsGanttConst.TABLE_CELL_EXPANDER_CLASS);
-        expander.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
-        if (this.task.hasChildren) {
-            expander.addEventListener("click", (e) => {
-                expander.dispatchEvent(new CustomEvent(TsGanttConst.CELL_EXPANDER_CLICK, {
-                    bubbles: true,
-                    detail: { uuid: this.task.uuid },
-                }));
-            });
-        }
-        return expander;
-    }
-}
-
-class TsGanttTable {
-    constructor(options) {
-        this._tableRows = [];
-        this._options = options;
-        const table = document.createElement("table");
-        table.classList.add(TsGanttConst.TABLE_CLASS);
-        const tableHead = table.createTHead();
-        const tableBody = table.createTBody();
-        this._htmlHead = tableHead;
-        this._htmlBody = tableBody;
-        this._html = table;
-        this.updateColumns();
-    }
-    get html() {
-        return this._html;
-    }
-    update(updateColumns, data) {
-        if (updateColumns) {
-            this.updateColumns();
-        }
-        if (data) {
-            this.updateRows(data);
-        }
-        this.redraw();
-    }
-    applySelection(selectionResult) {
-        const { selected, deselected } = selectionResult;
-        for (const task of deselected) {
-            if (!task) {
-                continue;
-            }
-            const row = this._tableRows.find(x => x.task.uuid === task.uuid);
-            if (row) {
-                row.html.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
-            }
-        }
-        for (const task of selected) {
-            if (!task) {
-                continue;
-            }
-            const row = this._tableRows.find(x => x.task.uuid === task.uuid);
-            if (row) {
-                row.html.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
-            }
-        }
-    }
-    updateColumns() {
-        const columns = [];
-        for (let i = 0; i < 9; i++) {
-            const minColumnWidth = this._options.columnsMinWidthPx[i];
-            const contentAlign = this._options.columnsContentAlign[i];
-            if (minColumnWidth) {
-                columns.push(new TsGanttTableColumn(minColumnWidth, contentAlign, this._options.localeHeaders[this._options.locale][i] || "", this._options.columnValueGetters[i] || ((task) => "")));
-            }
-        }
-        this._tableColumns = columns;
-    }
-    updateRows(data) {
-        const columns = this._tableColumns;
-        const rows = this._tableRows;
-        const addStateClass = this._options.highlightRowsDependingOnTaskState;
-        data.deleted.forEach(x => {
-            const index = rows.findIndex(y => y.task.uuid === x.uuid);
-            if (index !== 1) {
-                rows.splice(index, 1);
-            }
-        });
-        data.changed.forEach(x => {
-            const index = rows.findIndex(y => y.task.uuid === x.uuid);
-            if (index !== -1) {
-                rows[index] = new TsGanttTableRow(x, columns, addStateClass);
-            }
-        });
-        data.added.forEach(x => rows.push(new TsGanttTableRow(x, columns, addStateClass)));
-    }
-    redraw() {
-        const headerRow = document.createElement("tr");
-        this._tableColumns.forEach(x => headerRow.append(x.html));
-        this._htmlHead.innerHTML = "";
-        this._htmlHead.append(headerRow);
-        this._htmlBody.innerHTML = "";
-        this._htmlBody.append(...this.getRowsHtmlRecursively(this._tableRows, null));
-    }
-    getRowsHtmlRecursively(rows, parentUuid) {
-        const symbols = this._options.rowSymbols;
-        const rowsFiltered = rows.filter(x => x.task.parentUuid === parentUuid)
-            .sort((a, b) => a.task.compareTo(b.task));
-        const rowsHtml = [];
-        for (const row of rowsFiltered) {
-            if (!row.task.shown) {
-                continue;
-            }
-            rowsHtml.push(row.html);
-            if (!row.task.hasChildren) {
-                row.expander.innerHTML = symbols.childless;
-            }
-            else if (row.task.expanded) {
-                row.expander.innerHTML = symbols.expanded;
-                rowsHtml.push(...this.getRowsHtmlRecursively(rows, row.task.uuid));
-            }
-            else {
-                row.expander.innerHTML = symbols.collapsed;
-            }
-        }
-        return rowsHtml;
-    }
-}
-
 class TsGantt {
     constructor(containerSelector, options) {
         this._tasks = [];
+        this._selectedTasks = [];
         this._htmlSeparatorDragActive = false;
         this._ignoreNextScrollEvent = false;
         this.onResize = (e) => {
@@ -1263,7 +1257,7 @@ class TsGantt {
                 return;
             }
             const newSelectedTask = this._tasks.find(x => x.uuid === detail.uuid);
-            this.selectTask(newSelectedTask, detail.ctrl);
+            this.selectTasks([newSelectedTask], detail.ctrl);
         });
         this.onRowExpanderClick = ((e) => {
             this.toggleTaskExpanded(e.detail.uuid);
@@ -1277,22 +1271,19 @@ class TsGantt {
         this.createLayout();
     }
     get tasks() {
-        return TsGanttTask.convertTasksToModels(this._tasks);
+        return this._tasks.map(x => x.convertToModel());
     }
     set tasks(models) {
         const changeDetectionResult = this.updateTasks(models);
         this.update(changeDetectionResult);
     }
-    get selectedTask() {
-        return this._selectedTask
-            ? TsGanttTask.convertTasksToModels([this._selectedTask])[0]
-            : null;
+    get selectedTasks() {
+        return this._selectedTasks.map(x => x.convertToModel());
     }
-    set selectedTask(model) {
-        const targetTask = this._tasks.find(x => x.externalId === model.id);
-        if (targetTask !== this._selectedTask) {
-            this.selectTask(targetTask);
-        }
+    set selectedTasks(models) {
+        const ids = models.map(x => x.id);
+        const targetTasks = this._tasks.filter(x => ids.includes(x.externalId));
+        this.selectTasks(targetTasks);
     }
     set locale(value) {
         if (value !== this._options.locale) {
@@ -1386,27 +1377,30 @@ class TsGantt {
         }
         this.update(null);
     }
-    selectTask(newSelectedTask, keepPreviousSelection = false, forceSelection = false) {
-        const oldSelectedTask = this._selectedTask;
-        if (!forceSelection && ((!oldSelectedTask && !newSelectedTask)
-            || oldSelectedTask === newSelectedTask)) {
+    selectTasks(newSelectedTasks, keepPreviousSelection = false) {
+        const oldSelectedTasks = this._selectedTasks;
+        const selectionEmpty = oldSelectedTasks.length === 0 && newSelectedTasks.length === 0;
+        if (selectionEmpty) {
             return;
         }
-        this._selectedTask = newSelectedTask;
-        this._table.applySelection({
-            selected: [newSelectedTask],
-            deselected: [oldSelectedTask],
-        });
-        this._chart.applySelection({
-            selected: [newSelectedTask],
-            deselected: [oldSelectedTask],
-        });
-        if (newSelectedTask) {
-            this.scrollChartToTask(newSelectedTask.uuid);
+        const oldUuids = oldSelectedTasks.map(x => x.uuid);
+        const newUuids = newSelectedTasks.map(x => x.uuid);
+        const selectionNotChanged = compareTwoStringSets(new Set(oldUuids), new Set(newUuids));
+        if (selectionNotChanged) {
+            return;
+        }
+        const selected = newUuids;
+        const deselected = oldUuids.filter(x => !newUuids.includes(x));
+        this._selectedTasks = newSelectedTasks;
+        const result = { selected, deselected };
+        this._table.applySelection(result);
+        this._chart.applySelection(result);
+        if (newSelectedTasks) {
+            this.scrollChartToTasks(newUuids);
         }
     }
-    scrollChartToTask(uuid) {
-        const offset = this._chart.getBarOffsetByTaskUuid(uuid);
+    scrollChartToTasks(uuids) {
+        const offset = Math.min(...uuids.map(x => this._chart.getBarOffsetByTaskUuid(x)));
         if (offset) {
             this._htmlChartWrapper.scrollLeft = offset - 20;
         }
@@ -1445,12 +1439,9 @@ class TsGantt {
         this.refreshSelection();
     }
     refreshSelection() {
-        if (TsGanttTask.checkForCollapsedParent(this._tasks, this._selectedTask)) {
-            this.selectTask(null);
-        }
-        else {
-            this.selectTask(this._selectedTask, false, true);
-        }
+        const tasks = this._selectedTasks.filter(x => !TsGanttTask
+            .checkForCollapsedParent(this._tasks, x));
+        this.selectTasks(tasks);
     }
 }
 

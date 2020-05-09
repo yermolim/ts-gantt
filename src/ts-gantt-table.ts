@@ -44,20 +44,14 @@ class TsGanttTable {
   
   applySelection(selectionResult: TsGanttTaskSelectionChangeResult) {
     const {selected, deselected} = selectionResult;
-    for (const task of deselected) {
-      if (!task) {
-        continue;
-      }
-      const row = this._tableRows.find(x => x.task.uuid === task.uuid);
+    for (const uuid of deselected) {
+      const row = this._tableRows.find(x => x.task.uuid === uuid);
       if (row) {
         row.html.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
       }
     }
-    for (const task of selected) {
-      if (!task) {
-        continue;
-      }
-      const row = this._tableRows.find(x => x.task.uuid === task.uuid);
+    for (const uuid of selected) {
+      const row = this._tableRows.find(x => x.task.uuid === uuid);
       if (row) {
         row.html.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
       }
