@@ -95,12 +95,11 @@
 
 	class TsGanttTask {
 	    constructor(id, parentId, name, localizedNames, progress, datePlannedStart = null, datePlannedEnd = null, dateActualStart = null, dateActualEnd = null, nestingLvl = 0, hasChildren = false, parentUuid = null, uuid = null) {
-	        this._progress = 0;
 	        this.externalId = id;
 	        this.parentExternalId = parentId;
 	        this.name = name;
 	        this.localizedNames = localizedNames;
-	        this.progress = progress;
+	        this.progress = progress < 0 ? 0 : progress > 100 ? 100 : progress;
 	        this.datePlannedStart = datePlannedStart ? dayjs_min(datePlannedStart) : null;
 	        this.datePlannedEnd = datePlannedEnd ? dayjs_min(datePlannedEnd) : null;
 	        this.dateActualStart = dateActualStart ? dayjs_min(dateActualStart) : null;
@@ -112,13 +111,7 @@
 	        this.shown = !parentUuid;
 	        this.expanded = false;
 	    }
-	    set progress(value) {
-	        this._progress = value < 0 ? 0 : value > 100 ? 100 : value;
-	    }
-	    get progress() {
-	        return this._progress;
-	    }
-	    static convertModelsToTasks(taskModels, idsMap = new Map()) {
+	    static convertModelsToTasks(taskModels) {
 	        const models = taskModels.slice();
 	        const allParentIds = new Set(models.map(x => x.parentId));
 	        const tasks = [];
@@ -126,7 +119,7 @@
 	        for (let i = models.length - 1; i >= 0; i--) {
 	            const model = models[i];
 	            if (!model.parentId) {
-	                const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 0, allParentIds.has(model.id), null, idsMap.get(model.id));
+	                const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 0, allParentIds.has(model.id));
 	                tasks.push(newTask);
 	                currentLevelTasks.push(newTask);
 	                models.splice(i, 1);
@@ -139,7 +132,7 @@
 	                for (let i = models.length - 1; i >= 0; i--) {
 	                    const model = models[i];
 	                    if (model.parentId === task.externalId) {
-	                        const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, currentNestingLvl, allParentIds.has(model.id), task.uuid, idsMap.get(model.id));
+	                        const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, currentNestingLvl, allParentIds.has(model.id), task.uuid);
 	                        tasks.push(newTask);
 	                        nextLevelTasks.push(newTask);
 	                        models.splice(i, 1);
@@ -169,31 +162,22 @@
 	    }
 	    static detectTaskChanges(data) {
 	        const { oldTasks, newTasks } = data;
-	        const oldUuids = oldTasks.map(x => x.uuid);
-	        const newUuids = newTasks.map(x => x.uuid);
-	        const deleted = oldTasks.filter(x => !newUuids.includes(x.uuid));
+	        const oldIds = oldTasks.map(x => x.externalId);
+	        const newIds = newTasks.map(x => x.externalId);
+	        const deleted = oldTasks.filter(x => !newIds.includes(x.externalId));
 	        const added = [];
 	        const changed = [];
 	        for (const newTask of newTasks) {
-	            if (!oldUuids.includes(newTask.uuid)) {
+	            if (!oldIds.includes(newTask.externalId)) {
 	                added.push(newTask);
 	                continue;
 	            }
-	            const oldTask = oldTasks.find(x => x.uuid === newTask.uuid);
+	            const oldTask = oldTasks.find(x => x.externalId === newTask.externalId);
 	            if (!newTask.equals(oldTask)) {
 	                changed.push(newTask);
 	            }
 	        }
 	        return { deleted, added, changed, all: newTasks };
-	    }
-	    static getTasksIdsMap(tasks) {
-	        const idsMap = new Map();
-	        for (const task of tasks) {
-	            if (!idsMap.has(task.externalId)) {
-	                idsMap.set(task.externalId, task.uuid);
-	            }
-	        }
-	        return idsMap;
 	    }
 	    static checkPaternity(tasks, parent, child) {
 	        var _a;
@@ -1282,8 +1266,7 @@
 	        return TsGanttTask.convertTasksToModels(this._tasks);
 	    }
 	    set tasks(models) {
-	        const updateResult = this.updateTasks(models);
-	        const changeDetectionResult = TsGanttTask.detectTaskChanges(updateResult);
+	        const changeDetectionResult = this.updateTasks(models);
 	        this.update(changeDetectionResult);
 	    }
 	    get selectedTask() {
@@ -1369,10 +1352,9 @@
 	    }
 	    updateTasks(taskModels) {
 	        const oldTasks = this._tasks;
-	        const oldIdsMap = TsGanttTask.getTasksIdsMap(oldTasks);
-	        const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldIdsMap);
+	        const newTasks = TsGanttTask.convertModelsToTasks(taskModels);
 	        this._tasks = newTasks;
-	        return { oldTasks, newTasks };
+	        return TsGanttTask.detectTaskChanges({ oldTasks, newTasks });
 	    }
 	    toggleTaskExpanded(uuid) {
 	        let targetTask;

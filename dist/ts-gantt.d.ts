@@ -5,30 +5,27 @@ import dayjs from 'dayjs';
 declare class TsGanttTask {
 	readonly externalId: string;
 	readonly uuid: string;
-	parentExternalId: string;
-	parentUuid: string;
-	nestingLvl: number;
-	hasChildren: boolean;
-	name: string;
-	localizedNames: {
+	readonly parentExternalId: string;
+	readonly parentUuid: string;
+	readonly nestingLvl: number;
+	readonly hasChildren: boolean;
+	readonly name: string;
+	readonly localizedNames: {
 		[key: string]: string;
 	};
-	datePlannedStart: dayjs.Dayjs | null;
-	datePlannedEnd: dayjs.Dayjs | null;
-	dateActualStart: dayjs.Dayjs | null;
-	dateActualEnd: dayjs.Dayjs | null;
+	readonly datePlannedStart: dayjs.Dayjs | null;
+	readonly datePlannedEnd: dayjs.Dayjs | null;
+	readonly dateActualStart: dayjs.Dayjs | null;
+	readonly dateActualEnd: dayjs.Dayjs | null;
+	readonly progress: number;
 	shown: boolean;
 	expanded: boolean;
-	private _progress;
-	set progress(value: number);
-	get progress(): number;
 	constructor(id: string, parentId: string, name: string, localizedNames: {
 		[key: string]: string;
 	}, progress: number, datePlannedStart?: Date | null, datePlannedEnd?: Date | null, dateActualStart?: Date | null, dateActualEnd?: Date | null, nestingLvl?: number, hasChildren?: boolean, parentUuid?: string, uuid?: string);
-	static convertModelsToTasks(taskModels: TsGanttTaskModel[], idsMap?: Map<string, string>): TsGanttTask[];
+	static convertModelsToTasks(taskModels: TsGanttTaskModel[]): TsGanttTask[];
 	static convertTasksToModels(tasks: TsGanttTask[]): TsGanttTaskModel[];
 	static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult;
-	static getTasksIdsMap(tasks: TsGanttTask[]): Map<string, string>;
 	static checkPaternity(tasks: TsGanttTask[], parent: TsGanttTask, child: TsGanttTask): boolean;
 	static sortTasksRecursively(tasks: TsGanttTask[], parentUuid: string): TsGanttTask[];
 	equals(another: TsGanttTask): boolean;

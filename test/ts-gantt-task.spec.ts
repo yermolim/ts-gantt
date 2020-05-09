@@ -151,8 +151,7 @@ const inputModelsUpdated = [
 
 describe("TsGanttTask", () => {
   
-  const tasks = TsGanttTask.convertModelsToTasks(inputModels, 
-    new Map<string, string>([["root1id", "some-generated-id"]]));    
+  const tasks = TsGanttTask.convertModelsToTasks(inputModels);    
 
   it("converted tasks should be instanciated from models", () => {
     expect(tasks).toBeTruthy();
@@ -163,9 +162,6 @@ describe("TsGanttTask", () => {
   it("converted tasks should have correct names", () => {
     expect(tasks.find(x => x.externalId === "root1id").name).toEqual("Root1");
     expect(tasks.find(x => x.externalId === "root1id").localizedNames["en"]).toEqual("Root one");
-  });
-  it("converted tasks should preserve predefined uuids", () => {
-    expect(tasks.find(x => x.externalId === "root1id").uuid).toEqual("some-generated-id");
   });
   it("converted tasks should have correct nesting levels", () => {
     expect(tasks.filter(x => x.nestingLvl === 0).length).toEqual(3);
@@ -264,20 +260,8 @@ describe("TsGanttTask", () => {
     expect(firstModelOut.dateActualStart).toEqual(firstModelIn.dateActualStart);
     expect(firstModelOut.dateActualEnd).toEqual(firstModelIn.dateActualEnd);
   });
-
-  const taskIdsMap = TsGanttTask.getTasksIdsMap(tasks);
   
-  it("task ids map should be instanciated from tasks", () => {
-    expect(taskIdsMap).toBeTruthy();
-  });  
-  it("task ids map should have correct length", () => {
-    expect(taskIdsMap.size).toEqual(7);
-  }); 
-  it("task ids map should have correct matching", () => {
-    expect(taskIdsMap.get("root1id")).toEqual("some-generated-id");
-  });
-  
-  const tasksUpdated = TsGanttTask.convertModelsToTasks(inputModelsUpdated, taskIdsMap);
+  const tasksUpdated = TsGanttTask.convertModelsToTasks(inputModelsUpdated);
   const changes = TsGanttTask.detectTaskChanges({oldTasks: tasks, newTasks: tasksUpdated});
 
   it("change detection should instanciate object", () => {

@@ -4,30 +4,24 @@ import { getRandomUuid } from "./ts-gantt-common";
 class TsGanttTask {
   readonly externalId: string;
   readonly uuid: string;
-  parentExternalId: string;
-  parentUuid: string;
+  readonly parentExternalId: string;
+  readonly parentUuid: string;
 
-  nestingLvl: number;
-  hasChildren: boolean;
+  readonly nestingLvl: number;
+  readonly hasChildren: boolean;
 
-  name: string;
-  localizedNames: {[key: string]: string};
+  readonly name: string;
+  readonly localizedNames: {[key: string]: string};
 
-  datePlannedStart: dayjs.Dayjs | null;
-  datePlannedEnd: dayjs.Dayjs | null;
-  dateActualStart: dayjs.Dayjs | null;
-  dateActualEnd: dayjs.Dayjs | null;  
+  readonly datePlannedStart: dayjs.Dayjs | null;
+  readonly datePlannedEnd: dayjs.Dayjs | null;
+  readonly dateActualStart: dayjs.Dayjs | null;
+  readonly dateActualEnd: dayjs.Dayjs | null;  
+
+  readonly progress: number;
 
   shown: boolean;
   expanded: boolean;
-
-  private _progress = 0;
-  set progress(value: number) {
-    this._progress = value < 0 ? 0 : value > 100 ? 100 : value; 
-  }
-  get progress(): number {
-    return this._progress;
-  }  
     
   constructor(id: string,
     parentId: string,
@@ -47,7 +41,7 @@ class TsGanttTask {
     this.parentExternalId = parentId;
     this.name = name;
     this.localizedNames = localizedNames;
-    this.progress = progress;    
+    this.progress = progress < 0 ? 0 : progress > 100 ? 100 : progress;    
     this.datePlannedStart = datePlannedStart ? dayjs(datePlannedStart) : null;
     this.datePlannedEnd = datePlannedEnd ? dayjs(datePlannedEnd) : null;
     this.dateActualStart = dateActualStart ? dayjs(dateActualStart) : null;
@@ -61,8 +55,7 @@ class TsGanttTask {
     this.expanded = false;
   }
 
-  static convertModelsToTasks(taskModels: TsGanttTaskModel[], 
-    idsMap = new Map<string, string>()): TsGanttTask[] {
+  static convertModelsToTasks(taskModels: TsGanttTaskModel[]): TsGanttTask[] {
 
     const models = taskModels.slice();
     const allParentIds = new Set(models.map(x => x.parentId));
@@ -76,8 +69,7 @@ class TsGanttTask {
           model.name, model.localizedNames, model.progress,
           model.datePlannedStart, model.datePlannedEnd, 
           model.dateActualStart, model.dateActualEnd, 
-          0, allParentIds.has(model.id), 
-          null, idsMap.get(model.id));
+          0, allParentIds.has(model.id));
         tasks.push(newTask);
         currentLevelTasks.push(newTask);
         models.splice(i, 1);
@@ -96,8 +88,7 @@ class TsGanttTask {
               model.name, model.localizedNames, model.progress,
               model.datePlannedStart, model.datePlannedEnd, 
               model.dateActualStart, model.dateActualEnd,
-              currentNestingLvl, allParentIds.has(model.id), 
-              task.uuid, idsMap.get(model.id));
+              currentNestingLvl, allParentIds.has(model.id), task.uuid);
             tasks.push(newTask);
             nextLevelTasks.push(newTask);
             models.splice(i, 1);
@@ -128,19 +119,19 @@ class TsGanttTask {
     
   static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult {
     const { oldTasks, newTasks } = data;
-    const oldUuids = oldTasks.map(x => x.uuid);
-    const newUuids = newTasks.map(x => x.uuid);
+    const oldIds = oldTasks.map(x => x.externalId);
+    const newIds = newTasks.map(x => x.externalId);
 
-    const deleted: TsGanttTask[] = oldTasks.filter(x => !newUuids.includes(x.uuid));
+    const deleted: TsGanttTask[] = oldTasks.filter(x => !newIds.includes(x.externalId));
     const added: TsGanttTask[] = [];
     const changed: TsGanttTask[] = [];
 
     for (const newTask of newTasks) {
-      if (!oldUuids.includes(newTask.uuid)) {
+      if (!oldIds.includes(newTask.externalId)) {
         added.push(newTask);
         continue;
       }
-      const oldTask = oldTasks.find(x => x.uuid === newTask.uuid);
+      const oldTask = oldTasks.find(x => x.externalId === newTask.externalId);
       if (!newTask.equals(oldTask)) {
         changed.push(newTask);
       }
@@ -148,16 +139,6 @@ class TsGanttTask {
 
     return { deleted, added, changed, all: newTasks };
   }
-
-  static getTasksIdsMap(tasks: TsGanttTask[]): Map<string, string> {
-    const idsMap = new Map<string, string>();
-    for (const task of tasks) {
-      if (!idsMap.has(task.externalId)) {
-        idsMap.set(task.externalId, task.uuid);
-      }
-    }
-    return idsMap;
-  }  
 
   static checkPaternity(tasks: TsGanttTask[], 
     parent: TsGanttTask, child: TsGanttTask): boolean {

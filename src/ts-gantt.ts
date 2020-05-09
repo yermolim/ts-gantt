@@ -16,8 +16,7 @@ class TsGantt {
     return TsGanttTask.convertTasksToModels(this._tasks);
   }  
   set tasks(models: TsGanttTaskModel[]) {
-    const updateResult = this.updateTasks(models);
-    const changeDetectionResult = TsGanttTask.detectTaskChanges(updateResult);
+    const changeDetectionResult = this.updateTasks(models);
     this.update(changeDetectionResult);
   }
 
@@ -204,12 +203,11 @@ class TsGantt {
   }
 
   // #region task actions
-  private updateTasks(taskModels: TsGanttTaskModel[]): TsGanttTaskUpdateResult {
+  private updateTasks(taskModels: TsGanttTaskModel[]): TsGanttTaskChangeResult {
     const oldTasks = this._tasks;
-    const oldIdsMap = TsGanttTask.getTasksIdsMap(oldTasks);
-    const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldIdsMap);
+    const newTasks = TsGanttTask.convertModelsToTasks(taskModels);
     this._tasks = newTasks;
-    return { oldTasks, newTasks };
+    return TsGanttTask.detectTaskChanges({oldTasks, newTasks});
   }
   
   private toggleTaskExpanded(uuid: string) {
