@@ -3,26 +3,26 @@
 import dayjs from 'dayjs';
 
 declare class TsGanttTask {
-	readonly externalId: string;
 	readonly uuid: string;
-	readonly parentExternalId: string;
 	readonly parentUuid: string;
+	readonly externalId: string;
+	readonly parentExternalId: string;
 	readonly nestingLvl: number;
 	readonly hasChildren: boolean;
 	readonly name: string;
 	readonly localizedNames: {
 		[key: string]: string;
 	};
-	readonly datePlannedStart: dayjs.Dayjs | null;
-	readonly datePlannedEnd: dayjs.Dayjs | null;
-	readonly dateActualStart: dayjs.Dayjs | null;
-	readonly dateActualEnd: dayjs.Dayjs | null;
+	readonly datePlannedStart: dayjs.Dayjs;
+	readonly datePlannedEnd: dayjs.Dayjs;
+	readonly dateActualStart: dayjs.Dayjs;
+	readonly dateActualEnd: dayjs.Dayjs;
 	readonly progress: number;
 	shown: boolean;
 	expanded: boolean;
 	constructor(id: string, parentId: string, name: string, localizedNames: {
 		[key: string]: string;
-	}, progress: number, datePlannedStart?: Date | null, datePlannedEnd?: Date | null, dateActualStart?: Date | null, dateActualEnd?: Date | null, nestingLvl?: number, hasChildren?: boolean, parentUuid?: string, uuid?: string);
+	}, progress: number, datePlannedStart?: Date, datePlannedEnd?: Date, dateActualStart?: Date, dateActualEnd?: Date, nestingLvl?: number, hasChildren?: boolean, parentUuid?: string, uuid?: string);
 	static convertModelsToTasks(taskModels: TsGanttTaskModel[]): TsGanttTask[];
 	static convertTasksToModels(tasks: TsGanttTask[]): TsGanttTaskModel[];
 	static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult;
@@ -61,6 +61,7 @@ export declare class TsGanttOptions {
 	enableActualDatesEdit: boolean;
 	bindParentDatesToChild: boolean;
 	enableProgressEdit: boolean;
+	enableMultilineSelection: boolean;
 	drawTodayLine: boolean;
 	highlightRowsDependingOnTaskState: boolean;
 	columnsMinWidthPx: number[];

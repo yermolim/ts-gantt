@@ -262,8 +262,8 @@ interface TsGanttTaskChangeResult {
 }
 
 interface TsGanttTaskSelectionChangeResult {
-  deselected: TsGanttTask;
-  selected: TsGanttTask;
+  deselected: TsGanttTask[];
+  selected: TsGanttTask[];
 }
 
 export { TsGanttTask, TsGanttTaskModel, TsGanttTaskUpdateResult, 

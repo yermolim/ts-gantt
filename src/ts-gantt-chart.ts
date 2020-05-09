@@ -53,22 +53,28 @@ class TsGanttChart {
   
   applySelection(selectionResult: TsGanttTaskSelectionChangeResult) {
     const {selected, deselected} = selectionResult;
-    if (deselected) {
-      const rowBg = this._chartRowBgs.get(deselected.uuid);
+    for (const task of deselected) {
+      if (!task) {
+        continue;
+      }
+      const rowBg = this._chartRowBgs.get(task.uuid);
       if (rowBg) {
         rowBg.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
       }
-      const rowWrapper = this._chartRowFgs.get(deselected.uuid);
+      const rowWrapper = this._chartRowFgs.get(task.uuid);
       if (rowWrapper) {
         rowWrapper.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
       }
     }
-    if (selected) {      
-      const rowBg = this._chartRowBgs.get(selected.uuid);
+    for (const task of selected) {  
+      if (!task) {
+        continue;
+      }
+      const rowBg = this._chartRowBgs.get(task.uuid);
       if (rowBg) {
         rowBg.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
       }
-      const rowWrapper = this._chartRowFgs.get(selected.uuid);
+      const rowWrapper = this._chartRowFgs.get(task.uuid);
       if (rowWrapper) {
         rowWrapper.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
       }

@@ -9,6 +9,7 @@ class TsGanttOptions {
   bindParentDatesToChild = true;
   enableProgressEdit = true;
 
+  enableMultilineSelection = false;
   drawTodayLine = true;
   highlightRowsDependingOnTaskState = true;
 

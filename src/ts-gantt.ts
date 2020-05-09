@@ -237,12 +237,12 @@ class TsGantt {
     }
     this._selectedTask = newSelectedTask;    
     this._table.applySelection(<TsGanttTaskSelectionChangeResult>{
-      selected: newSelectedTask,
-      deselected: oldSelectedTask,
+      selected: [newSelectedTask],
+      deselected: [oldSelectedTask],
     });
     this._chart.applySelection(<TsGanttTaskSelectionChangeResult>{
-      selected: newSelectedTask,
-      deselected: oldSelectedTask,
+      selected: [newSelectedTask],
+      deselected: [oldSelectedTask],
     });
     if (newSelectedTask) {
       this.scrollChartToTask(newSelectedTask.uuid);
