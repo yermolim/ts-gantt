@@ -137,11 +137,15 @@ class TsGantt {
   });
   
   onRowClick = <EventListener>((e: CustomEvent) => {
-    const newSelectedTask = this._tasks.find(x => x.uuid === e.detail);
-    this.selectTask(newSelectedTask);
+    const detail = e.detail;
+    if (!detail) {
+      return;
+    }
+    const newSelectedTask = this._tasks.find(x => x.uuid === detail.uuid);
+    this.selectTask(newSelectedTask, detail.ctrl);
   });    
   onRowExpanderClick = <EventListener>((e: CustomEvent) => {
-    this.toggleTaskExpanded(e.detail);
+    this.toggleTaskExpanded(e.detail.uuid);
   });
 
   private removeResizeEventListeners() {
@@ -212,24 +216,22 @@ class TsGantt {
   
   private toggleTaskExpanded(uuid: string) {
     let targetTask: TsGanttTask;
-    const targetChildren: TsGanttTask[] = [];
     for (const task of this._tasks) {
       if (!targetTask && task.uuid === uuid) {
         targetTask = task;
+        targetTask.expanded = !targetTask.expanded;
       } else if (task.parentUuid === uuid) {
-        targetChildren.push(task);
+        task.shown = !task.shown;
       }
     }
     if (!targetTask) {
       return;
     }
-    targetTask.expanded = !targetTask.expanded;
-    targetChildren.forEach(x => x.shown = !x.shown);
 
     this.update(null);
   }
 
-  private selectTask(newSelectedTask: TsGanttTask, forceSelection = false) {
+  private selectTask(newSelectedTask: TsGanttTask, keepPreviousSelection = false, forceSelection = false) {
     const oldSelectedTask: TsGanttTask = this._selectedTask;
     if (!forceSelection && ((!oldSelectedTask && !newSelectedTask) 
         || oldSelectedTask === newSelectedTask)) {
@@ -294,12 +296,10 @@ class TsGantt {
   }
 
   private refreshSelection() {    
-    if (this._selectedTask) {
-      if (this._tasks.filter(x => x.shown).find(x => x.uuid === this._selectedTask.uuid)) {
-        this.selectTask(this._selectedTask, true);
-      } else {
-        this.selectTask(null);
-      }
+    if (TsGanttTask.checkForCollapsedParent(this._tasks, this._selectedTask)) {
+      this.selectTask(null);
+    } else {  
+      this.selectTask(this._selectedTask, false, true);    
     }
   }
   // #endregion

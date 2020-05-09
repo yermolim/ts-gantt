@@ -152,6 +152,17 @@ class TsGanttTask {
     }
     return false;
   }
+
+  static checkForCollapsedParent(tasks: TsGanttTask[], 
+    task: TsGanttTask): boolean {
+    while(task.parentUuid) {
+      task = tasks.find(x => x.uuid === task.parentUuid);
+      if (!task.expanded) {
+        return true;
+      }
+    }
+    return false;      
+  }
       
   static sortTasksRecursively(tasks: TsGanttTask[], 
     parentUuid: string): TsGanttTask[] {      

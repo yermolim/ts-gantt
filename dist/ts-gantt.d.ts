@@ -27,6 +27,7 @@ declare class TsGanttTask {
 	static convertTasksToModels(tasks: TsGanttTask[]): TsGanttTaskModel[];
 	static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult;
 	static checkPaternity(tasks: TsGanttTask[], parent: TsGanttTask, child: TsGanttTask): boolean;
+	static checkForCollapsedParent(tasks: TsGanttTask[], task: TsGanttTask): boolean;
 	static sortTasksRecursively(tasks: TsGanttTask[], parentUuid: string): TsGanttTask[];
 	equals(another: TsGanttTask): boolean;
 	compareTo(another: TsGanttTask): number;
@@ -56,12 +57,6 @@ export interface TsGanttTaskChangeResult {
 	all: TsGanttTask[];
 }
 export declare class TsGanttOptions {
-	enableChartEdit: boolean;
-	enablePlannedDatesEdit: boolean;
-	enableActualDatesEdit: boolean;
-	bindParentDatesToChild: boolean;
-	enableProgressEdit: boolean;
-	enableMultilineSelection: boolean;
 	drawTodayLine: boolean;
 	highlightRowsDependingOnTaskState: boolean;
 	columnsMinWidthPx: number[];

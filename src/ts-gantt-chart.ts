@@ -499,10 +499,10 @@ class TsGanttChart {
         ["height", rowHeight + ""],
         ["data-tsg-row-uuid", x.task.uuid],
       ], body);
-      rowWrapper.addEventListener("click", (e: Event) => {
+      rowWrapper.addEventListener("click", (e: MouseEvent) => {
         rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
           bubbles: true,
-          detail: x.task.uuid,
+          detail: {uuid: x.task.uuid, ctrl: e.ctrlKey},
         }));
       });
       rowFgs.set(x.task.uuid, rowWrapper);

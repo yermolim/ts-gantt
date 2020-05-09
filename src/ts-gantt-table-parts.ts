@@ -48,12 +48,12 @@ class TsGanttTableRow {
 
     const row = document.createElement("tr");
     row.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
-    row.addEventListener("click", (e: Event) => {
+    row.addEventListener("click", (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (!target.classList.contains(TsGanttConst.TABLE_CELL_EXPANDER_CLASS)) {
         row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
           bubbles: true,
-          detail: this.task.uuid,
+          detail: {uuid: this.task.uuid, ctrl: e.ctrlKey},
         }));
       }
     });
@@ -100,7 +100,7 @@ class TsGanttTableRow {
       expander.addEventListener("click", (e: Event) => {
         expander.dispatchEvent(new CustomEvent(TsGanttConst.CELL_EXPANDER_CLICK, {
           bubbles: true,
-          detail: this.task.uuid,
+          detail: {uuid: this.task.uuid},
         }));
       });
     }

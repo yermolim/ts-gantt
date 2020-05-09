@@ -184,6 +184,15 @@ class TsGanttTask {
         }
         return false;
     }
+    static checkForCollapsedParent(tasks, task) {
+        while (task.parentUuid) {
+            task = tasks.find(x => x.uuid === task.parentUuid);
+            if (!task.expanded) {
+                return true;
+            }
+        }
+        return false;
+    }
     static sortTasksRecursively(tasks, parentUuid) {
         const tasksFiltered = tasks.filter(x => x.parentUuid === parentUuid)
             .sort((a, b) => a.compareTo(b));
@@ -263,12 +272,6 @@ class TsGanttTask {
 
 class TsGanttOptions {
     constructor(item = null) {
-        this.enableChartEdit = false;
-        this.enablePlannedDatesEdit = true;
-        this.enableActualDatesEdit = true;
-        this.bindParentDatesToChild = true;
-        this.enableProgressEdit = true;
-        this.enableMultilineSelection = false;
         this.drawTodayLine = true;
         this.highlightRowsDependingOnTaskState = true;
         this.columnsMinWidthPx = [200, 100, 100, 100, 100, 100, 100, 100];
@@ -980,7 +983,7 @@ class TsGanttChart {
             rowWrapper.addEventListener("click", (e) => {
                 rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
                     bubbles: true,
-                    detail: x.task.uuid,
+                    detail: { uuid: x.task.uuid, ctrl: e.ctrlKey },
                 }));
             });
             rowFgs.set(x.task.uuid, rowWrapper);
@@ -1050,7 +1053,7 @@ class TsGanttTableRow {
             if (!target.classList.contains(TsGanttConst.TABLE_CELL_EXPANDER_CLASS)) {
                 row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
                     bubbles: true,
-                    detail: this.task.uuid,
+                    detail: { uuid: this.task.uuid, ctrl: e.ctrlKey },
                 }));
             }
         });
@@ -1090,7 +1093,7 @@ class TsGanttTableRow {
             expander.addEventListener("click", (e) => {
                 expander.dispatchEvent(new CustomEvent(TsGanttConst.CELL_EXPANDER_CLICK, {
                     bubbles: true,
-                    detail: this.task.uuid,
+                    detail: { uuid: this.task.uuid },
                 }));
             });
         }
@@ -1255,11 +1258,15 @@ class TsGantt {
             }
         });
         this.onRowClick = ((e) => {
-            const newSelectedTask = this._tasks.find(x => x.uuid === e.detail);
-            this.selectTask(newSelectedTask);
+            const detail = e.detail;
+            if (!detail) {
+                return;
+            }
+            const newSelectedTask = this._tasks.find(x => x.uuid === detail.uuid);
+            this.selectTask(newSelectedTask, detail.ctrl);
         });
         this.onRowExpanderClick = ((e) => {
-            this.toggleTaskExpanded(e.detail);
+            this.toggleTaskExpanded(e.detail.uuid);
         });
         this._options = new TsGanttOptions(options);
         this.setCssVariables(this._options);
@@ -1365,23 +1372,21 @@ class TsGantt {
     }
     toggleTaskExpanded(uuid) {
         let targetTask;
-        const targetChildren = [];
         for (const task of this._tasks) {
             if (!targetTask && task.uuid === uuid) {
                 targetTask = task;
+                targetTask.expanded = !targetTask.expanded;
             }
             else if (task.parentUuid === uuid) {
-                targetChildren.push(task);
+                task.shown = !task.shown;
             }
         }
         if (!targetTask) {
             return;
         }
-        targetTask.expanded = !targetTask.expanded;
-        targetChildren.forEach(x => x.shown = !x.shown);
         this.update(null);
     }
-    selectTask(newSelectedTask, forceSelection = false) {
+    selectTask(newSelectedTask, keepPreviousSelection = false, forceSelection = false) {
         const oldSelectedTask = this._selectedTask;
         if (!forceSelection && ((!oldSelectedTask && !newSelectedTask)
             || oldSelectedTask === newSelectedTask)) {
@@ -1440,13 +1445,11 @@ class TsGantt {
         this.refreshSelection();
     }
     refreshSelection() {
-        if (this._selectedTask) {
-            if (this._tasks.filter(x => x.shown).find(x => x.uuid === this._selectedTask.uuid)) {
-                this.selectTask(this._selectedTask, true);
-            }
-            else {
-                this.selectTask(null);
-            }
+        if (TsGanttTask.checkForCollapsedParent(this._tasks, this._selectedTask)) {
+            this.selectTask(null);
+        }
+        else {
+            this.selectTask(this._selectedTask, false, true);
         }
     }
 }

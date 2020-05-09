@@ -3,13 +3,14 @@ import { TsGanttTask } from "./ts-gantt-task";
 class TsGanttOptions {
 
   // IMPLEMENT
-  enableChartEdit = false;
-  enablePlannedDatesEdit = true;
-  enableActualDatesEdit = true;
-  bindParentDatesToChild = true;
-  enableProgressEdit = true;
+  // enableChartEdit = false;
+  // enablePlannedDatesEdit = true;
+  // enableActualDatesEdit = true;
+  // bindParentDatesToChild = true;
+  // enableProgressEdit = true;
+  // enableMultilineSelection = false;
+  // useControlKeyToMultilineSelection = true;
 
-  enableMultilineSelection = false;
   drawTodayLine = true;
   highlightRowsDependingOnTaskState = true;
 

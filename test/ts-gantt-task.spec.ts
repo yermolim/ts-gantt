@@ -186,6 +186,13 @@ describe("TsGanttTask", () => {
       tasks.find(x => x.externalId === "root1id"),
       tasks.find(x => x.externalId === "root1child1child1id"))).toBeTruthy();
   });
+  
+  it("search for collapsed parent should return correct results", () => {
+    expect(TsGanttTask.checkForCollapsedParent(tasks, 
+      tasks.find(x => x.externalId === "root1id"))).toBeFalsy();
+    expect(TsGanttTask.checkForCollapsedParent(tasks, 
+      tasks.find(x => x.externalId === "root2child1id"))).toBeTruthy();
+  });
 
   const sortedTasks = TsGanttTask.sortTasksRecursively(tasks, null);
 
