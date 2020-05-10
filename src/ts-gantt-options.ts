@@ -8,8 +8,9 @@ class TsGanttOptions {
   // enableActualDatesEdit = true;
   // bindParentDatesToChild = true;
   // enableProgressEdit = true;
-  // enableMultilineSelection = false;
-  // useControlKeyToMultilineSelection = true;
+
+  multilineSelection = true;
+  useCtrlKeyForMultilineSelection = false;
 
   drawTodayLine = true;
   highlightRowsDependingOnTaskState = true;

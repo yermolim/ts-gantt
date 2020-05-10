@@ -20,6 +20,7 @@ Simple library for creating gantt chart combined with task grid.
     <li>contains two resizable parts: task grid and Gantt chart</li>
     <li>tree-like structure with expandable and selectable rows</li>
     <li>support for tasks with two date pairs (planned and actual)</li>
+    <li>single or multiple row selection mode</li>
     <li>localization support
         <ul>
             <li>three out-of-box supported languages: English, Ukrainian, Russian</li>
@@ -171,6 +172,9 @@ const chart = new tsGantt.TsGantt("#container-selector", options); // umd
  
 ```javascript
    // some default values ommited for brevity. you can always see them in 'TsGanttOptions' source code
+   
+  multilineSelection = true; // allow multiple rows to be selected at the same time
+  useCtrlKeyForMultilineSelection = false; // enable using ctrl key to select multiple rows
 
   drawTodayLine = true; // draw a vertical line on chart that represents today  
   highlightRowsDependingOnTaskState = true; // change row text color depending on task state
@@ -227,7 +231,7 @@ const chart = new tsGantt.TsGantt("#container-selector", options); // umd
 
 ## TODO list
 <ul>
-    <li>add optional multiple row selection</li>
+    <li><del>add optional multiple row selection</del> added in 0.2.0</li>
     <li>add optional possibility to move/resize chart bars</li>
     <li>make grid columns resizable</li>
     <li>allow column reorder</li>

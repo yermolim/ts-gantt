@@ -98,7 +98,7 @@
                     ganttChart.chartDisplayMode = mode;
                 }
                 function select(id) {
-                    ganttChart.selectedTask = {id};
+                    ganttChart.selectedTasks = [{id}];
                 }
 
                 document.getElementById("btn-locale-en").addEventListener("click", () => setLocale("en"));

@@ -139,9 +139,7 @@ class TsGantt {
     if (!detail) {
       return;
     }
-    const newSelectedTask = this._tasks.find(x => x.uuid === detail.uuid);
-    // MOVE TO SEPARATE METHOD
-    this.selectTasks([newSelectedTask], detail.ctrl);
+    this.changeSelection(detail.uuid, detail.ctrl);
   });    
   onRowExpanderClick = <EventListener>((e: CustomEvent) => {
     this.toggleTaskExpanded(e.detail.uuid);
@@ -230,7 +228,30 @@ class TsGantt {
     this.update(null);
   }
 
-  private selectTasks(newSelectedTasks: TsGanttTask[], keepPreviousSelection = false) {
+  private changeSelection(uuid: string, ctrl: boolean) {
+    const task = this._tasks.find(x => x.uuid === uuid);
+    if (!task) {
+      return;
+    }
+    const selectedTasks = [];
+    const taskInCurrentSelected = this._selectedTasks.map(x => x.uuid).includes(uuid);
+    if (this._options.multilineSelection 
+      && (!this._options.useCtrlKeyForMultilineSelection 
+      || (this._options.useCtrlKeyForMultilineSelection && ctrl))) {
+      selectedTasks.push(...this._selectedTasks);
+      if (!taskInCurrentSelected) {
+        selectedTasks.push(task);
+      } else {          
+        selectedTasks.splice(selectedTasks.findIndex(x => x.uuid === uuid), 1);
+      }  
+    } else {
+      selectedTasks.push(task);
+    }    
+
+    this.selectTasks(selectedTasks);
+  }
+
+  private selectTasks(newSelectedTasks: TsGanttTask[]) {
     const oldSelectedTasks = this._selectedTasks;
     const selectionEmpty = oldSelectedTasks.length === 0 && newSelectedTasks.length === 0;
     if (selectionEmpty) {
@@ -256,6 +277,12 @@ class TsGantt {
       this.scrollChartToTasks(newUuids);
     }
   } 
+
+  private refreshSelection() {   
+    const tasks = this._selectedTasks.filter(x => !TsGanttTask
+      .checkForCollapsedParent(this._tasks, x));
+    this.selectTasks(tasks);   
+  }
 
   scrollChartToTasks(uuids: string[]) {    
     const offset = Math.min(...uuids.map(x => this._chart.getBarOffsetByTaskUuid(x)));
@@ -299,12 +326,6 @@ class TsGantt {
       all: this._tasks,
     });
     this.refreshSelection();
-  }
-
-  private refreshSelection() {   
-    const tasks = this._selectedTasks.filter(x => !TsGanttTask
-      .checkForCollapsedParent(this._tasks, x));
-    this.selectTasks(tasks);   
   }
   // #endregion
 }

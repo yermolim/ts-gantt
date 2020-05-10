@@ -57,6 +57,8 @@ export interface TsGanttTaskChangeResult {
 	all: TsGanttTask[];
 }
 export declare class TsGanttOptions {
+	multilineSelection: boolean;
+	useCtrlKeyForMultilineSelection: boolean;
 	drawTodayLine: boolean;
 	highlightRowsDependingOnTaskState: boolean;
 	columnsMinWidthPx: number[];
@@ -155,13 +157,14 @@ export declare class TsGantt {
 	private createLayout;
 	private updateTasks;
 	private toggleTaskExpanded;
+	private changeSelection;
 	private selectTasks;
+	private refreshSelection;
 	scrollChartToTasks(uuids: string[]): void;
 	private update;
 	private updateLocale;
 	private updateChartScale;
 	private updateChartDisplayMode;
-	private refreshSelection;
 }
 
 export {};

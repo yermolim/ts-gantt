@@ -86,6 +86,8 @@ function getAllDatesBetweenTwoDates(start, end) {
 
 class TsGanttOptions {
     constructor(item = null) {
+        this.multilineSelection = true;
+        this.useCtrlKeyForMultilineSelection = false;
         this.drawTodayLine = true;
         this.highlightRowsDependingOnTaskState = true;
         this.columnsMinWidthPx = [200, 100, 100, 100, 100, 100, 100, 100];
@@ -1256,8 +1258,7 @@ class TsGantt {
             if (!detail) {
                 return;
             }
-            const newSelectedTask = this._tasks.find(x => x.uuid === detail.uuid);
-            this.selectTasks([newSelectedTask], detail.ctrl);
+            this.changeSelection(detail.uuid, detail.ctrl);
         });
         this.onRowExpanderClick = ((e) => {
             this.toggleTaskExpanded(e.detail.uuid);
@@ -1377,7 +1378,30 @@ class TsGantt {
         }
         this.update(null);
     }
-    selectTasks(newSelectedTasks, keepPreviousSelection = false) {
+    changeSelection(uuid, ctrl) {
+        const task = this._tasks.find(x => x.uuid === uuid);
+        if (!task) {
+            return;
+        }
+        const selectedTasks = [];
+        const taskInCurrentSelected = this._selectedTasks.map(x => x.uuid).includes(uuid);
+        if (this._options.multilineSelection
+            && (!this._options.useCtrlKeyForMultilineSelection
+                || (this._options.useCtrlKeyForMultilineSelection && ctrl))) {
+            selectedTasks.push(...this._selectedTasks);
+            if (!taskInCurrentSelected) {
+                selectedTasks.push(task);
+            }
+            else {
+                selectedTasks.splice(selectedTasks.findIndex(x => x.uuid === uuid), 1);
+            }
+        }
+        else {
+            selectedTasks.push(task);
+        }
+        this.selectTasks(selectedTasks);
+    }
+    selectTasks(newSelectedTasks) {
         const oldSelectedTasks = this._selectedTasks;
         const selectionEmpty = oldSelectedTasks.length === 0 && newSelectedTasks.length === 0;
         if (selectionEmpty) {
@@ -1398,6 +1422,11 @@ class TsGantt {
         if (newSelectedTasks) {
             this.scrollChartToTasks(newUuids);
         }
+    }
+    refreshSelection() {
+        const tasks = this._selectedTasks.filter(x => !TsGanttTask
+            .checkForCollapsedParent(this._tasks, x));
+        this.selectTasks(tasks);
     }
     scrollChartToTasks(uuids) {
         const offset = Math.min(...uuids.map(x => this._chart.getBarOffsetByTaskUuid(x)));
@@ -1437,11 +1466,6 @@ class TsGantt {
             all: this._tasks,
         });
         this.refreshSelection();
-    }
-    refreshSelection() {
-        const tasks = this._selectedTasks.filter(x => !TsGanttTask
-            .checkForCollapsedParent(this._tasks, x));
-        this.selectTasks(tasks);
     }
 }
 
