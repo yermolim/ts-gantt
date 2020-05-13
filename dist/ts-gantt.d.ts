@@ -161,11 +161,12 @@ export declare class TsGantt {
 	private changeSelection;
 	private selectTasks;
 	private refreshSelection;
-	scrollChartToTasks(uuids: string[]): void;
+	private scrollChartToTasks;
 	private update;
 	private updateLocale;
 	private updateChartScale;
 	private updateChartDisplayMode;
+	private getShownUuidsRecursively;
 }
 
 export {};

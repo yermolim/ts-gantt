@@ -298,7 +298,7 @@ class TsGantt {
     this.selectTasks(tasks);   
   }
 
-  scrollChartToTasks(uuids: string[]) {    
+  private scrollChartToTasks(uuids: string[]) {    
     const offset = Math.min(...uuids.map(x => this._chart.getBarOffsetByTaskUuid(x)));
     if (offset) {
       this._htmlChartWrapper.scrollLeft = offset - 20;
@@ -306,8 +306,9 @@ class TsGantt {
   }
 
   private update(data: TsGanttTaskChangeResult) {
-    this._table.update(false, data);
-    this._chart.update(false, data);
+    const uuids = this.getShownUuidsRecursively();
+    this._table.update(false, data, uuids);
+    this._chart.update(false, data, uuids);
     this.refreshSelection();
   }
 
@@ -340,6 +341,22 @@ class TsGantt {
       all: this._tasks,
     });
     this.refreshSelection();
+  }   
+
+  private getShownUuidsRecursively(parentUuid: string = null): string[] {      
+    const tasksFiltered = this._tasks.filter(x => x.parentUuid === parentUuid)
+      .sort((a: TsGanttTask, b: TsGanttTask): number => a.compareTo(b));
+    const uuids: string[] = [];
+    for (const task of tasksFiltered) {
+      if (!task.shown) {
+        continue;
+      }
+      uuids.push(task.uuid);
+      if (task.expanded) {
+        uuids.push(...this.getShownUuidsRecursively(task.uuid));
+      }
+    }
+    return uuids;
   }
   // #endregion
 }

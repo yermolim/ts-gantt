@@ -15,7 +15,9 @@ class TsGanttTable {
   private _htmlBody: HTMLTableSectionElement;
 
   private _tableColumns: TsGanttTableColumn[];
-  private _tableRows: TsGanttTableRow[] = [];
+  private _tableRows: Map<string, TsGanttTableRow> = new Map<string, TsGanttTableRow>();
+
+  private _activeUuids: string[] = [];
 
   constructor(options: TsGanttOptions) {    
     this._options = options;
@@ -32,12 +34,15 @@ class TsGanttTable {
     this.updateColumns();
   }
 
-  update(updateColumns: boolean, data: TsGanttTaskChangeResult ) {
+  update(updateColumns: boolean, data: TsGanttTaskChangeResult, uuids: string[] = null) {
     if (updateColumns) {
       this.updateColumns();
     }
     if (data) {
       this.updateRows(data);
+    }
+    if (uuids) {
+      this._activeUuids = uuids;
     }
     this.redraw();
   }
@@ -45,13 +50,13 @@ class TsGanttTable {
   applySelection(selectionResult: TsGanttTaskSelectionChangeResult) {
     const {selected, deselected} = selectionResult;
     for (const uuid of deselected) {
-      const row = this._tableRows.find(x => x.task.uuid === uuid);
+      const row = this._tableRows.get(uuid);
       if (row) {
         row.html.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
       }
     }
     for (const uuid of selected) {
-      const row = this._tableRows.find(x => x.task.uuid === uuid);
+      const row = this._tableRows.get(uuid);
       if (row) {
         row.html.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
       }
@@ -76,19 +81,9 @@ class TsGanttTable {
     const rows = this._tableRows;
     const addStateClass = this._options.highlightRowsDependingOnTaskState;
 
-    data.deleted.forEach(x => {
-      const index = rows.findIndex(y => y.task.uuid === x.uuid);
-      if (index !== 1) {
-        rows.splice(index, 1);
-      }
-    });
-    data.changed.forEach(x => {      
-      const index = rows.findIndex(y => y.task.uuid === x.uuid);
-      if (index !== -1) {
-        rows[index] = new TsGanttTableRow(x, columns, addStateClass);
-      }
-    });
-    data.added.forEach(x => rows.push(new TsGanttTableRow(x, columns, addStateClass)));
+    data.deleted.forEach(x => rows.delete(x.uuid));
+    data.changed.forEach(x => rows.set(x.uuid, new TsGanttTableRow(x, columns, addStateClass)));
+    data.added.forEach(x => rows.set(x.uuid, new TsGanttTableRow(x, columns, addStateClass)));
   }
 
   private redraw() {    
@@ -99,29 +94,20 @@ class TsGanttTable {
     this._htmlHead.append(headerRow);  
 
     this._htmlBody.innerHTML = "";
-    this._htmlBody.append(...this.getRowsHtmlRecursively(this._tableRows, null));
+    this._htmlBody.append(...this._activeUuids.map(x => this.getRowHtml(x)));
   }
 
-  private getRowsHtmlRecursively(rows: TsGanttTableRow[], parentUuid: string): HTMLTableRowElement[] {
+  private getRowHtml(uuid: string): HTMLTableRowElement {    
     const symbols = this._options.rowSymbols;
-    const rowsFiltered = rows.filter(x => x.task.parentUuid === parentUuid)
-      .sort((a: TsGanttTableRow, b: TsGanttTableRow): number => a.task.compareTo(b.task));
-    const rowsHtml: HTMLTableRowElement[] = [];
-    for (const row of rowsFiltered) {
-      if (!row.task.shown) {
-        continue;
-      }
-      rowsHtml.push(row.html);
-      if (!row.task.hasChildren) {
-        row.expander.innerHTML = symbols.childless;
-      } else if (row.task.expanded) {
-        row.expander.innerHTML = symbols.expanded;
-        rowsHtml.push(...this.getRowsHtmlRecursively(rows, row.task.uuid));
-      } else {
-        row.expander.innerHTML = symbols.collapsed;
-      }
+    const row = this._tableRows.get(uuid);
+    if (!row.task.hasChildren) {
+      row.expander.innerHTML = symbols.childless;
+    } else if (row.task.expanded) {
+      row.expander.innerHTML = symbols.expanded;
+    } else {
+      row.expander.innerHTML = symbols.collapsed;
     }
-    return rowsHtml;
+    return row.html;
   }
 }
 
