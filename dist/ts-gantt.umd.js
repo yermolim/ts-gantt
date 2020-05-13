@@ -11,6 +11,7 @@
     TsGanttConst.CSS_VAR_ROW_HEIGHT = "--tsg-row-height";
     TsGanttConst.CSS_VAR_GRIDLINES_WIDTH = "--tsg-gridlines-width";
     TsGanttConst.CSS_VAR_BAR_STROKE_WIDTH = "--tsg-bar-stroke-width";
+    TsGanttConst.TEXT_SELECTION_DISABLED = "tsg-no-text-selection";
     TsGanttConst.WRAPPER_CLASS = "tsg-wrapper";
     TsGanttConst.FOOTER_CLASS = "tsg-footer";
     TsGanttConst.TABLE_WRAPPER_CLASS = "tsg-table-wrapper";
@@ -23,11 +24,12 @@
     TsGanttConst.ROW_SELECTED_CLASS = "selected";
     TsGanttConst.ROW_OVERDUE_CLASS = "overdue";
     TsGanttConst.ROW_CLICK = "tsgrowclick";
+    TsGanttConst.TABLE_COLUMN_RESIZER = "tsg-column-resizer";
     TsGanttConst.TABLE_CELL_TEXT_WRAPPER_CLASS = "tsg-cell-text-wrapper";
     TsGanttConst.TABLE_CELL_TEXT_CLASS = "tsg-cell-text";
     TsGanttConst.TABLE_CELL_INDENT_CLASS = "tsg-cell-text-indent";
     TsGanttConst.TABLE_CELL_EXPANDER_CLASS = "tsg-cell-text-expander";
-    TsGanttConst.CELL_EXPANDER_CLICK = "tsgexpanderclick";
+    TsGanttConst.TABLE_CELL_EXPANDER_CLICK = "tsgexpanderclick";
     TsGanttConst.CHART_HEADER_CLASS = "tsg-chart-header";
     TsGanttConst.CHART_HEADER_BACKGROUND_CLASS = "tsg-chart-header-bg";
     TsGanttConst.CHART_HEADER_GRIDLINES_CLASS = "tsg-chart-header-gl";
@@ -460,20 +462,52 @@
 
     class TsGanttTableColumn {
         constructor(minWidth, textAlign, header, valueGetter) {
+            this._dragActive = false;
+            this.onMouseDownOnResizer = (e) => {
+                document.addEventListener("mousemove", this.onMouseMoveWhileResizing);
+                document.addEventListener("mouseup", this.onMouseUpWhileResizing);
+                document.addEventListener("touchmove", this.onMouseMoveWhileResizing, { passive: false });
+                document.addEventListener("touchend", this.onMouseUpWhileResizing);
+                this._dragActive = true;
+            };
+            this.onMouseMoveWhileResizing = (e) => {
+                if (!this._dragActive) {
+                    return false;
+                }
+                const headerOffset = this.html.getBoundingClientRect().left;
+                const userDefinedWidth = e instanceof MouseEvent
+                    ? e.clientX - headerOffset
+                    : e.touches[0].clientX - headerOffset;
+                this.html.style.minWidth = Math.max(this.minWidth, userDefinedWidth) + "px";
+                e.preventDefault();
+            };
+            this.onMouseUpWhileResizing = (e) => {
+                document.removeEventListener("mousemove", this.onMouseMoveWhileResizing);
+                document.removeEventListener("mouseup", this.onMouseUpWhileResizing);
+                document.removeEventListener("touchmove", this.onMouseMoveWhileResizing, { passive: false });
+                document.removeEventListener("touchend", this.onMouseUpWhileResizing);
+                this._dragActive = false;
+            };
             this.minWidth = minWidth;
             this.contentAlign = textAlign;
             this.header = header;
             this.valueGetter = valueGetter;
-            const headerCell = document.createElement("th");
-            headerCell.style.minWidth = this.minWidth + "px";
-            headerCell.innerHTML = this.header;
-            this.html = this.generateHtml();
+            this.html = this.createHeader();
+            this.resizer = this.createResizer();
+            this.resizer.addEventListener("mousedown", this.onMouseDownOnResizer);
+            this.resizer.addEventListener("touchstart", this.onMouseDownOnResizer);
+            this.html.append(this.resizer);
         }
-        generateHtml() {
+        createHeader() {
             const headerCell = document.createElement("th");
             headerCell.style.minWidth = this.minWidth + "px";
             headerCell.innerHTML = this.header;
             return headerCell;
+        }
+        createResizer() {
+            const resizer = document.createElement("div");
+            resizer.classList.add(TsGanttConst.TABLE_COLUMN_RESIZER);
+            return resizer;
         }
     }
     class TsGanttTableRow {
@@ -528,7 +562,7 @@
             expander.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
             if (this.task.hasChildren) {
                 expander.addEventListener("click", (e) => {
-                    expander.dispatchEvent(new CustomEvent(TsGanttConst.CELL_EXPANDER_CLICK, {
+                    expander.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, {
                         bubbles: true,
                         detail: { uuid: this.task.uuid },
                     }));
@@ -1222,22 +1256,30 @@
                 this._htmlChartWrapper.style.width =
                     (wrapperWidth - tableWrapperWidth - this._options.separatorWidthPx) + "px";
             };
-            this.onMouseDownOnSep = (e) => {
-                if (e.target === this._htmlSeparator) {
-                    this._htmlSeparatorDragActive = true;
-                }
+            this.onMouseDownOnPartsSeparator = (e) => {
+                document.addEventListener("mousemove", this.onMouseMoveWhileResizingParts);
+                document.addEventListener("mouseup", this.onMouseUpWhileResizingParts);
+                document.addEventListener("touchmove", this.onMouseMoveWhileResizingParts);
+                document.addEventListener("touchend", this.onMouseUpWhileResizingParts);
+                this._htmlSeparatorDragActive = true;
             };
-            this.onMouseMoveOnSep = (e) => {
+            this.onMouseMoveWhileResizingParts = (e) => {
                 if (!this._htmlSeparatorDragActive) {
                     return false;
                 }
                 const wrapperLeftOffset = this._htmlWrapper.offsetLeft;
                 const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
-                const userDefinedWidth = e.clientX - wrapperLeftOffset;
+                const userDefinedWidth = e instanceof MouseEvent
+                    ? e.clientX - wrapperLeftOffset
+                    : e.touches[0].clientX - wrapperLeftOffset;
                 this._htmlTableWrapper.style.width = (userDefinedWidth - this._options.separatorWidthPx) + "px";
                 this._htmlChartWrapper.style.width = (wrapperWidth - userDefinedWidth) + "px";
             };
-            this.onMouseUpOnSep = (e) => {
+            this.onMouseUpWhileResizingParts = (e) => {
+                document.removeEventListener("mousemove", this.onMouseMoveWhileResizingParts);
+                document.removeEventListener("mouseup", this.onMouseUpWhileResizingParts);
+                document.removeEventListener("touchmove", this.onMouseMoveWhileResizingParts);
+                document.removeEventListener("touchend", this.onMouseUpWhileResizingParts);
                 this._htmlSeparatorDragActive = false;
             };
             this.onWrapperScroll = ((e) => {
@@ -1311,8 +1353,8 @@
             }
         }
         destroy() {
-            this.removeResizeEventListeners();
-            this.removeRowEventListeners();
+            this.removeWindowEventListeners();
+            this.removeDocumentEventListeners();
             this._htmlWrapper.remove();
         }
         expandAll(state) {
@@ -1324,15 +1366,12 @@
             }
             this.update(null);
         }
-        removeResizeEventListeners() {
+        removeWindowEventListeners() {
             window.removeEventListener("resize", this.onResize);
-            document.removeEventListener("mousedown", this.onMouseDownOnSep);
-            document.removeEventListener("mousemove", this.onMouseMoveOnSep);
-            document.removeEventListener("mouseup", this.onMouseUpOnSep);
         }
-        removeRowEventListeners() {
+        removeDocumentEventListeners() {
             document.removeEventListener(TsGanttConst.ROW_CLICK, this.onRowClick);
-            document.removeEventListener(TsGanttConst.CELL_EXPANDER_CLICK, this.onRowExpanderClick);
+            document.removeEventListener(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
         }
         setCssVariables(options) {
             document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_SEPARATOR_WIDTH, options.separatorWidthPx + "px");
@@ -1343,7 +1382,7 @@
         }
         createLayout() {
             const wrapper = document.createElement("div");
-            wrapper.classList.add(TsGanttConst.WRAPPER_CLASS);
+            wrapper.classList.add(TsGanttConst.WRAPPER_CLASS, TsGanttConst.TEXT_SELECTION_DISABLED);
             const tableWrapper = document.createElement("div");
             tableWrapper.classList.add(TsGanttConst.TABLE_WRAPPER_CLASS);
             const chartWrapper = document.createElement("div");
@@ -1359,17 +1398,16 @@
             chartWrapper.append(this._chart.html);
             tableWrapper.addEventListener("scroll", this.onWrapperScroll);
             chartWrapper.addEventListener("scroll", this.onWrapperScroll);
+            separator.addEventListener("mousedown", this.onMouseDownOnPartsSeparator);
+            separator.addEventListener("touchstart", this.onMouseDownOnPartsSeparator);
             this._htmlContainer.append(wrapper);
             this._htmlWrapper = wrapper;
             this._htmlTableWrapper = tableWrapper;
             this._htmlChartWrapper = chartWrapper;
             this._htmlSeparator = separator;
             window.addEventListener("resize", this.onResize);
-            document.addEventListener("mousedown", this.onMouseDownOnSep);
-            document.addEventListener("mousemove", this.onMouseMoveOnSep);
-            document.addEventListener("mouseup", this.onMouseUpOnSep);
             document.addEventListener(TsGanttConst.ROW_CLICK, this.onRowClick);
-            document.addEventListener(TsGanttConst.CELL_EXPANDER_CLICK, this.onRowExpanderClick);
+            document.addEventListener(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
         }
         updateTasks(taskModels) {
             const oldTasks = this._tasks;

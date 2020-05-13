@@ -4,6 +4,8 @@ class TsGanttConst {
   static readonly CSS_VAR_ROW_HEIGHT = "--tsg-row-height";
   static readonly CSS_VAR_GRIDLINES_WIDTH = "--tsg-gridlines-width";
   static readonly CSS_VAR_BAR_STROKE_WIDTH = "--tsg-bar-stroke-width";
+  
+  static readonly TEXT_SELECTION_DISABLED = "tsg-no-text-selection";
 
   static readonly WRAPPER_CLASS = "tsg-wrapper";
   static readonly FOOTER_CLASS = "tsg-footer";
@@ -19,11 +21,12 @@ class TsGanttConst {
   static readonly ROW_OVERDUE_CLASS = "overdue";
   static readonly ROW_CLICK = "tsgrowclick";
 
+  static readonly TABLE_COLUMN_RESIZER = "tsg-column-resizer";
   static readonly TABLE_CELL_TEXT_WRAPPER_CLASS = "tsg-cell-text-wrapper";
   static readonly TABLE_CELL_TEXT_CLASS = "tsg-cell-text";
   static readonly TABLE_CELL_INDENT_CLASS = "tsg-cell-text-indent";
   static readonly TABLE_CELL_EXPANDER_CLASS = "tsg-cell-text-expander";  
-  static readonly CELL_EXPANDER_CLICK = "tsgexpanderclick";
+  static readonly TABLE_CELL_EXPANDER_CLICK = "tsgexpanderclick";
   
   static readonly CHART_HEADER_CLASS = "tsg-chart-header";
   static readonly CHART_HEADER_BACKGROUND_CLASS = "tsg-chart-header-bg";

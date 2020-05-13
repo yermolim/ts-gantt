@@ -29,6 +29,15 @@
   --tsg-max-cell-text-lines: 2;
 }
 
+.tsg-no-text-selection {  
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 .tsg-wrapper {  
   position: relative;
   box-sizing: border-box;
@@ -82,11 +91,20 @@
   position: sticky;
   top: 0;
   padding: 5px;
+  font-size: var(--tsg-font-size);
   border-width: 0 var(--tsg-gridlines-width) var(--tsg-gridlines-width) 0;
   border-color: var(--tsg-border-color);
   border-style: solid;
   background-color: var(--tsg-header-color);
   z-index: 5;
+}
+.tsg-table thead th .tsg-column-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 100%;
+  cursor: col-resize;
 }
 
 .tsg-table tbody tr {

@@ -4,10 +4,15 @@ import { TsGanttRowSymbols } from "./ts-gantt-options";
 
 class TsGanttTableColumn {
   readonly html: HTMLTableHeaderCellElement;
+  readonly resizer: HTMLDivElement;
+
   readonly minWidth: number;
   readonly header: string;
   readonly contentAlign: "start" | "center" | "end";
-  valueGetter: (a: TsGanttTask) => string;
+
+  readonly valueGetter: (a: TsGanttTask) => string;
+
+  private _dragActive = false;
 
   constructor(minWidth: number, textAlign: "start" | "center" | "end", header: string, 
     valueGetter: (a: TsGanttTask) => string) {
@@ -17,18 +22,55 @@ class TsGanttTableColumn {
     this.header = header;
     this.valueGetter = valueGetter;
 
-    const headerCell = document.createElement("th");
-    headerCell.style.minWidth = this.minWidth + "px";
-    headerCell.innerHTML = this.header;
+    this.html = this.createHeader();
 
-    this.html = this.generateHtml();
+    this.resizer = this.createResizer();
+    this.resizer.addEventListener("mousedown", this.onMouseDownOnResizer);
+    this.resizer.addEventListener("touchstart", this.onMouseDownOnResizer);
+    this.html.append(this.resizer);    
   }
 
-  private generateHtml(): HTMLTableHeaderCellElement {    
+  onMouseDownOnResizer = (e: MouseEvent | TouchEvent) => {
+    document.addEventListener("mousemove", this.onMouseMoveWhileResizing);
+    document.addEventListener("mouseup", this.onMouseUpWhileResizing);
+    document.addEventListener("touchmove", this.onMouseMoveWhileResizing, 
+      <EventListenerOptions>{passive: false});
+    document.addEventListener("touchend", this.onMouseUpWhileResizing);
+    this._dragActive = true;
+  };         
+  onMouseMoveWhileResizing = (e: MouseEvent | TouchEvent) => {
+    if (!this._dragActive) {
+      return false;
+    }  
+    const headerOffset = this.html.getBoundingClientRect().left;
+    const userDefinedWidth = e instanceof MouseEvent
+      ? e.clientX - headerOffset
+      : e.touches[0].clientX - headerOffset;
+
+    this.html.style.minWidth = Math.max(this.minWidth, userDefinedWidth) + "px";
+
+    e.preventDefault();
+  };        
+  onMouseUpWhileResizing = (e: MouseEvent | TouchEvent) => {
+    document.removeEventListener("mousemove", this.onMouseMoveWhileResizing);
+    document.removeEventListener("mouseup", this.onMouseUpWhileResizing);
+    document.removeEventListener("touchmove", this.onMouseMoveWhileResizing, 
+      <EventListenerOptions>{passive: false});
+    document.removeEventListener("touchend", this.onMouseUpWhileResizing);
+    this._dragActive = false;
+  }; 
+
+  private createHeader(): HTMLTableHeaderCellElement {    
     const headerCell = document.createElement("th");
     headerCell.style.minWidth = this.minWidth + "px";
     headerCell.innerHTML = this.header;
     return headerCell;
+  }
+
+  private createResizer(): HTMLDivElement {
+    const resizer = document.createElement("div");
+    resizer.classList.add(TsGanttConst.TABLE_COLUMN_RESIZER);
+    return resizer;
   }
 }
 
@@ -98,7 +140,7 @@ class TsGanttTableRow {
     expander.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
     if (this.task.hasChildren) {          
       expander.addEventListener("click", (e: Event) => {
-        expander.dispatchEvent(new CustomEvent(TsGanttConst.CELL_EXPANDER_CLICK, {
+        expander.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, {
           bubbles: true,
           detail: {uuid: this.task.uuid},
         }));

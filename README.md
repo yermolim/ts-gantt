@@ -18,6 +18,7 @@ Simple library for creating gantt chart combined with task grid.
 <ul>
     <li>highly customizable</li>
     <li>contains two resizable parts: task grid and Gantt chart</li>
+    <li>resizable grid columns</li>
     <li>tree-like structure with expandable and selectable rows</li>
     <li>support for tasks with two date pairs (planned and actual)</li>
     <li>single or multiple row selection mode</li>
@@ -232,10 +233,10 @@ const chart = new tsGantt.TsGantt("#container-selector", options); // umd
 ## TODO list
 <ul>
     <li><del>add optional multiple row selection</del> added in 0.2.0</li>
+    <li><del>make grid columns resizable</del> added in 0.2.2</li>
     <li>add optional possibility to move/resize chart bars</li>
-    <li>make grid columns resizable</li>
-    <li>allow column reorder</li>
     <li>add tooltips on bar hover</li>
+    <li>allow column reorder</li>
     <li>increase code coverage</li>
     <li>optimize task change detection</li>
     <li>add row virtualization</li>
