@@ -1315,6 +1315,15 @@
             this.removeRowEventListeners();
             this._htmlWrapper.remove();
         }
+        expandAll(state) {
+            for (const task of this._tasks) {
+                task.expanded = state;
+                if (task.parentUuid) {
+                    task.shown = state;
+                }
+            }
+            this.update(null);
+        }
         removeResizeEventListeners() {
             window.removeEventListener("resize", this.onResize);
             document.removeEventListener("mousedown", this.onMouseDownOnSep);

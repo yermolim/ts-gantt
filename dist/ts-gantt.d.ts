@@ -144,6 +144,7 @@ export declare class TsGantt {
 	set chartDisplayMode(value: "planned" | "actual" | "both");
 	constructor(containerSelector: string, options: TsGanttOptions);
 	destroy(): void;
+	expandAll(state: boolean): void;
 	onResize: (e: Event) => void;
 	onMouseDownOnSep: (e: MouseEvent) => void;
 	onMouseMoveOnSep: (e: MouseEvent) => boolean;

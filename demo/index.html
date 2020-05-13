@@ -76,7 +76,11 @@
         </div>  
         <div class="button-div">
             <button id="btn-row-select">Select</button>
-        </div>         
+        </div>   
+        <div class="button-div">
+            <button id="btn-all-expand">Expand</button>
+            <button id="btn-all-collapse">Collapse</button>
+        </div>          
       
         <script src="./ts-gantt.umd.min.js"></script>
         <script>
@@ -100,6 +104,12 @@
                 function select(id) {
                     ganttChart.selectedTasks = [{id}];
                 }
+                function expandAll() {
+                    ganttChart.expandAll(true);
+                }
+                function collapseAll() {
+                    ganttChart.expandAll(false);
+                }
 
                 document.getElementById("btn-locale-en").addEventListener("click", () => setLocale("en"));
                 document.getElementById("btn-locale-uk").addEventListener("click", () => setLocale("uk"));
@@ -115,6 +125,9 @@
                 document.getElementById("btn-bar-actual").addEventListener("click", () => setDisplayMode("actual"));
 
                 document.getElementById("btn-row-select").addEventListener("click", () => select(inputModels[0].id));
+
+                document.getElementById("btn-all-expand").addEventListener("click", () => expandAll());
+                document.getElementById("btn-all-collapse").addEventListener("click", () => collapseAll());
 
             }).catch(e => console.log(e));
         </script> 

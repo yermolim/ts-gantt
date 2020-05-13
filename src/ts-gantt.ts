@@ -86,6 +86,16 @@ class TsGantt {
     this._htmlWrapper.remove();
   }
 
+  expandAll(state: boolean) {
+    for (const task of this._tasks) {
+      task.expanded = state;
+      if (task.parentUuid) {
+        task.shown = state;
+      }
+    }
+    this.update(null);
+  }
+
   // #region event listeners
   onResize = (e: Event) => {
     const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
