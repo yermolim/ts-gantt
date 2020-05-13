@@ -1,6 +1,6 @@
 {
   "name": "ts-gantt",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "simple gantt chart written using typescript",
   "main": "dist/ts-gantt.umd.min.js",
   "module": "dist/ts-gantt.esm.min.js",
