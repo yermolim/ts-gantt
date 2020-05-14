@@ -222,8 +222,10 @@ class TsGantt {
     const oldTasks = this._tasks;
     const oldTasksIdMap = TsGanttTask.createTasksIdMap(oldTasks);
     const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldTasksIdMap);
-    this._tasks = newTasks;
-    return TsGanttTask.detectTaskChanges({oldTasks, newTasks});
+
+    const changes = TsGanttTask.detectTaskChanges({oldTasks, newTasks});
+    this._tasks = changes.all;
+    return changes;
   }
   
   private toggleTaskExpanded(uuid: string) {
@@ -233,7 +235,7 @@ class TsGantt {
         targetTask = task;
         targetTask.expanded = !targetTask.expanded;
       } else if (task.parentUuid === uuid) {
-        task.shown = !task.shown;
+        task.shown = targetTask.expanded;
       }
     }
     if (!targetTask) {

@@ -337,17 +337,23 @@
             const deleted = oldTasks.filter(x => !newUuids.includes(x.uuid));
             const added = [];
             const changed = [];
+            const all = [];
             for (const newTask of newTasks) {
                 if (!oldUuids.includes(newTask.uuid)) {
                     added.push(newTask);
+                    all.push(newTask);
                     continue;
                 }
                 const oldTask = oldTasks.find(x => x.uuid === newTask.uuid);
                 if (!newTask.equals(oldTask)) {
                     changed.push(newTask);
+                    all.push(newTask);
+                }
+                else {
+                    all.push(oldTask);
                 }
             }
-            return { deleted, added, changed, all: newTasks };
+            return { deleted, added, changed, all };
         }
         static createTasksIdMap(tasks) {
             const idsMap = new Map();
@@ -1386,8 +1392,9 @@
             const oldTasks = this._tasks;
             const oldTasksIdMap = TsGanttTask.createTasksIdMap(oldTasks);
             const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldTasksIdMap);
-            this._tasks = newTasks;
-            return TsGanttTask.detectTaskChanges({ oldTasks, newTasks });
+            const changes = TsGanttTask.detectTaskChanges({ oldTasks, newTasks });
+            this._tasks = changes.all;
+            return changes;
         }
         toggleTaskExpanded(uuid) {
             let targetTask;
@@ -1397,7 +1404,7 @@
                     targetTask.expanded = !targetTask.expanded;
                 }
                 else if (task.parentUuid === uuid) {
-                    task.shown = !task.shown;
+                    task.shown = targetTask.expanded;
                 }
             }
             if (!targetTask) {

@@ -115,19 +115,24 @@ class TsGanttTask {
     const deleted: TsGanttTask[] = oldTasks.filter(x => !newUuids.includes(x.uuid));
     const added: TsGanttTask[] = [];
     const changed: TsGanttTask[] = [];
+    const all: TsGanttTask[] = [];
 
     for (const newTask of newTasks) {
       if (!oldUuids.includes(newTask.uuid)) {
         added.push(newTask);
+        all.push(newTask);
         continue;
       }
       const oldTask = oldTasks.find(x => x.uuid === newTask.uuid);
       if (!newTask.equals(oldTask)) {
         changed.push(newTask);
+        all.push(newTask);
+      } else {
+        all.push(oldTask);
       }
     }
 
-    return { deleted, added, changed, all: newTasks };
+    return { deleted, added, changed, all };
   }
 
   static createTasksIdMap(tasks: TsGanttTask[]): Map<string, string> {
