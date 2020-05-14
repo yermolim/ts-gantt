@@ -57,7 +57,7 @@ class TsGanttTask {
   }
 
   static convertModelsToTasks(taskModels: TsGanttTaskModel[], 
-    idsMap = new Map<string, string>()): TsGanttTask[] {
+    idMap = new Map<string, string>()): TsGanttTask[] {
 
     const models = taskModels.slice();
     const allParentIds = new Set(models.map(x => x.parentId));
@@ -72,7 +72,7 @@ class TsGanttTask {
           model.datePlannedStart, model.datePlannedEnd, 
           model.dateActualStart, model.dateActualEnd, 
           0, allParentIds.has(model.id), 
-          null, idsMap.get(model.id));
+          null, idMap.get(model.id));
         tasks.push(newTask);
         currentLevelTasks.push(newTask);
         models.splice(i, 1);
@@ -92,7 +92,7 @@ class TsGanttTask {
               model.datePlannedStart, model.datePlannedEnd, 
               model.dateActualStart, model.dateActualEnd,
               currentNestingLvl, allParentIds.has(model.id), 
-              task.uuid, idsMap.get(model.id));
+              task.uuid, idMap.get(model.id));
             tasks.push(newTask);
             nextLevelTasks.push(newTask);
             models.splice(i, 1);
@@ -129,8 +129,8 @@ class TsGanttTask {
 
     return { deleted, added, changed, all: newTasks };
   }
-  
-  static getTasksIdsMap(tasks: TsGanttTask[]): Map<string, string> {
+
+  static createTasksIdMap(tasks: TsGanttTask[]): Map<string, string> {
     const idsMap = new Map<string, string>();
     for (const task of tasks) {
       if (!idsMap.has(task.externalId)) {
@@ -195,28 +195,28 @@ class TsGanttTask {
     if (this.nestingLvl < another.nestingLvl) {
       return -1;
     }
-    if (this.datePlannedStart?.unix() > another.datePlannedStart?.unix()) {
+    if ((this.datePlannedStart?.unix() || 0) > (another.datePlannedStart?.unix() || 0)) {
       return 1;
     }
-    if (this.datePlannedStart?.unix() < another.datePlannedStart?.unix()) {
+    if ((this.datePlannedStart?.unix() || 0) < another.datePlannedStart?.unix() || 0) {
       return -1;
     }
-    if (this.datePlannedEnd?.unix() > another.datePlannedEnd?.unix()) {
+    if ((this.datePlannedEnd?.unix() || 0) > (another.datePlannedEnd?.unix() || 0)) {
       return 1;
     }
-    if (this.datePlannedEnd?.unix() < another.datePlannedEnd?.unix()) {
+    if ((this.datePlannedEnd?.unix() || 0) < (another.datePlannedEnd?.unix() || 0)) {
       return -1;
     }
-    if (this.dateActualStart?.unix() > another.dateActualStart?.unix()) {
+    if ((this.dateActualStart?.unix() || 0) > (another.dateActualStart?.unix() || 0)) {
       return 1;
     }
-    if (this.dateActualStart?.unix() < another.dateActualStart?.unix()) {
+    if ((this.dateActualStart?.unix() || 0) < (another.dateActualStart?.unix() || 0)) {
       return -1;
     }
-    if (this.dateActualEnd?.unix() > another.dateActualEnd?.unix()) {
+    if ((this.dateActualEnd?.unix() || 0) > (another.dateActualEnd?.unix() || 0)) {
       return 1;
     }
-    if (this.dateActualEnd?.unix() < another.dateActualEnd?.unix()) {
+    if ((this.dateActualEnd?.unix() || 0) < (another.dateActualEnd?.unix() || 0)) {
       return -1;
     }
     return this.name.localeCompare(another.name);
@@ -243,7 +243,7 @@ class TsGanttTask {
     return "in-progress";
   }  
   
-  convertToModel(): TsGanttTaskModel {
+  getModel(): TsGanttTaskModel {
     return <TsGanttTaskModel>{
       id: this.externalId,
       parentId: this.parentExternalId,

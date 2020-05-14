@@ -14,7 +14,7 @@ class TsGantt {
 
   private _tasks: TsGanttTask[] = [];
   get tasks(): TsGanttTaskModel[] {
-    return this._tasks.map(x => x.convertToModel());
+    return this._tasks.map(x => x.getModel());
   }  
   set tasks(models: TsGanttTaskModel[]) {
     const changeDetectionResult = this.updateTasks(models);
@@ -23,7 +23,7 @@ class TsGantt {
 
   private _selectedTasks: TsGanttTask[] = [];
   get selectedTasks(): TsGanttTaskModel[] {
-    return this._selectedTasks.map(x => x.convertToModel());
+    return this._selectedTasks.map(x => x.getModel());
   }
   set selectedTasks(models: TsGanttTaskModel[]) {
     const ids = models.map(x => x.id);
@@ -220,7 +220,7 @@ class TsGantt {
   // #region task actions
   private updateTasks(taskModels: TsGanttTaskModel[]): TsGanttTaskChangeResult {
     const oldTasks = this._tasks;
-    const oldTasksIdMap = TsGanttTask.getTasksIdsMap(oldTasks);
+    const oldTasksIdMap = TsGanttTask.createTasksIdMap(oldTasks);
     const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldTasksIdMap);
     this._tasks = newTasks;
     return TsGanttTask.detectTaskChanges({oldTasks, newTasks});

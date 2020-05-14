@@ -1,4 +1,5 @@
 import { TsGanttTaskModel, TsGanttTask } from "../src/ts-gantt-task";
+import dayjs from "dayjs";
 
 const inputModels = [
   {
@@ -107,10 +108,10 @@ const inputModelsUpdated = [
     parentId: "root2child1id", 
     name: "Root2child1child1", 
     progress: 15, 
-    datePlannedStart: new Date(2020, 5, 6), 
-    datePlannedEnd: new Date(2020, 5, 16), 
   },
 ];
+
+
 
 describe("TsGanttTask", () => {
   
@@ -148,6 +149,17 @@ describe("TsGanttTask", () => {
     expect(tasks.find(x => x.externalId === "root3id").hasChildren).toEqual(false);
     expect(tasks.find(x => x.externalId === "root1child1child1id").hasChildren).toEqual(false);
   });
+
+  const taskForStateCheckNotStarted =  new TsGanttTask("id", null, "name", null, 0);
+  const taskForStateCheckInProgress =  new TsGanttTask("id", null, "name", null, 20);
+  const taskForStateCheckCompletedNoPlannedEndDate =  new TsGanttTask("id", 
+    null, "name", null, 100,
+    new  Date("2020-01-01"));
+  const taskForStateCheckCompletedActualEndNotAfterPlanned =  new TsGanttTask("id", null, "name", null, 100,
+    new  Date("2020-01-01"),
+    new  Date("2020-02-02"),
+    new  Date("2020-02-02"),
+    new  Date("2020-02-02"));
     
   it("getState should return correct state", () => {
     expect(tasks.find(x => x.externalId === "root1id").getState()).toEqual("in-progress");
@@ -157,9 +169,13 @@ describe("TsGanttTask", () => {
     expect(tasks.find(x => x.externalId === "root1child2id").getState()).toEqual("not-started");
     expect(tasks.find(x => x.externalId === "root1child1child1id").getState()).toEqual("completed");
     expect(tasks.find(x => x.externalId === "root2child1id").getState()).toEqual("completed-late");
+    expect(taskForStateCheckNotStarted.getState()).toEqual("not-started");
+    expect(taskForStateCheckInProgress.getState()).toEqual("in-progress");
+    expect(taskForStateCheckCompletedNoPlannedEndDate.getState()).toEqual("completed");
+    expect(taskForStateCheckCompletedActualEndNotAfterPlanned.getState()).toEqual("completed");
   });
   
-  it("equality test should return correct result", () => {
+  it("equality test should return correct results", () => {
     expect(tasks[0].equals(tasks[0])).toBeTruthy();
     expect(tasks[0].equals(tasks[1])).toBeFalsy();
     expect(tasks[0].equals(tasks[2])).toBeFalsy();
@@ -167,6 +183,132 @@ describe("TsGanttTask", () => {
     expect(tasks[0].equals(tasks[4])).toBeFalsy();
     expect(tasks[0].equals(tasks[5])).toBeFalsy();
     expect(tasks[0].equals(tasks[6])).toBeFalsy();
+  });
+    
+  const taskForCompare =  tasks.find(x => x.externalId === "root2child1id");
+  const taskForCompareNoPlannedStartDate =  new TsGanttTask(taskForCompare.externalId, 
+    taskForCompare.parentExternalId,
+    taskForCompare.name, null, 100,
+    null);
+  const taskForCompareNoPlannedEndDate =  new TsGanttTask(taskForCompare.externalId, 
+    taskForCompare.parentExternalId,
+    taskForCompare.name, null, 100,
+    taskForCompare.datePlannedStart.toDate(), 
+    null);
+  const taskForCompareNoActualStartDate =  new TsGanttTask(taskForCompare.externalId, 
+    taskForCompare.parentExternalId,
+    taskForCompare.name, null, 100,
+    taskForCompare.datePlannedStart.toDate(), 
+    taskForCompare.datePlannedEnd.toDate(), 
+    null);
+  const taskForCompareNoActualEndDate =  new TsGanttTask(taskForCompare.externalId, 
+    taskForCompare.parentExternalId,
+    taskForCompare.name, null, 100,
+    taskForCompare.datePlannedStart.toDate(), 
+    taskForCompare.datePlannedEnd.toDate(), 
+    taskForCompare.dateActualStart.toDate(), 
+    null);
+
+  it("compareTo should return correct results", () => {
+    expect(taskForCompare.compareTo(taskForCompare)).toEqual(0);
+    expect(taskForCompareNoPlannedStartDate.compareTo(taskForCompareNoPlannedStartDate)).toEqual(0);
+    expect(taskForCompareNoPlannedEndDate.compareTo(taskForCompareNoPlannedEndDate)).toEqual(0);
+    expect(taskForCompareNoActualStartDate.compareTo(taskForCompareNoActualStartDate)).toEqual(0);
+    expect(taskForCompareNoActualEndDate.compareTo(taskForCompareNoActualEndDate)).toEqual(0);
+    expect(taskForCompare.compareTo(<TsGanttTask>{
+      nestingLvl: 0,
+    })).toEqual(1);
+    expect(taskForCompare.compareTo(<TsGanttTask>{
+      nestingLvl: 1, 
+      datePlannedStart: dayjs("2020-5-6"),
+    })).toEqual(1);
+    expect(taskForCompare.compareTo(<TsGanttTask>{
+      nestingLvl: 1, 
+      datePlannedStart: null,
+    })).toEqual(1);
+    expect(taskForCompare.compareTo(<TsGanttTask>{
+      nestingLvl: 1, 
+      datePlannedStart: dayjs("2020-6-6"),
+      datePlannedEnd: dayjs("2020-5-16"),
+    })).toEqual(1);
+    expect(taskForCompare.compareTo(<TsGanttTask>{
+      nestingLvl: 1, 
+      datePlannedStart: dayjs("2020-6-6"),
+      datePlannedEnd: null,
+    })).toEqual(1);
+    expect(taskForCompare.compareTo(<TsGanttTask>{
+      nestingLvl: 1, 
+      datePlannedStart: dayjs("2020-6-6"),
+      datePlannedEnd: dayjs("2020-6-16"),
+      dateActualStart: dayjs("2020-5-6"),
+    })).toEqual(1);
+    expect(taskForCompare.compareTo(<TsGanttTask>{
+      nestingLvl: 1, 
+      datePlannedStart: dayjs("2020-6-6"),
+      datePlannedEnd: dayjs("2020-6-16"),
+      dateActualStart: null,
+    })).toEqual(1);
+    expect(taskForCompare.compareTo(<TsGanttTask>{
+      nestingLvl: 1, 
+      datePlannedStart: dayjs("2020-6-6"),
+      datePlannedEnd: dayjs("2020-6-16"),
+      dateActualStart: dayjs("2020-6-6"),
+      dateActualEnd: dayjs("2020-5-26"),
+    })).toEqual(1);
+    expect(taskForCompare.compareTo(<TsGanttTask>{
+      nestingLvl: 1, 
+      datePlannedStart: dayjs("2020-6-6"),
+      datePlannedEnd: dayjs("2020-6-16"),
+      dateActualStart: dayjs("2020-6-6"),
+      dateActualEnd: null,
+    })).toEqual(1);
+    expect(taskForCompare.compareTo(<TsGanttTask>{
+      nestingLvl: 2,
+    })).toEqual(-1);
+    expect(taskForCompare.compareTo(<TsGanttTask>{
+      nestingLvl: 1, 
+      datePlannedStart: dayjs("2020-7-6"),
+    })).toEqual(-1);
+    expect(taskForCompareNoPlannedStartDate.compareTo(<TsGanttTask>{
+      nestingLvl: 1, 
+      datePlannedStart: dayjs("2020-7-6"),
+    })).toEqual(-1);
+    expect(taskForCompare.compareTo(<TsGanttTask>{
+      nestingLvl: 1,
+      datePlannedStart: dayjs("2020-6-6"),
+      datePlannedEnd: dayjs("2020-7-16"),
+    })).toEqual(-1);
+    expect(taskForCompareNoPlannedEndDate.compareTo(<TsGanttTask>{
+      nestingLvl: 1,
+      datePlannedStart: dayjs("2020-6-6"),
+      datePlannedEnd: dayjs("2020-7-16"),
+    })).toEqual(-1);
+    expect(taskForCompare.compareTo(<TsGanttTask>{
+      nestingLvl: 1, 
+      datePlannedStart: dayjs("2020-6-6"),
+      datePlannedEnd: dayjs("2020-6-16"),
+      dateActualStart: dayjs("2020-7-6"),
+    })).toEqual(-1);
+    expect(taskForCompareNoActualStartDate.compareTo(<TsGanttTask>{
+      nestingLvl: 1, 
+      datePlannedStart: dayjs("2020-6-6"),
+      datePlannedEnd: dayjs("2020-6-16"),
+      dateActualStart: dayjs("2020-7-6"),
+    })).toEqual(-1);
+    expect(taskForCompare.compareTo(<TsGanttTask>{
+      nestingLvl: 1, 
+      datePlannedStart: dayjs("2020-6-6"),
+      datePlannedEnd: dayjs("2020-6-16"),
+      dateActualStart: dayjs("2020-6-6"),
+      dateActualEnd: dayjs("2020-7-26"),
+    })).toEqual(-1);   
+    expect(taskForCompareNoActualEndDate.compareTo(<TsGanttTask>{
+      nestingLvl: 1, 
+      datePlannedStart: dayjs("2020-6-6"),
+      datePlannedEnd: dayjs("2020-6-16"),
+      dateActualStart: dayjs("2020-6-6"),
+      dateActualEnd: dayjs("2020-7-26"),
+    })).toEqual(-1);   
   });
   
   it("paternity check should return correct results", () => {
@@ -185,13 +327,20 @@ describe("TsGanttTask", () => {
     expect(TsGanttTask.checkPaternity(tasks,
       tasks.find(x => x.externalId === "root1id"),
       tasks.find(x => x.externalId === "root1child1child1id"))).toBeTruthy();
+    expect(TsGanttTask.checkPaternity(tasks,
+      tasks.find(x => x.externalId === "root1id"),
+      <TsGanttTask>{parentUuid: "test"})).toBeFalsy();
   });
+
+  tasks.find(x => x.externalId === "root1child1id").expanded = true;
   
   it("search for collapsed parent should return correct results", () => {
     expect(TsGanttTask.checkForCollapsedParent(tasks, 
       tasks.find(x => x.externalId === "root1id"))).toBeFalsy();
     expect(TsGanttTask.checkForCollapsedParent(tasks, 
       tasks.find(x => x.externalId === "root2child1id"))).toBeTruthy();
+    expect(TsGanttTask.checkForCollapsedParent(tasks, 
+      tasks.find(x => x.externalId === "root1child1child1id"))).toBeTruthy();      
   });
 
   const sortedTasks = TsGanttTask.sortTasksRecursively(tasks, null);
@@ -209,7 +358,7 @@ describe("TsGanttTask", () => {
     expect(sortedTasks[6].externalId).toEqual("root3id");
   });
 
-  const models = tasks.map(x => x.convertToModel());
+  const models = tasks.map(x => x.getModel());
 
   it("converted models should be instanciated from tasks", () => {
     expect(models).toBeTruthy();
@@ -231,8 +380,8 @@ describe("TsGanttTask", () => {
     expect(firstModelOut.dateActualEnd || null).toEqual(firstModelIn.dateActualEnd || null);
   });
   
-  const oldTasksIdMap = TsGanttTask.getTasksIdsMap(tasks); 
-   
+  const oldTasksIdMap = TsGanttTask.createTasksIdMap([...tasks, <TsGanttTask>{externalId: "root1id"}]); 
+
   it("tasks id map should have correct length", () => {
     expect(oldTasksIdMap.size).toEqual(7);
   });  

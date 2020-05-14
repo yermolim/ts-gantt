@@ -297,7 +297,7 @@
             this.shown = !parentUuid;
             this.expanded = false;
         }
-        static convertModelsToTasks(taskModels, idsMap = new Map()) {
+        static convertModelsToTasks(taskModels, idMap = new Map()) {
             const models = taskModels.slice();
             const allParentIds = new Set(models.map(x => x.parentId));
             const tasks = [];
@@ -305,7 +305,7 @@
             for (let i = models.length - 1; i >= 0; i--) {
                 const model = models[i];
                 if (!model.parentId) {
-                    const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 0, allParentIds.has(model.id), null, idsMap.get(model.id));
+                    const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 0, allParentIds.has(model.id), null, idMap.get(model.id));
                     tasks.push(newTask);
                     currentLevelTasks.push(newTask);
                     models.splice(i, 1);
@@ -318,7 +318,7 @@
                     for (let i = models.length - 1; i >= 0; i--) {
                         const model = models[i];
                         if (model.parentId === task.externalId) {
-                            const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, currentNestingLvl, allParentIds.has(model.id), task.uuid, idsMap.get(model.id));
+                            const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, currentNestingLvl, allParentIds.has(model.id), task.uuid, idMap.get(model.id));
                             tasks.push(newTask);
                             nextLevelTasks.push(newTask);
                             models.splice(i, 1);
@@ -349,7 +349,7 @@
             }
             return { deleted, added, changed, all: newTasks };
         }
-        static getTasksIdsMap(tasks) {
+        static createTasksIdMap(tasks) {
             const idsMap = new Map();
             for (const task of tasks) {
                 if (!idsMap.has(task.externalId)) {
@@ -409,28 +409,28 @@
             if (this.nestingLvl < another.nestingLvl) {
                 return -1;
             }
-            if (((_a = this.datePlannedStart) === null || _a === void 0 ? void 0 : _a.unix()) > ((_b = another.datePlannedStart) === null || _b === void 0 ? void 0 : _b.unix())) {
+            if ((((_a = this.datePlannedStart) === null || _a === void 0 ? void 0 : _a.unix()) || 0) > (((_b = another.datePlannedStart) === null || _b === void 0 ? void 0 : _b.unix()) || 0)) {
                 return 1;
             }
-            if (((_c = this.datePlannedStart) === null || _c === void 0 ? void 0 : _c.unix()) < ((_d = another.datePlannedStart) === null || _d === void 0 ? void 0 : _d.unix())) {
+            if ((((_c = this.datePlannedStart) === null || _c === void 0 ? void 0 : _c.unix()) || 0) < ((_d = another.datePlannedStart) === null || _d === void 0 ? void 0 : _d.unix()) || 0) {
                 return -1;
             }
-            if (((_e = this.datePlannedEnd) === null || _e === void 0 ? void 0 : _e.unix()) > ((_f = another.datePlannedEnd) === null || _f === void 0 ? void 0 : _f.unix())) {
+            if ((((_e = this.datePlannedEnd) === null || _e === void 0 ? void 0 : _e.unix()) || 0) > (((_f = another.datePlannedEnd) === null || _f === void 0 ? void 0 : _f.unix()) || 0)) {
                 return 1;
             }
-            if (((_g = this.datePlannedEnd) === null || _g === void 0 ? void 0 : _g.unix()) < ((_h = another.datePlannedEnd) === null || _h === void 0 ? void 0 : _h.unix())) {
+            if ((((_g = this.datePlannedEnd) === null || _g === void 0 ? void 0 : _g.unix()) || 0) < (((_h = another.datePlannedEnd) === null || _h === void 0 ? void 0 : _h.unix()) || 0)) {
                 return -1;
             }
-            if (((_j = this.dateActualStart) === null || _j === void 0 ? void 0 : _j.unix()) > ((_k = another.dateActualStart) === null || _k === void 0 ? void 0 : _k.unix())) {
+            if ((((_j = this.dateActualStart) === null || _j === void 0 ? void 0 : _j.unix()) || 0) > (((_k = another.dateActualStart) === null || _k === void 0 ? void 0 : _k.unix()) || 0)) {
                 return 1;
             }
-            if (((_l = this.dateActualStart) === null || _l === void 0 ? void 0 : _l.unix()) < ((_m = another.dateActualStart) === null || _m === void 0 ? void 0 : _m.unix())) {
+            if ((((_l = this.dateActualStart) === null || _l === void 0 ? void 0 : _l.unix()) || 0) < (((_m = another.dateActualStart) === null || _m === void 0 ? void 0 : _m.unix()) || 0)) {
                 return -1;
             }
-            if (((_o = this.dateActualEnd) === null || _o === void 0 ? void 0 : _o.unix()) > ((_p = another.dateActualEnd) === null || _p === void 0 ? void 0 : _p.unix())) {
+            if ((((_o = this.dateActualEnd) === null || _o === void 0 ? void 0 : _o.unix()) || 0) > (((_p = another.dateActualEnd) === null || _p === void 0 ? void 0 : _p.unix()) || 0)) {
                 return 1;
             }
-            if (((_q = this.dateActualEnd) === null || _q === void 0 ? void 0 : _q.unix()) < ((_r = another.dateActualEnd) === null || _r === void 0 ? void 0 : _r.unix())) {
+            if ((((_q = this.dateActualEnd) === null || _q === void 0 ? void 0 : _q.unix()) || 0) < (((_r = another.dateActualEnd) === null || _r === void 0 ? void 0 : _r.unix()) || 0)) {
                 return -1;
             }
             return this.name.localeCompare(another.name);
@@ -453,7 +453,7 @@
             }
             return "in-progress";
         }
-        convertToModel() {
+        getModel() {
             var _a, _b, _c, _d;
             return {
                 id: this.externalId,
@@ -1293,14 +1293,14 @@
             this.createLayout();
         }
         get tasks() {
-            return this._tasks.map(x => x.convertToModel());
+            return this._tasks.map(x => x.getModel());
         }
         set tasks(models) {
             const changeDetectionResult = this.updateTasks(models);
             this.update(changeDetectionResult);
         }
         get selectedTasks() {
-            return this._selectedTasks.map(x => x.convertToModel());
+            return this._selectedTasks.map(x => x.getModel());
         }
         set selectedTasks(models) {
             const ids = models.map(x => x.id);
@@ -1384,7 +1384,7 @@
         }
         updateTasks(taskModels) {
             const oldTasks = this._tasks;
-            const oldTasksIdMap = TsGanttTask.getTasksIdsMap(oldTasks);
+            const oldTasksIdMap = TsGanttTask.createTasksIdMap(oldTasks);
             const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldTasksIdMap);
             this._tasks = newTasks;
             return TsGanttTask.detectTaskChanges({ oldTasks, newTasks });
