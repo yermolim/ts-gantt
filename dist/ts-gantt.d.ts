@@ -23,8 +23,9 @@ declare class TsGanttTask {
 	constructor(id: string, parentId: string, name: string, localizedNames: {
 		[key: string]: string;
 	}, progress: number, datePlannedStart?: Date, datePlannedEnd?: Date, dateActualStart?: Date, dateActualEnd?: Date, nestingLvl?: number, hasChildren?: boolean, parentUuid?: string, uuid?: string);
-	static convertModelsToTasks(taskModels: TsGanttTaskModel[]): TsGanttTask[];
+	static convertModelsToTasks(taskModels: TsGanttTaskModel[], idsMap?: Map<string, string>): TsGanttTask[];
 	static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult;
+	static getTasksIdsMap(tasks: TsGanttTask[]): Map<string, string>;
 	static checkPaternity(tasks: TsGanttTask[], parent: TsGanttTask, child: TsGanttTask): boolean;
 	static checkForCollapsedParent(tasks: TsGanttTask[], task: TsGanttTask): boolean;
 	static sortTasksRecursively(tasks: TsGanttTask[], parentUuid: string): TsGanttTask[];

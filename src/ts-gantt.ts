@@ -220,7 +220,8 @@ class TsGantt {
   // #region task actions
   private updateTasks(taskModels: TsGanttTaskModel[]): TsGanttTaskChangeResult {
     const oldTasks = this._tasks;
-    const newTasks = TsGanttTask.convertModelsToTasks(taskModels);
+    const oldTasksIdMap = TsGanttTask.getTasksIdsMap(oldTasks);
+    const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldTasksIdMap);
     this._tasks = newTasks;
     return TsGanttTask.detectTaskChanges({oldTasks, newTasks});
   }

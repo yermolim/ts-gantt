@@ -56,7 +56,8 @@ class TsGanttTask {
     this.expanded = false;
   }
 
-  static convertModelsToTasks(taskModels: TsGanttTaskModel[]): TsGanttTask[] {
+  static convertModelsToTasks(taskModels: TsGanttTaskModel[], 
+    idsMap = new Map<string, string>()): TsGanttTask[] {
 
     const models = taskModels.slice();
     const allParentIds = new Set(models.map(x => x.parentId));
@@ -70,7 +71,8 @@ class TsGanttTask {
           model.name, model.localizedNames, model.progress,
           model.datePlannedStart, model.datePlannedEnd, 
           model.dateActualStart, model.dateActualEnd, 
-          0, allParentIds.has(model.id));
+          0, allParentIds.has(model.id), 
+          null, idsMap.get(model.id));
         tasks.push(newTask);
         currentLevelTasks.push(newTask);
         models.splice(i, 1);
@@ -89,7 +91,8 @@ class TsGanttTask {
               model.name, model.localizedNames, model.progress,
               model.datePlannedStart, model.datePlannedEnd, 
               model.dateActualStart, model.dateActualEnd,
-              currentNestingLvl, allParentIds.has(model.id), task.uuid);
+              currentNestingLvl, allParentIds.has(model.id), 
+              task.uuid, idsMap.get(model.id));
             tasks.push(newTask);
             nextLevelTasks.push(newTask);
             models.splice(i, 1);
@@ -106,19 +109,19 @@ class TsGanttTask {
     
   static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult {
     const { oldTasks, newTasks } = data;
-    const oldIds = oldTasks.map(x => x.externalId);
-    const newIds = newTasks.map(x => x.externalId);
+    const oldUuids = oldTasks.map(x => x.uuid);
+    const newUuids = newTasks.map(x => x.uuid);
 
-    const deleted: TsGanttTask[] = oldTasks.filter(x => !newIds.includes(x.externalId));
+    const deleted: TsGanttTask[] = oldTasks.filter(x => !newUuids.includes(x.uuid));
     const added: TsGanttTask[] = [];
     const changed: TsGanttTask[] = [];
 
     for (const newTask of newTasks) {
-      if (!oldIds.includes(newTask.externalId)) {
+      if (!oldUuids.includes(newTask.uuid)) {
         added.push(newTask);
         continue;
       }
-      const oldTask = oldTasks.find(x => x.externalId === newTask.externalId);
+      const oldTask = oldTasks.find(x => x.uuid === newTask.uuid);
       if (!newTask.equals(oldTask)) {
         changed.push(newTask);
       }
@@ -126,6 +129,16 @@ class TsGanttTask {
 
     return { deleted, added, changed, all: newTasks };
   }
+  
+  static getTasksIdsMap(tasks: TsGanttTask[]): Map<string, string> {
+    const idsMap = new Map<string, string>();
+    for (const task of tasks) {
+      if (!idsMap.has(task.externalId)) {
+        idsMap.set(task.externalId, task.uuid);
+      }
+    }
+    return idsMap;
+  }  
 
   static checkPaternity(tasks: TsGanttTask[], 
     parent: TsGanttTask, child: TsGanttTask): boolean {

@@ -231,7 +231,16 @@ describe("TsGanttTask", () => {
     expect(firstModelOut.dateActualEnd || null).toEqual(firstModelIn.dateActualEnd || null);
   });
   
-  const tasksUpdated = TsGanttTask.convertModelsToTasks(inputModelsUpdated);
+  const oldTasksIdMap = TsGanttTask.getTasksIdsMap(tasks); 
+   
+  it("tasks id map should have correct length", () => {
+    expect(oldTasksIdMap.size).toEqual(7);
+  });  
+  it("tasks id map should have correct pairs", () => {
+    expect(oldTasksIdMap.get("root1id")).toEqual(tasks.find(x => x.externalId === "root1id").uuid);
+  });  
+
+  const tasksUpdated = TsGanttTask.convertModelsToTasks(inputModelsUpdated, oldTasksIdMap);
   const changes = TsGanttTask.detectTaskChanges({oldTasks: tasks, newTasks: tasksUpdated});
 
   it("change detection should instanciate object", () => {
