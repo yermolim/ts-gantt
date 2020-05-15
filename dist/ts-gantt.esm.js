@@ -720,7 +720,7 @@ class TsGanttChartBarGroup {
     }
     createSvg(minDate, maxDate, dayWidth, minWidth, rowHeight) {
         const widthDays = maxDate.diff(minDate, "day");
-        const width = Math.max(widthDays * dayWidth, minWidth);
+        const width = Math.max(widthDays * dayWidth + minWidth, minWidth);
         const barSvg = createSvgElement("svg", [TsGanttConst.CHART_BAR_GROUP_CLASS], [
             ["width", width + ""],
             ["height", rowHeight + ""],

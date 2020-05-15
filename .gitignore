@@ -38,3 +38,5 @@ testem.log
 Thumbs.db
 
 debug.log
+
+demo/data-large.json
