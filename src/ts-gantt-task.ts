@@ -248,7 +248,7 @@ class TsGanttTask {
     return "in-progress";
   }  
   
-  getModel(): TsGanttTaskModel {
+  toModel(): TsGanttTaskModel {
     return <TsGanttTaskModel>{
       id: this.externalId,
       parentId: this.parentExternalId,

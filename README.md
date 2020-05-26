@@ -161,10 +161,27 @@ preffered way to customize styling is to change css variable values
 }
 ```
 #### Options
-you can apply your custom options by passing options objects with the properties you need as second parameter to 'TsGantt' constructor
+you can apply your custom options by passing options object as second parameter to 'TsGantt' constructor
 ```javascript
-const chart = new TsGantt("#container-selector", options); // esm
-const chart = new tsGantt.TsGantt("#container-selector", options); // umd
+const options = new TsGanttOptions({
+    multilineSelection: false,
+    // other options you want to change
+});
+// or you can use assignment expressions (come in handy for getters and formatters that refence options object itself)
+options.columnValueGetters[0] = task => 
+    task.localizedNames && task.localizedNames[this.locale] || task.name; // value getter implementation for first column
+
+// esm chart init with options
+const chart = new TsGantt("#container-selector", options); 
+// umd chart init with options
+const chart = new tsGantt.TsGantt("#container-selector", options);
+
+// ⚠️chart class in not designed to allow changes in options instance after the chart initialization.
+// such changes can lead to unpredictable behavior.
+// to change locale, scale and display mode use appropriate TsGantt instance methods.
+// if it's very necessary to change other options after chart init then you should destroy old chart instance and create new one.
+this.chart.destroy();
+this.chart = new TsGantt("#container-selector", options);
 ```
 
 <details><summary>ℹ️ complete list of 'TsGanttOptions' class properties you can use</summary>
@@ -206,7 +223,7 @@ const chart = new tsGantt.TsGantt("#container-selector", options); // umd
   // chart timeline is redrawn only when trespassing minimal distance to chart edge to nearest bar
   chartDateOffsetDaysMin: {[key: string]: number} = {"day": 7, "week": 30, "month": 120, "year": 365};
   // width of 1 day on timeline. not recommended to use lower values than default
-  chartDayWidthPx: {[key: string]: number} = {"day": 60, "week": 20, month": 3, "year": 1};
+  chartDayWidthPx: {[key: string]: number} = {"day": 60, "week": 20, "month": 3, "year": 1};
 
   locale = "en"; // default locale
   localeDecimalSeparator: {[key: string]: string} = {en: ".", uk: ",", ru: ","};
@@ -229,12 +246,21 @@ const chart = new tsGantt.TsGantt("#container-selector", options); // umd
 </p>
 </details>
 
+### Event callbacks
+you can pass callbacks for chart row events using TsGantt properties shown below
+```javascript
+onRowClickCb: (model: TsGanttTaskModel, event: MouseEvent) => void;
+onRowDoubleClickCb: (model: TsGanttTaskModel, event: MouseEvent) => void;
+onRowContextMenuCb: (model: TsGanttTaskModel, event: MouseEvent) => void;
+onSelectionChangeCb: (models: TsGanttTaskModel[]) => void;
+```
+context menu implementation is not provided, but you can implement your own using callback 
 
 ## TODO list
 <ul>
     <li><del>add optional multiple row selection</del> added in 0.2.0</li>
     <li><del>make grid columns resizable</del> added in 0.2.2</li>
-    <li>add output events (on row click/double click, on selection change)</li>
+    <li><del>add callbacks on chart events (on row click/double click, selection change)</del> added in 0.3.0</li>
     <li>add optional possibility to move/resize chart bars</li>
     <li>add tooltips on bar hover</li>
     <li>allow column reorder</li>

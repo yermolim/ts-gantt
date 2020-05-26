@@ -20,6 +20,7 @@ class TsGanttConst {
   static readonly ROW_SELECTED_CLASS = "selected";
   static readonly ROW_OVERDUE_CLASS = "overdue";
   static readonly ROW_CLICK = "tsgrowclick";
+  static readonly ROW_CONTEXT_MENU = "tsgrowcontextmenu";
 
   static readonly TABLE_COLUMN_RESIZER = "tsg-column-resizer";
   static readonly TABLE_CELL_TEXT_WRAPPER_CLASS = "tsg-cell-text-wrapper";

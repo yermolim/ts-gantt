@@ -10,7 +10,7 @@ class TsGanttOptions {
   // enableProgressEdit = true;
 
   multilineSelection = true;
-  useCtrlKeyForMultilineSelection = false;
+  useCtrlKeyForMultilineSelection = true;
 
   drawTodayLine = true;
   highlightRowsDependingOnTaskState = true;
@@ -141,7 +141,7 @@ class TsGanttOptions {
   };
 
   columnValueGetters: ((a: TsGanttTask) => string)[] = [
-    (task: TsGanttTask) => task.localizedNames ? task.localizedNames[this.locale] || task.name : task.name,
+    (task: TsGanttTask) => task.localizedNames && task.localizedNames[this.locale] || task.name,
     (task: TsGanttTask) => (+task.progress.toFixed(2)).toLocaleString("en-US")
       .replace(".", this.localeDecimalSeparator[this.locale] || ".") + " %",
     (task: TsGanttTask) => task.datePlannedStart 

@@ -1,6 +1,5 @@
 import { TsGanttTask } from "./ts-gantt-task";
 import { TsGanttConst } from "./ts-gantt-const";
-import { TsGanttRowSymbols } from "./ts-gantt-options";
 
 class TsGanttTableColumn {
   readonly html: HTMLTableHeaderCellElement;
@@ -95,7 +94,16 @@ class TsGanttTableRow {
       if (!target.classList.contains(TsGanttConst.TABLE_CELL_EXPANDER_CLASS)) {
         row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
           bubbles: true,
-          detail: {uuid: this.task.uuid, ctrl: e.ctrlKey},
+          detail: {task: this.task, event: e},
+        }));
+      }
+    });
+    row.addEventListener("contextmenu", (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.classList.contains(TsGanttConst.TABLE_CELL_EXPANDER_CLASS)) {
+        row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU, {
+          bubbles: true,
+          detail: {task: this.task, event: e},
         }));
       }
     });

@@ -358,7 +358,7 @@ describe("TsGanttTask", () => {
     expect(sortedTasks[6].externalId).toEqual("root3id");
   });
 
-  const models = tasks.map(x => x.getModel());
+  const models = tasks.map(x => x.toModel());
 
   it("converted models should be instanciated from tasks", () => {
     expect(models).toBeTruthy();

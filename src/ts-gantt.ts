@@ -9,12 +9,22 @@ import { TsGanttTable } from "./ts-gantt-table";
 import { TsGanttChart } from "./ts-gantt-chart";
 
 class TsGantt {  
-
   private _options: TsGanttOptions;
+
+  private _htmlContainer: HTMLElement;
+  private _htmlWrapper: HTMLDivElement;
+  private _htmlTableWrapper: HTMLDivElement;
+  private _htmlChartWrapper: HTMLDivElement;
+
+  private _separatorDragActive = false;
+  private _ignoreNextScrollEvent = false;
+
+  private _table: TsGanttTable;
+  private _chart: TsGanttChart; 
 
   private _tasks: TsGanttTask[] = [];
   get tasks(): TsGanttTaskModel[] {
-    return this._tasks.map(x => x.getModel());
+    return this._tasks.map(x => x.toModel());
   }  
   set tasks(models: TsGanttTaskModel[]) {
     const changeDetectionResult = this.updateTasks(models);
@@ -23,27 +33,13 @@ class TsGantt {
 
   private _selectedTasks: TsGanttTask[] = [];
   get selectedTasks(): TsGanttTaskModel[] {
-    return this._selectedTasks.map(x => x.getModel());
+    return this._selectedTasks.map(x => x.toModel());
   }
   set selectedTasks(models: TsGanttTaskModel[]) {
     const ids = models.map(x => x.id);
     const targetTasks = this._tasks.filter(x => ids.includes(x.externalId));
     this.selectTasks(targetTasks);
-  }
-
-  private _htmlContainer: HTMLElement;
-
-  private _htmlWrapper: HTMLDivElement;
-  private _htmlTableWrapper: HTMLDivElement;
-  private _htmlChartWrapper: HTMLDivElement;
-
-  private _htmlSeparator: HTMLDivElement;
-  private _htmlSeparatorDragActive = false;
-
-  private _table: TsGanttTable;
-  private _chart: TsGanttChart;  
-
-  private _ignoreNextScrollEvent = false;
+  } 
 
   set locale(value: string) {
     if (value !== this._options.locale) {
@@ -66,10 +62,17 @@ class TsGantt {
     }
   }
 
-  constructor(containerSelector: string,
-    options: TsGanttOptions) {
+  onRowClickCb: (model: TsGanttTaskModel, event: MouseEvent) => void;
+  onRowDoubleClickCb: (model: TsGanttTaskModel, event: MouseEvent) => void;
+  onRowContextMenuCb: (model: TsGanttTaskModel, event: MouseEvent) => void;
+  onSelectionChangeCb: (models: TsGanttTaskModel[]) => void;
 
-    this._options = new TsGanttOptions(options);
+  constructor(containerSelector: string,
+    options: TsGanttOptions = null) {
+
+    this._options = options instanceof TsGanttOptions
+      ? options
+      : new TsGanttOptions(options);
     this.setCssVariables(this._options);
 
     this._htmlContainer = document.querySelector(containerSelector);
@@ -96,84 +99,7 @@ class TsGantt {
     this.update(null);
   }
 
-  // #region event listeners
-  onResize = (e: Event) => {
-    const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
-    const tableWrapperWidth = this._htmlTableWrapper.getBoundingClientRect().width;
-    this._htmlChartWrapper.style.width = 
-      (wrapperWidth - tableWrapperWidth - this._options.separatorWidthPx) + "px";
-  };
-
-  onMouseDownOnPartsSeparator = (e: MouseEvent | TouchEvent) => {
-    document.addEventListener("mousemove", this.onMouseMoveWhileResizingParts);
-    document.addEventListener("mouseup", this.onMouseUpWhileResizingParts);
-    document.addEventListener("touchmove", this.onMouseMoveWhileResizingParts);
-    document.addEventListener("touchend", this.onMouseUpWhileResizingParts);
-    this._htmlSeparatorDragActive = true;
-  };         
-  onMouseMoveWhileResizingParts = (e: MouseEvent | TouchEvent) => {
-    if (!this._htmlSeparatorDragActive) {
-      return false;
-    }  
-    const rect = this._htmlWrapper.getBoundingClientRect();
-    const wrapperLeftOffset = rect.left;
-    const wrapperWidth = rect.width;
-    const userDefinedWidth = e instanceof MouseEvent 
-      ? e.clientX - wrapperLeftOffset 
-      : e.touches[0].clientX - wrapperLeftOffset;
-
-    this._htmlTableWrapper.style.width = (userDefinedWidth - this._options.separatorWidthPx) + "px";
-    this._htmlChartWrapper.style.width = (wrapperWidth - userDefinedWidth) + "px";
-  };        
-  onMouseUpWhileResizingParts = (e: MouseEvent | TouchEvent) => {
-    document.removeEventListener("mousemove", this.onMouseMoveWhileResizingParts);
-    document.removeEventListener("mouseup", this.onMouseUpWhileResizingParts);
-    document.removeEventListener("touchmove", this.onMouseMoveWhileResizingParts);
-    document.removeEventListener("touchend", this.onMouseUpWhileResizingParts);
-    this._htmlSeparatorDragActive = false;
-  }; 
-
-  onWrapperScroll = <EventListener>((e: UIEvent) => {
-    if (this._ignoreNextScrollEvent) {
-      this._ignoreNextScrollEvent = false;
-      return;
-    }
-    this._ignoreNextScrollEvent = true;
-    
-    const wrapper = e.currentTarget as Element;
-    const scroll = wrapper.scrollTop;
-    if (wrapper === this._htmlTableWrapper) {
-      if (this._htmlChartWrapper.scrollTop !== scroll) {
-        this._htmlChartWrapper.scrollTop = scroll;
-      }
-    } else if (wrapper === this._htmlChartWrapper) {
-      if (this._htmlTableWrapper.scrollTop !== scroll) {
-        this._htmlTableWrapper.scrollTop = scroll;
-      }
-    }
-  });
-  
-  onRowClick = <EventListener>((e: CustomEvent) => {
-    const detail = e.detail;
-    if (!detail) {
-      return;
-    }
-    this.changeSelection(detail.uuid, detail.ctrl);
-  });    
-  onRowExpanderClick = <EventListener>((e: CustomEvent) => {
-    this.toggleTaskExpanded(e.detail.uuid);
-  });
-
-  private removeWindowEventListeners() {
-    window.removeEventListener("resize", this.onResize);
-  }
-
-  private removeDocumentEventListeners() {
-    document.removeEventListener(TsGanttConst.ROW_CLICK, this.onRowClick);
-    document.removeEventListener(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
-  }
-  // #endregion
-
+  // #region initialization
   private setCssVariables(options: TsGanttOptions) {
     document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_SEPARATOR_WIDTH, options.separatorWidthPx + "px");
     document.documentElement.style.setProperty(TsGanttConst.CSS_VAR_HEADER_HEIGHT, options.headerHeightPx + "px");
@@ -211,12 +137,114 @@ class TsGantt {
     this._htmlWrapper = wrapper;
     this._htmlTableWrapper = tableWrapper;
     this._htmlChartWrapper = chartWrapper;
-    this._htmlSeparator = separator;
 
     window.addEventListener("resize", this.onResize);
     document.addEventListener(TsGanttConst.ROW_CLICK, this.onRowClick);
+    document.addEventListener(TsGanttConst.ROW_CONTEXT_MENU, this.onRowContextMenu);
     document.addEventListener(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
   }
+  // #endregion
+
+  // #region event listeners
+  onResize = (e: Event) => {
+    const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
+    const tableWrapperWidth = this._htmlTableWrapper.getBoundingClientRect().width;
+    this._htmlChartWrapper.style.width = 
+      (wrapperWidth - tableWrapperWidth - this._options.separatorWidthPx) + "px";
+  };
+
+  private onMouseDownOnPartsSeparator = (e: MouseEvent | TouchEvent) => {
+    document.addEventListener("mousemove", this.onMouseMoveWhileResizingParts);
+    document.addEventListener("mouseup", this.onMouseUpWhileResizingParts);
+    document.addEventListener("touchmove", this.onMouseMoveWhileResizingParts);
+    document.addEventListener("touchend", this.onMouseUpWhileResizingParts);
+    this._separatorDragActive = true;
+  };      
+  private onMouseMoveWhileResizingParts = (e: MouseEvent | TouchEvent) => {
+    if (!this._separatorDragActive) {
+      return false;
+    }  
+    const rect = this._htmlWrapper.getBoundingClientRect();
+    const wrapperLeftOffset = rect.left;
+    const wrapperWidth = rect.width;
+    const userDefinedWidth = e instanceof MouseEvent 
+      ? e.clientX - wrapperLeftOffset 
+      : e.touches[0].clientX - wrapperLeftOffset;
+
+    this._htmlTableWrapper.style.width = (userDefinedWidth - this._options.separatorWidthPx) + "px";
+    this._htmlChartWrapper.style.width = (wrapperWidth - userDefinedWidth) + "px";
+  };       
+  private onMouseUpWhileResizingParts = (e: MouseEvent | TouchEvent) => {
+    document.removeEventListener("mousemove", this.onMouseMoveWhileResizingParts);
+    document.removeEventListener("mouseup", this.onMouseUpWhileResizingParts);
+    document.removeEventListener("touchmove", this.onMouseMoveWhileResizingParts);
+    document.removeEventListener("touchend", this.onMouseUpWhileResizingParts);
+    this._separatorDragActive = false;
+  };
+
+  private onWrapperScroll = <EventListener>((e: UIEvent) => {
+    if (this._ignoreNextScrollEvent) {
+      this._ignoreNextScrollEvent = false;
+      return;
+    }
+    this._ignoreNextScrollEvent = true;
+    
+    const wrapper = e.currentTarget as Element;
+    const scroll = wrapper.scrollTop;
+    if (wrapper === this._htmlTableWrapper) {
+      if (this._htmlChartWrapper.scrollTop !== scroll) {
+        this._htmlChartWrapper.scrollTop = scroll;
+      }
+    } else if (wrapper === this._htmlChartWrapper) {
+      if (this._htmlTableWrapper.scrollTop !== scroll) {
+        this._htmlTableWrapper.scrollTop = scroll;
+      }
+    }
+  });
+  
+  private onRowClick = <EventListener>((e: CustomEvent) => {
+    const detail: {task: TsGanttTask; event: MouseEvent} = e.detail;
+    if (!detail) {
+      return;
+    }
+    const { task, event } = detail;
+
+    if (event.detail === 1) {
+      this.changeSelection(task, event.ctrlKey);
+      if (this.onRowClickCb) {
+        this.onRowClickCb(task.toModel(), event);
+      }
+    } else if (event.detail === 2){      
+      if (this.onRowDoubleClickCb) {
+        this.onRowDoubleClickCb(task.toModel(), event);
+      }
+    }
+  });  
+  private onRowContextMenu = <EventListener>((e: CustomEvent) => {
+    const detail: {task: TsGanttTask; event: MouseEvent} = e.detail;
+    if (!detail) {
+      return;
+    }
+    const { task, event } = detail;
+
+    if (this.onRowContextMenuCb) {
+      this.onRowContextMenuCb(task.toModel(), event);
+    }
+  });
+
+  private onRowExpanderClick = <EventListener>((e: CustomEvent) => {
+    this.toggleTaskExpanded(e.detail.uuid);
+  });
+
+  private removeWindowEventListeners() {
+    window.removeEventListener("resize", this.onResize);
+  }
+  private removeDocumentEventListeners() {
+    document.removeEventListener(TsGanttConst.ROW_CLICK, this.onRowClick);
+    document.removeEventListener(TsGanttConst.ROW_CONTEXT_MENU, this.onRowContextMenu);
+    document.removeEventListener(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
+  }
+  // #endregion
 
   // #region task actions
   private updateTasks(taskModels: TsGanttTaskModel[]): TsGanttTaskChangeResult {
@@ -227,6 +255,13 @@ class TsGantt {
     const changes = TsGanttTask.detectTaskChanges({oldTasks, newTasks});
     this._tasks = changes.all;
     return changes;
+  }
+
+  private update(data: TsGanttTaskChangeResult) {
+    const uuids = this.getShownUuidsRecursively();
+    this._table.update(false, data, uuids);
+    this._chart.update(false, data, uuids);
+    this.refreshSelection();
   }
   
   private toggleTaskExpanded(uuid: string) {
@@ -246,13 +281,12 @@ class TsGantt {
     this.update(null);
   }
 
-  private changeSelection(uuid: string, ctrl: boolean) {
-    const task = this._tasks.find(x => x.uuid === uuid);
+  private changeSelection(task: TsGanttTask, ctrl: boolean) {
     if (!task) {
       return;
     }
     const selectedTasks = [];
-    const taskInCurrentSelected = this._selectedTasks.map(x => x.uuid).includes(uuid);
+    const taskInCurrentSelected = this._selectedTasks.includes(task);
     if (this._options.multilineSelection 
       && (!this._options.useCtrlKeyForMultilineSelection 
       || (this._options.useCtrlKeyForMultilineSelection && ctrl))) {
@@ -260,13 +294,19 @@ class TsGantt {
       if (!taskInCurrentSelected) {
         selectedTasks.push(task);
       } else {          
-        selectedTasks.splice(selectedTasks.findIndex(x => x.uuid === uuid), 1);
+        selectedTasks.splice(selectedTasks.findIndex(x => x === task), 1);
       }  
     } else {
       selectedTasks.push(task);
     }    
 
     this.selectTasks(selectedTasks);
+  }
+
+  private refreshSelection() {   
+    const tasks = this._selectedTasks.filter(x => !TsGanttTask
+      .checkForCollapsedParent(this._tasks, x));
+    this.selectTasks(tasks);   
   }
 
   private selectTasks(newSelectedTasks: TsGanttTask[]) {
@@ -294,26 +334,17 @@ class TsGantt {
     if (newSelectedTasks) {
       this.scrollChartToTasks(newUuids);
     }
-  } 
 
-  private refreshSelection() {   
-    const tasks = this._selectedTasks.filter(x => !TsGanttTask
-      .checkForCollapsedParent(this._tasks, x));
-    this.selectTasks(tasks);   
-  }
+    if (this.onSelectionChangeCb) {
+      this.onSelectionChangeCb(newSelectedTasks.map(x => x.toModel()));
+    }
+  } 
 
   private scrollChartToTasks(uuids: string[]) {    
     const offset = Math.min(...uuids.map(x => this._chart.getBarOffsetByTaskUuid(x)));
     if (offset) {
       this._htmlChartWrapper.scrollLeft = offset - 20;
     }
-  }
-
-  private update(data: TsGanttTaskChangeResult) {
-    const uuids = this.getShownUuidsRecursively();
-    this._table.update(false, data, uuids);
-    this._chart.update(false, data, uuids);
-    this.refreshSelection();
   }
 
   private updateLocale() {    

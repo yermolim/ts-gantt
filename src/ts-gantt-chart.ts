@@ -472,7 +472,13 @@ class TsGanttChart {
       rowWrapper.addEventListener("click", (e: MouseEvent) => {
         rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
           bubbles: true,
-          detail: {uuid: x.task.uuid, ctrl: e.ctrlKey},
+          detail: {task: x.task, event: e},
+        }));
+      });
+      rowWrapper.addEventListener("contextmenu", (e: MouseEvent) => {
+        rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU, {
+          bubbles: true,
+          detail: {task: x.task, event: e},
         }));
       });
       rowFgs.set(x.task.uuid, rowWrapper);
