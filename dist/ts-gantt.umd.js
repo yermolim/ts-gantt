@@ -1246,8 +1246,9 @@
                 if (!this._htmlSeparatorDragActive) {
                     return false;
                 }
-                const wrapperLeftOffset = this._htmlWrapper.offsetLeft;
-                const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
+                const rect = this._htmlWrapper.getBoundingClientRect();
+                const wrapperLeftOffset = rect.left;
+                const wrapperWidth = rect.width;
                 const userDefinedWidth = e instanceof MouseEvent
                     ? e.clientX - wrapperLeftOffset
                     : e.touches[0].clientX - wrapperLeftOffset;
@@ -1521,6 +1522,7 @@
 
     exports.TsGantt = TsGantt;
     exports.TsGanttOptions = TsGanttOptions;
+    exports.TsGanttTask = TsGanttTask;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

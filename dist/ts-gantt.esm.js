@@ -1240,8 +1240,9 @@ class TsGantt {
             if (!this._htmlSeparatorDragActive) {
                 return false;
             }
-            const wrapperLeftOffset = this._htmlWrapper.offsetLeft;
-            const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
+            const rect = this._htmlWrapper.getBoundingClientRect();
+            const wrapperLeftOffset = rect.left;
+            const wrapperWidth = rect.width;
             const userDefinedWidth = e instanceof MouseEvent
                 ? e.clientX - wrapperLeftOffset
                 : e.touches[0].clientX - wrapperLeftOffset;
@@ -1513,4 +1514,4 @@ class TsGantt {
     }
 }
 
-export { TsGantt, TsGanttOptions };
+export { TsGantt, TsGanttOptions, TsGanttTask };
