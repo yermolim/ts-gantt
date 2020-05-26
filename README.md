@@ -234,6 +234,7 @@ const chart = new tsGantt.TsGantt("#container-selector", options); // umd
 <ul>
     <li><del>add optional multiple row selection</del> added in 0.2.0</li>
     <li><del>make grid columns resizable</del> added in 0.2.2</li>
+    <li>add output events (on row click/double click, on selection change)</li>
     <li>add optional possibility to move/resize chart bars</li>
     <li>add tooltips on bar hover</li>
     <li>allow column reorder</li>
