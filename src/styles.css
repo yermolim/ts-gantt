@@ -178,7 +178,7 @@
   padding-right: var(--tsg-line-height);
   font-size: var(--tsg-font-size);
   line-height: var(--tsg-line-height);
-  text-align: justify; 
+  text-align: left; 
 }
 .tsg-cell-text:before {
   content: '...';
