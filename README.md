@@ -169,7 +169,7 @@ const options = new TsGanttOptions({
 });
 // or you can use assignment expressions (come in handy for getters and formatters that refence options object itself)
 options.columnValueGetters[0] = task => 
-    task.localizedNames && task.localizedNames[this.locale] || task.name; // value getter implementation for first column
+    task.localizedNames && task.localizedNames[options.locale] || task.name; // value getter implementation for first column
 
 // esm chart init with options
 const chart = new TsGantt("#container-selector", options); 
