@@ -1258,7 +1258,6 @@
             this._ignoreNextScrollEvent = false;
             this._tasks = [];
             this._selectedTasks = [];
-            this.onRowContextMenuCb = () => console.log("CONTEXT!");
             this.onResize = (e) => {
                 const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
                 const tableWrapperWidth = this._htmlTableWrapper.getBoundingClientRect().width;
