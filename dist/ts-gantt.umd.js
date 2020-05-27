@@ -308,7 +308,6 @@
             this.hasChildren = hasChildren;
             this.parentUuid = parentUuid;
             this.uuid = uuid || getRandomUuid();
-            this.shown = !parentUuid;
             this.expanded = false;
         }
         static convertModelsToTasks(taskModels, idMap = new Map()) {
@@ -602,7 +601,7 @@
                 expander.addEventListener("click", (e) => {
                     expander.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, {
                         bubbles: true,
-                        detail: { uuid: this.task.uuid },
+                        detail: { task: this.task, event: e },
                     }));
                 });
             }
@@ -1339,7 +1338,7 @@
                 }
             });
             this.onRowExpanderClick = ((e) => {
-                this.toggleTaskExpanded(e.detail.uuid);
+                this.toggleTaskExpanded(e.detail.task);
             });
             this._options = options instanceof TsGanttOptions
                 ? options
@@ -1456,20 +1455,8 @@
             this._chart.update(false, data, uuids);
             this.refreshSelection();
         }
-        toggleTaskExpanded(uuid) {
-            let targetTask;
-            for (const task of this._tasks) {
-                if (!targetTask && task.uuid === uuid) {
-                    targetTask = task;
-                    targetTask.expanded = !targetTask.expanded;
-                }
-                else if (task.parentUuid === uuid) {
-                    task.shown = targetTask.expanded;
-                }
-            }
-            if (!targetTask) {
-                return;
-            }
+        toggleTaskExpanded(task) {
+            task.expanded = !task.expanded;
             this.update(null);
         }
         changeSelection(task, ctrl) {

@@ -150,7 +150,7 @@ class TsGanttTableRow {
       expander.addEventListener("click", (e: Event) => {
         expander.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, {
           bubbles: true,
-          detail: {uuid: this.task.uuid},
+          detail: {task: this.task, event: e},
         }));
       });
     }

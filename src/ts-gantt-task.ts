@@ -52,7 +52,6 @@ class TsGanttTask {
     this.parentUuid = parentUuid;
     this.uuid = uuid || getRandomUuid();
 
-    this.shown = !parentUuid;
     this.expanded = false;
   }
 

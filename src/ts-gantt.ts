@@ -233,7 +233,7 @@ class TsGantt {
   });
 
   private onRowExpanderClick = <EventListener>((e: CustomEvent) => {
-    this.toggleTaskExpanded(e.detail.uuid);
+    this.toggleTaskExpanded(e.detail.task);
   });
 
   private removeWindowEventListeners() {
@@ -264,20 +264,8 @@ class TsGantt {
     this.refreshSelection();
   }
   
-  private toggleTaskExpanded(uuid: string) {
-    let targetTask: TsGanttTask;
-    for (const task of this._tasks) {
-      if (!targetTask && task.uuid === uuid) {
-        targetTask = task;
-        targetTask.expanded = !targetTask.expanded;
-      } else if (task.parentUuid === uuid) {
-        task.shown = targetTask.expanded;
-      }
-    }
-    if (!targetTask) {
-      return;
-    }
-
+  private toggleTaskExpanded(task: TsGanttTask) {
+    task.expanded = !task.expanded;
     this.update(null);
   }
 
