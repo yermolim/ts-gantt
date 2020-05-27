@@ -383,9 +383,6 @@ class TsGantt {
       .sort((a: TsGanttTask, b: TsGanttTask): number => a.compareTo(b));
     const uuids: string[] = [];
     for (const task of tasksFiltered) {
-      if (!task.shown) {
-        continue;
-      }
       uuids.push(task.uuid);
       if (task.expanded) {
         uuids.push(...this.getShownUuidsRecursively(task.uuid));

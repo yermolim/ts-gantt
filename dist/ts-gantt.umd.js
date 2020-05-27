@@ -1563,9 +1563,6 @@
                 .sort((a, b) => a.compareTo(b));
             const uuids = [];
             for (const task of tasksFiltered) {
-                if (!task.shown) {
-                    continue;
-                }
                 uuids.push(task.uuid);
                 if (task.expanded) {
                     uuids.push(...this.getShownUuidsRecursively(task.uuid));
