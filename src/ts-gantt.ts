@@ -139,9 +139,9 @@ class TsGantt {
     this._htmlChartWrapper = chartWrapper;
 
     window.addEventListener("resize", this.onResize);
-    document.addEventListener(TsGanttConst.ROW_CLICK, this.onRowClick);
-    document.addEventListener(TsGanttConst.ROW_CONTEXT_MENU, this.onRowContextMenu);
-    document.addEventListener(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
+    document.addEventListener(TsGanttConst.ROW_CLICK_EVENT, this.onRowClick);
+    document.addEventListener(TsGanttConst.ROW_CONTEXT_MENU_EVENT, this.onRowContextMenu);
+    document.addEventListener(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, this.onRowExpanderClick);
   }
   // #endregion
 
@@ -240,9 +240,9 @@ class TsGantt {
     window.removeEventListener("resize", this.onResize);
   }
   private removeDocumentEventListeners() {
-    document.removeEventListener(TsGanttConst.ROW_CLICK, this.onRowClick);
-    document.removeEventListener(TsGanttConst.ROW_CONTEXT_MENU, this.onRowContextMenu);
-    document.removeEventListener(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
+    document.removeEventListener(TsGanttConst.ROW_CLICK_EVENT, this.onRowClick);
+    document.removeEventListener(TsGanttConst.ROW_CONTEXT_MENU_EVENT, this.onRowContextMenu);
+    document.removeEventListener(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, this.onRowExpanderClick);
   }
   // #endregion
 

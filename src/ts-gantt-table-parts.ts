@@ -61,6 +61,7 @@ class TsGanttTableColumn {
 
   private createHeader(): HTMLTableHeaderCellElement {    
     const headerCell = document.createElement("th");
+    headerCell.classList.add(TsGanttConst.TABLE_HEADER_CLASS);
     headerCell.style.minWidth = this.minWidth + "px";
     headerCell.innerHTML = this.header;
     return headerCell;
@@ -68,7 +69,7 @@ class TsGanttTableColumn {
 
   private createResizer(): HTMLDivElement {
     const resizer = document.createElement("div");
-    resizer.classList.add(TsGanttConst.TABLE_COLUMN_RESIZER);
+    resizer.classList.add(TsGanttConst.TABLE_COLUMN_RESIZER_CLASS);
     return resizer;
   }
 }
@@ -88,11 +89,11 @@ class TsGanttTableRow {
   private createRow(columns: TsGanttTableColumn[], addStateClass: boolean): HTMLTableRowElement {
 
     const row = document.createElement("tr");
-    row.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
+    row.classList.add(TsGanttConst.TABLE_BODY_ROW_CLASS);
     row.addEventListener("click", (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.classList.contains(TsGanttConst.TABLE_CELL_EXPANDER_CLASS)) {
-        row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
+      if (!target.classList.contains(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS)) {
+        row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK_EVENT, {
           bubbles: true,
           detail: {task: this.task, event: e},
         }));
@@ -100,8 +101,8 @@ class TsGanttTableRow {
     });
     row.addEventListener("contextmenu", (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.classList.contains(TsGanttConst.TABLE_CELL_EXPANDER_CLASS)) {
-        row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU, {
+      if (!target.classList.contains(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS)) {
+        row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU_EVENT, {
           bubbles: true,
           detail: {task: this.task, event: e},
         }));
@@ -113,8 +114,9 @@ class TsGanttTableRow {
     
     columns.forEach((x, i) => {
       const cell = document.createElement("td");
+      cell.classList.add(TsGanttConst.TABLE_BODY_CELL_CLASS);
       const cellInnerDiv = document.createElement("div");
-      cellInnerDiv.classList.add(TsGanttConst.TABLE_CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
+      cellInnerDiv.classList.add(TsGanttConst.TABLE_BODY_CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
 
       if (i === 0) {
         for (let j = 0; j < this.task.nestingLvl; j++) {
@@ -124,7 +126,7 @@ class TsGanttTableRow {
       }
 
       const cellText = document.createElement("p");
-      cellText.classList.add(TsGanttConst.TABLE_CELL_TEXT_CLASS);
+      cellText.classList.add(TsGanttConst.TABLE_BODY_CELL_TEXT_CLASS);
       cellText.innerHTML = x.valueGetter(this.task);
       cellInnerDiv.append(cellText);
         
@@ -137,18 +139,17 @@ class TsGanttTableRow {
 
   private createSimpleIndent(innerHtml = ""): HTMLParagraphElement {
     const indent = document.createElement("p");
-    indent.classList.add(TsGanttConst.TABLE_CELL_INDENT_CLASS);
+    indent.classList.add(TsGanttConst.TABLE_BODY_CELL_INDENT_CLASS);
     indent.innerHTML = innerHtml;
     return indent;
   }
 
   private createExpander() {
     const expander = document.createElement("p");
-    expander.classList.add(TsGanttConst.TABLE_CELL_EXPANDER_CLASS);
-    expander.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
+    expander.classList.add(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS);
     if (this.task.hasChildren) {          
       expander.addEventListener("click", (e: Event) => {
-        expander.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, {
+        expander.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, {
           bubbles: true,
           detail: {task: this.task, event: e},
         }));

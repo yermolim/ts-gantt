@@ -470,13 +470,13 @@ class TsGanttChart {
         ["data-tsg-row-uuid", x.task.uuid],
       ], body);
       rowWrapper.addEventListener("click", (e: MouseEvent) => {
-        rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
+        rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK_EVENT, {
           bubbles: true,
           detail: {task: x.task, event: e},
         }));
       });
       rowWrapper.addEventListener("contextmenu", (e: MouseEvent) => {
-        rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU, {
+        rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU_EVENT, {
           bubbles: true,
           detail: {task: x.task, event: e},
         }));
@@ -495,13 +495,12 @@ class TsGanttChart {
     });
     
     if (drawTodayLine) {
-      const todayVerticalLine = createSvgElement("line", 
-        [TsGanttConst.CHART_BODY_GRIDLINES_CLASS, TsGanttConst.CHART_BODY_TODAY_LINE_CLASS], [
-          ["x1", todayX + ""],
-          ["y1", 0 + ""],
-          ["x2", todayX + ""],
-          ["y2", height + ""],
-        ], body);  
+      const todayVerticalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_TODAY_LINE_CLASS], [
+        ["x1", todayX + ""],
+        ["y1", 0 + ""],
+        ["x2", todayX + ""],
+        ["y2", height + ""],
+      ], body);  
     }
 
     this._chartRowBgs = rowBgs;

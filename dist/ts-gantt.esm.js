@@ -9,23 +9,24 @@ let TsGanttConst = (() => {
     TsGanttConst.TEXT_SELECTION_DISABLED = "tsg-no-text-selection";
     TsGanttConst.WRAPPER_CLASS = "tsg-wrapper";
     TsGanttConst.FOOTER_CLASS = "tsg-footer";
-    TsGanttConst.TABLE_WRAPPER_CLASS = "tsg-table-wrapper";
-    TsGanttConst.CHART_WRAPPER_CLASS = "tsg-chart-wrapper";
-    TsGanttConst.TABLE_CLASS = "tsg-table";
-    TsGanttConst.CHART_CLASS = "tsg-chart";
     TsGanttConst.SEPARATOR_CLASS = "tsg-separator";
-    TsGanttConst.ROW_UUID_ATTRIBUTE = "data-tsg-row-uuid";
-    TsGanttConst.ROW_UUID_DATASET_KEY = "tsgRowUuid";
     TsGanttConst.ROW_SELECTED_CLASS = "selected";
     TsGanttConst.ROW_OVERDUE_CLASS = "overdue";
-    TsGanttConst.ROW_CLICK = "tsgrowclick";
-    TsGanttConst.ROW_CONTEXT_MENU = "tsgrowcontextmenu";
-    TsGanttConst.TABLE_COLUMN_RESIZER = "tsg-column-resizer";
-    TsGanttConst.TABLE_CELL_TEXT_WRAPPER_CLASS = "tsg-cell-text-wrapper";
-    TsGanttConst.TABLE_CELL_TEXT_CLASS = "tsg-cell-text";
-    TsGanttConst.TABLE_CELL_INDENT_CLASS = "tsg-cell-text-indent";
-    TsGanttConst.TABLE_CELL_EXPANDER_CLASS = "tsg-cell-text-expander";
-    TsGanttConst.TABLE_CELL_EXPANDER_CLICK = "tsgexpanderclick";
+    TsGanttConst.ROW_CLICK_EVENT = "tsgrowclick";
+    TsGanttConst.ROW_CONTEXT_MENU_EVENT = "tsgrowcontextmenu";
+    TsGanttConst.TABLE_WRAPPER_CLASS = "tsg-table-wrapper";
+    TsGanttConst.TABLE_CLASS = "tsg-table";
+    TsGanttConst.TABLE_COLUMN_RESIZER_CLASS = "tsg-table-col-resizer";
+    TsGanttConst.TABLE_HEADER_CLASS = "tsg-table-header";
+    TsGanttConst.TABLE_BODY_ROW_CLASS = "tsg-table-body-row";
+    TsGanttConst.TABLE_BODY_CELL_CLASS = "tsg-table-body-cell";
+    TsGanttConst.TABLE_BODY_CELL_TEXT_WRAPPER_CLASS = "tsg-table-body-cell-text-wrapper";
+    TsGanttConst.TABLE_BODY_CELL_TEXT_CLASS = "tsg-table-body-cell-text";
+    TsGanttConst.TABLE_BODY_CELL_INDENT_CLASS = "tsg-table-body-cell-text-indent";
+    TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS = "tsg-table-body-cell-text-expander";
+    TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT = "tsgexpanderclick";
+    TsGanttConst.CHART_WRAPPER_CLASS = "tsg-chart-wrapper";
+    TsGanttConst.CHART_CLASS = "tsg-chart";
     TsGanttConst.CHART_HEADER_CLASS = "tsg-chart-header";
     TsGanttConst.CHART_HEADER_BACKGROUND_CLASS = "tsg-chart-header-bg";
     TsGanttConst.CHART_HEADER_GRIDLINES_CLASS = "tsg-chart-header-gl";
@@ -33,7 +34,7 @@ let TsGanttConst = (() => {
     TsGanttConst.CHART_BODY_CLASS = "tsg-chart-body";
     TsGanttConst.CHART_BODY_BACKGROUND_CLASS = "tsg-chart-body-bg";
     TsGanttConst.CHART_BODY_GRIDLINES_CLASS = "tsg-chart-body-gl";
-    TsGanttConst.CHART_BODY_TODAY_LINE_CLASS = "today";
+    TsGanttConst.CHART_BODY_TODAY_LINE_CLASS = "tsg-chart-body-gl-today";
     TsGanttConst.CHART_ROW_WRAPPER_CLASS = "tsg-chart-row-wrapper";
     TsGanttConst.CHART_ROW_CLASS = "tsg-chart-row";
     TsGanttConst.CHART_ROW_BACKGROUND_CLASS = "tsg-chart-row-bg";
@@ -526,13 +527,14 @@ class TsGanttTableColumn {
     }
     createHeader() {
         const headerCell = document.createElement("th");
+        headerCell.classList.add(TsGanttConst.TABLE_HEADER_CLASS);
         headerCell.style.minWidth = this.minWidth + "px";
         headerCell.innerHTML = this.header;
         return headerCell;
     }
     createResizer() {
         const resizer = document.createElement("div");
-        resizer.classList.add(TsGanttConst.TABLE_COLUMN_RESIZER);
+        resizer.classList.add(TsGanttConst.TABLE_COLUMN_RESIZER_CLASS);
         return resizer;
     }
 }
@@ -544,11 +546,11 @@ class TsGanttTableRow {
     }
     createRow(columns, addStateClass) {
         const row = document.createElement("tr");
-        row.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
+        row.classList.add(TsGanttConst.TABLE_BODY_ROW_CLASS);
         row.addEventListener("click", (e) => {
             const target = e.target;
-            if (!target.classList.contains(TsGanttConst.TABLE_CELL_EXPANDER_CLASS)) {
-                row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
+            if (!target.classList.contains(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS)) {
+                row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK_EVENT, {
                     bubbles: true,
                     detail: { task: this.task, event: e },
                 }));
@@ -556,8 +558,8 @@ class TsGanttTableRow {
         });
         row.addEventListener("contextmenu", (e) => {
             const target = e.target;
-            if (!target.classList.contains(TsGanttConst.TABLE_CELL_EXPANDER_CLASS)) {
-                row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU, {
+            if (!target.classList.contains(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS)) {
+                row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU_EVENT, {
                     bubbles: true,
                     detail: { task: this.task, event: e },
                 }));
@@ -568,8 +570,9 @@ class TsGanttTableRow {
         }
         columns.forEach((x, i) => {
             const cell = document.createElement("td");
+            cell.classList.add(TsGanttConst.TABLE_BODY_CELL_CLASS);
             const cellInnerDiv = document.createElement("div");
-            cellInnerDiv.classList.add(TsGanttConst.TABLE_CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
+            cellInnerDiv.classList.add(TsGanttConst.TABLE_BODY_CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
             if (i === 0) {
                 for (let j = 0; j < this.task.nestingLvl; j++) {
                     cellInnerDiv.append(this.createSimpleIndent());
@@ -577,7 +580,7 @@ class TsGanttTableRow {
                 cellInnerDiv.append(this.expander);
             }
             const cellText = document.createElement("p");
-            cellText.classList.add(TsGanttConst.TABLE_CELL_TEXT_CLASS);
+            cellText.classList.add(TsGanttConst.TABLE_BODY_CELL_TEXT_CLASS);
             cellText.innerHTML = x.valueGetter(this.task);
             cellInnerDiv.append(cellText);
             cell.append(cellInnerDiv);
@@ -587,17 +590,16 @@ class TsGanttTableRow {
     }
     createSimpleIndent(innerHtml = "") {
         const indent = document.createElement("p");
-        indent.classList.add(TsGanttConst.TABLE_CELL_INDENT_CLASS);
+        indent.classList.add(TsGanttConst.TABLE_BODY_CELL_INDENT_CLASS);
         indent.innerHTML = innerHtml;
         return indent;
     }
     createExpander() {
         const expander = document.createElement("p");
-        expander.classList.add(TsGanttConst.TABLE_CELL_EXPANDER_CLASS);
-        expander.setAttribute(TsGanttConst.ROW_UUID_ATTRIBUTE, this.task.uuid);
+        expander.classList.add(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS);
         if (this.task.hasChildren) {
             expander.addEventListener("click", (e) => {
-                expander.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, {
+                expander.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, {
                     bubbles: true,
                     detail: { task: this.task, event: e },
                 }));
@@ -1203,13 +1205,13 @@ class TsGanttChart {
                 ["data-tsg-row-uuid", x.task.uuid],
             ], body);
             rowWrapper.addEventListener("click", (e) => {
-                rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK, {
+                rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK_EVENT, {
                     bubbles: true,
                     detail: { task: x.task, event: e },
                 }));
             });
             rowWrapper.addEventListener("contextmenu", (e) => {
-                rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU, {
+                rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU_EVENT, {
                     bubbles: true,
                     detail: { task: x.task, event: e },
                 }));
@@ -1227,7 +1229,7 @@ class TsGanttChart {
             }
         });
         if (drawTodayLine) {
-            const todayVerticalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS, TsGanttConst.CHART_BODY_TODAY_LINE_CLASS], [
+            const todayVerticalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_TODAY_LINE_CLASS], [
                 ["x1", todayX + ""],
                 ["y1", 0 + ""],
                 ["x2", todayX + ""],
@@ -1427,17 +1429,17 @@ class TsGantt {
         this._htmlTableWrapper = tableWrapper;
         this._htmlChartWrapper = chartWrapper;
         window.addEventListener("resize", this.onResize);
-        document.addEventListener(TsGanttConst.ROW_CLICK, this.onRowClick);
-        document.addEventListener(TsGanttConst.ROW_CONTEXT_MENU, this.onRowContextMenu);
-        document.addEventListener(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
+        document.addEventListener(TsGanttConst.ROW_CLICK_EVENT, this.onRowClick);
+        document.addEventListener(TsGanttConst.ROW_CONTEXT_MENU_EVENT, this.onRowContextMenu);
+        document.addEventListener(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, this.onRowExpanderClick);
     }
     removeWindowEventListeners() {
         window.removeEventListener("resize", this.onResize);
     }
     removeDocumentEventListeners() {
-        document.removeEventListener(TsGanttConst.ROW_CLICK, this.onRowClick);
-        document.removeEventListener(TsGanttConst.ROW_CONTEXT_MENU, this.onRowContextMenu);
-        document.removeEventListener(TsGanttConst.TABLE_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
+        document.removeEventListener(TsGanttConst.ROW_CLICK_EVENT, this.onRowClick);
+        document.removeEventListener(TsGanttConst.ROW_CONTEXT_MENU_EVENT, this.onRowContextMenu);
+        document.removeEventListener(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, this.onRowExpanderClick);
     }
     updateTasks(taskModels) {
         const oldTasks = this._tasks;
