@@ -46,7 +46,7 @@ class TsGanttTableColumn {
       ? e.clientX - headerOffset
       : e.touches[0].clientX - headerOffset;
 
-    this.html.style.minWidth = Math.max(this.minWidth, userDefinedWidth) + "px";
+    this.html.style.width = Math.max(this.minWidth, userDefinedWidth) + "px";
 
     e.preventDefault();
   };        
@@ -63,6 +63,7 @@ class TsGanttTableColumn {
     const headerCell = document.createElement("th");
     headerCell.classList.add(TsGanttConst.TABLE_HEADER_CLASS);
     headerCell.style.minWidth = this.minWidth + "px";
+    headerCell.style.width = this.minWidth + "px";
     headerCell.innerHTML = this.header;
     return headerCell;
   }
@@ -119,9 +120,6 @@ class TsGanttTableRow {
       cellInnerDiv.classList.add(TsGanttConst.TABLE_BODY_CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
 
       if (i === 0) {
-        for (let j = 0; j < this.task.nestingLvl; j++) {
-          cellInnerDiv.append(this.createSimpleIndent());
-        }  
         cellInnerDiv.append(this.expander);
       }
 
@@ -137,16 +135,14 @@ class TsGanttTableRow {
     return row;
   }
 
-  private createSimpleIndent(innerHtml = ""): HTMLParagraphElement {
-    const indent = document.createElement("p");
-    indent.classList.add(TsGanttConst.TABLE_BODY_CELL_INDENT_CLASS);
-    indent.innerHTML = innerHtml;
-    return indent;
-  }
-
   private createExpander() {
     const expander = document.createElement("p");
     expander.classList.add(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS);
+    const lvl = this.task.nestingLvl;
+    if (lvl) {
+      expander.classList.add(TsGanttConst.TABLE_BODY_CELL_EXPANDER_NESTING_PREFIX + 
+        (lvl < 10 ? lvl : 10));
+    }
     if (this.task.hasChildren) {          
       expander.addEventListener("click", (e: Event) => {
         expander.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, {

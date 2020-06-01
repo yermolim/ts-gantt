@@ -22,8 +22,8 @@ let TsGanttConst = (() => {
     TsGanttConst.TABLE_BODY_CELL_CLASS = "tsg-table-body-cell";
     TsGanttConst.TABLE_BODY_CELL_TEXT_WRAPPER_CLASS = "tsg-table-body-cell-text-wrapper";
     TsGanttConst.TABLE_BODY_CELL_TEXT_CLASS = "tsg-table-body-cell-text";
-    TsGanttConst.TABLE_BODY_CELL_INDENT_CLASS = "tsg-table-body-cell-text-indent";
     TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS = "tsg-table-body-cell-text-expander";
+    TsGanttConst.TABLE_BODY_CELL_EXPANDER_NESTING_PREFIX = "nesting-";
     TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT = "tsgexpanderclick";
     TsGanttConst.CHART_WRAPPER_CLASS = "tsg-chart-wrapper";
     TsGanttConst.CHART_CLASS = "tsg-chart";
@@ -505,7 +505,7 @@ class TsGanttTableColumn {
             const userDefinedWidth = e instanceof MouseEvent
                 ? e.clientX - headerOffset
                 : e.touches[0].clientX - headerOffset;
-            this.html.style.minWidth = Math.max(this.minWidth, userDefinedWidth) + "px";
+            this.html.style.width = Math.max(this.minWidth, userDefinedWidth) + "px";
             e.preventDefault();
         };
         this.onMouseUpWhileResizing = (e) => {
@@ -529,6 +529,7 @@ class TsGanttTableColumn {
         const headerCell = document.createElement("th");
         headerCell.classList.add(TsGanttConst.TABLE_HEADER_CLASS);
         headerCell.style.minWidth = this.minWidth + "px";
+        headerCell.style.width = this.minWidth + "px";
         headerCell.innerHTML = this.header;
         return headerCell;
     }
@@ -574,9 +575,6 @@ class TsGanttTableRow {
             const cellInnerDiv = document.createElement("div");
             cellInnerDiv.classList.add(TsGanttConst.TABLE_BODY_CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
             if (i === 0) {
-                for (let j = 0; j < this.task.nestingLvl; j++) {
-                    cellInnerDiv.append(this.createSimpleIndent());
-                }
                 cellInnerDiv.append(this.expander);
             }
             const cellText = document.createElement("p");
@@ -588,15 +586,14 @@ class TsGanttTableRow {
         });
         return row;
     }
-    createSimpleIndent(innerHtml = "") {
-        const indent = document.createElement("p");
-        indent.classList.add(TsGanttConst.TABLE_BODY_CELL_INDENT_CLASS);
-        indent.innerHTML = innerHtml;
-        return indent;
-    }
     createExpander() {
         const expander = document.createElement("p");
         expander.classList.add(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS);
+        const lvl = this.task.nestingLvl;
+        if (lvl) {
+            expander.classList.add(TsGanttConst.TABLE_BODY_CELL_EXPANDER_NESTING_PREFIX +
+                (lvl < 10 ? lvl : 10));
+        }
         if (this.task.hasChildren) {
             expander.addEventListener("click", (e) => {
                 expander.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, {

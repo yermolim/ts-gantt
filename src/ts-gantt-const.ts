@@ -24,8 +24,8 @@ class TsGanttConst {
   static readonly TABLE_BODY_CELL_CLASS = "tsg-table-body-cell";
   static readonly TABLE_BODY_CELL_TEXT_WRAPPER_CLASS = "tsg-table-body-cell-text-wrapper";
   static readonly TABLE_BODY_CELL_TEXT_CLASS = "tsg-table-body-cell-text";
-  static readonly TABLE_BODY_CELL_INDENT_CLASS = "tsg-table-body-cell-text-indent";
   static readonly TABLE_BODY_CELL_EXPANDER_CLASS = "tsg-table-body-cell-text-expander";  
+  static readonly TABLE_BODY_CELL_EXPANDER_NESTING_PREFIX = "nesting-";
   static readonly TABLE_BODY_CELL_EXPANDER_CLICK_EVENT = "tsgexpanderclick";
   
   static readonly CHART_WRAPPER_CLASS = "tsg-chart-wrapper";
