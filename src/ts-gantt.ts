@@ -366,9 +366,9 @@ class TsGantt {
     this.refreshSelection();
   }   
 
-  private getShownUuidsRecursively(parentUuid: string = null): string[] {      
+  private getShownUuidsRecursively(parentUuid: string = null): string[] {
     const tasksFiltered = this._tasks.filter(x => x.parentUuid === parentUuid)
-      .sort((a: TsGanttTask, b: TsGanttTask): number => a.compareTo(b));
+      .sort(this._options.taskComparer || TsGanttTask.defaultComparer);
     const uuids: string[] = [];
     for (const task of tasksFiltered) {
       uuids.push(task.uuid);

@@ -242,6 +242,8 @@ this.chart = new TsGantt("#container-selector", options);
   // but you can provide your own ones if you need more complex output 
   // returned value is assigned to cell's innerHTML property. so you can use html tags
   columnValueGetters: ((a: TsGanttTask) => string)[]; // array of 8 string value getters for each locale
+  
+  taskComparer: (taskA: TsGanttTask, taskB: TsGanttTask) => number; // you can provide here your custom task comparer
 ```
 </p>
 </details>

@@ -179,6 +179,8 @@ class TsGanttOptions {
         : duration.toString();
     },
   ];
+
+  taskComparer: (taskA: TsGanttTask, taskB: TsGanttTask) => number;
   
   constructor(item: object = null) {
     if (item != null) {

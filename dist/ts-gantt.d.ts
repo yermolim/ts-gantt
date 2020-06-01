@@ -28,6 +28,7 @@ export declare class TsGanttTask {
 	static createTasksIdMap(tasks: TsGanttTask[]): Map<string, string>;
 	static checkPaternity(tasks: TsGanttTask[], parent: TsGanttTask, child: TsGanttTask): boolean;
 	static checkForCollapsedParent(tasks: TsGanttTask[], task: TsGanttTask): boolean;
+	static defaultComparer: (a: TsGanttTask, b: TsGanttTask) => number;
 	static sortTasksRecursively(tasks: TsGanttTask[], parentUuid: string): TsGanttTask[];
 	equals(another: TsGanttTask): boolean;
 	compareTo(another: TsGanttTask): number;
@@ -116,6 +117,7 @@ export declare class TsGanttOptions {
 		[key: string]: (duration: number) => string;
 	};
 	columnValueGetters: ((a: TsGanttTask) => string)[];
+	taskComparer: (taskA: TsGanttTask, taskB: TsGanttTask) => number;
 	constructor(item?: object);
 }
 export interface TsGanttRowSymbols {

@@ -166,11 +166,13 @@ class TsGanttTask {
     }
     return false;      
   }
+
+  static defaultComparer = (a: TsGanttTask, b: TsGanttTask) => a.compareTo(b);
       
   static sortTasksRecursively(tasks: TsGanttTask[], 
     parentUuid: string): TsGanttTask[] {      
     const tasksFiltered = tasks.filter(x => x.parentUuid === parentUuid)
-      .sort((a: TsGanttTask, b: TsGanttTask): number => a.compareTo(b));
+      .sort(TsGanttTask.defaultComparer);
     const sorted: TsGanttTask[] = [];
     for (const task of tasksFiltered) {
       sorted.push(task);
