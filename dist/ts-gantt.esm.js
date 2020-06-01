@@ -1254,6 +1254,7 @@ class TsGantt {
         this._separatorDragActive = false;
         this._ignoreNextScrollEvent = false;
         this._tasks = [];
+        this._tasksByParentUuid = new Map();
         this._selectedTasks = [];
         this.onResize = (e) => {
             const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
@@ -1352,8 +1353,7 @@ class TsGantt {
         return this._tasks.map(x => x.toModel());
     }
     set tasks(models) {
-        const changeDetectionResult = this.updateTasks(models);
-        this.update(changeDetectionResult);
+        this.updateTasks(models);
     }
     get selectedTasks() {
         return this._selectedTasks.map(x => x.toModel());
@@ -1445,7 +1445,8 @@ class TsGantt {
         const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldTasksIdMap);
         const changes = TsGanttTask.detectTaskChanges({ oldTasks, newTasks });
         this._tasks = changes.all;
-        return changes;
+        this.groupAndSortTasks();
+        this.update(changes);
     }
     update(data) {
         const uuids = this.getShownUuidsRecursively();
@@ -1543,11 +1544,22 @@ class TsGantt {
         });
         this.refreshSelection();
     }
+    groupAndSortTasks() {
+        this._tasksByParentUuid.clear();
+        for (const task of this._tasks) {
+            if (this._tasksByParentUuid.has(task.parentUuid)) {
+                this._tasksByParentUuid.get(task.parentUuid).push(task);
+            }
+            else {
+                this._tasksByParentUuid.set(task.parentUuid, [task]);
+            }
+        }
+        this._tasksByParentUuid.forEach((v) => v.sort(this._options.taskComparer || TsGanttTask.defaultComparer));
+    }
     getShownUuidsRecursively(parentUuid = null) {
-        const tasksFiltered = this._tasks.filter(x => x.parentUuid === parentUuid)
-            .sort(this._options.taskComparer || TsGanttTask.defaultComparer);
+        const tasks = this._tasksByParentUuid.get(parentUuid) || [];
         const uuids = [];
-        for (const task of tasksFiltered) {
+        for (const task of tasks) {
             uuids.push(task.uuid);
             if (task.expanded) {
                 uuids.push(...this.getShownUuidsRecursively(task.uuid));

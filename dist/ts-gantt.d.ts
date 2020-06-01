@@ -138,6 +138,7 @@ export declare class TsGantt {
 	private _tasks;
 	get tasks(): TsGanttTaskModel[];
 	set tasks(models: TsGanttTaskModel[]);
+	private _tasksByParentUuid;
 	private _selectedTasks;
 	get selectedTasks(): TsGanttTaskModel[];
 	set selectedTasks(models: TsGanttTaskModel[]);
@@ -173,6 +174,7 @@ export declare class TsGantt {
 	private updateLocale;
 	private updateChartScale;
 	private updateChartDisplayMode;
+	private groupAndSortTasks;
 	private getShownUuidsRecursively;
 }
 

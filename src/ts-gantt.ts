@@ -27,9 +27,9 @@ class TsGantt {
     return this._tasks.map(x => x.toModel());
   }  
   set tasks(models: TsGanttTaskModel[]) {
-    const changeDetectionResult = this.updateTasks(models);
-    this.update(changeDetectionResult);
+    this.updateTasks(models);
   }
+  private _tasksByParentUuid: Map<string, TsGanttTask[]> = new Map<string, TsGanttTask[]>();
 
   private _selectedTasks: TsGanttTask[] = [];
   get selectedTasks(): TsGanttTaskModel[] {
@@ -247,14 +247,15 @@ class TsGantt {
   // #endregion
 
   // #region task actions
-  private updateTasks(taskModels: TsGanttTaskModel[]): TsGanttTaskChangeResult {
+  private updateTasks(taskModels: TsGanttTaskModel[]) {
     const oldTasks = this._tasks;
     const oldTasksIdMap = TsGanttTask.createTasksIdMap(oldTasks);
     const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldTasksIdMap);
 
     const changes = TsGanttTask.detectTaskChanges({oldTasks, newTasks});
     this._tasks = changes.all;
-    return changes;
+    this.groupAndSortTasks();
+    this.update(changes);
   }
 
   private update(data: TsGanttTaskChangeResult) {
@@ -364,13 +365,25 @@ class TsGantt {
       all: this._tasks,
     });
     this.refreshSelection();
-  }   
+  }  
+  
+  private groupAndSortTasks() {
+    this._tasksByParentUuid.clear();
+    for (const task of this._tasks) {
+      if (this._tasksByParentUuid.has(task.parentUuid)) {
+        this._tasksByParentUuid.get(task.parentUuid).push(task);
+      } else {
+        this._tasksByParentUuid.set(task.parentUuid, [task]);
+      }      
+    }
+    this._tasksByParentUuid.forEach((v: TsGanttTask[]) => 
+      v.sort(this._options.taskComparer || TsGanttTask.defaultComparer));
+  }
 
   private getShownUuidsRecursively(parentUuid: string = null): string[] {
-    const tasksFiltered = this._tasks.filter(x => x.parentUuid === parentUuid)
-      .sort(this._options.taskComparer || TsGanttTask.defaultComparer);
+    const tasks = this._tasksByParentUuid.get(parentUuid) || [];
     const uuids: string[] = [];
-    for (const task of tasksFiltered) {
+    for (const task of tasks) {
       uuids.push(task.uuid);
       if (task.expanded) {
         uuids.push(...this.getShownUuidsRecursively(task.uuid));
