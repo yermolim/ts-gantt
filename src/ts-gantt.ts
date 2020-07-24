@@ -389,6 +389,7 @@ class TsGantt {
         uuids.push(...this.getShownUuidsRecursively(task.uuid));
       }
     }
+
     return uuids;
   }
   // #endregion
