@@ -263,11 +263,11 @@ context menu implementation is not provided, but you can implement your own usin
     <li><del>add optional multiple row selection</del> added in 0.2.0</li>
     <li><del>make grid columns resizable</del> added in 0.2.2</li>
     <li><del>add callbacks on chart events (on row click/double click, selection change)</del> added in 0.3.0</li>
+    <li>allow grid column reorder</li>
     <li>add optional possibility to move/resize chart bars</li>
     <li>add tooltips on bar hover</li>
-    <li>allow column reorder</li>
     <li>increase code coverage</li>
     <li>optimize task change detection</li>
-    <li>add row virtualization</li>
+    <li>add row virtualization (move grid to custom table implementation)</li>
 </ul>
 
