@@ -762,7 +762,7 @@
             const margin = borderWidth / 2;
             const width = wrapperWidth - borderWidth;
             const height = wrapperHeight - borderWidth;
-            const bar = createSvgElement("rect", barClassList, [
+            createSvgElement("rect", barClassList, [
                 ["x", margin + ""],
                 ["y", margin + ""],
                 ["width", width + ""],
@@ -775,7 +775,7 @@
                 const progressWidth = calculatedProgressWidth < minWrapperWidth - borderWidth
                     ? 0
                     : calculatedProgressWidth;
-                const barProgress = createSvgElement("rect", progressBarClassList, [
+                createSvgElement("rect", progressBarClassList, [
                     ["x", margin + ""],
                     ["y", margin + ""],
                     ["width", progressWidth + ""],
@@ -921,19 +921,19 @@
             const scale = this._options.chartScale;
             const dayWidth = this._options.chartDayWidthPx[scale];
             const height = this._options.headerHeightPx;
-            const minDate = this._dateMinOffset;
+            this._dateMinOffset;
             const maxDate = this._dateMaxOffset;
             const dates = getAllDatesBetweenTwoDates(this._dateMinOffset, this._dateMaxOffset);
             const width = dates.length * dayWidth;
             const locale = this._options.locale;
             const months = this._options.localeDateMonths[locale];
             const daysShort = this._options.localeDateDaysShort[locale];
-            const days = this._options.localeDateDays[locale];
+            this._options.localeDateDays[locale];
             const header = createSvgElement("svg", [TsGanttConst.CHART_HEADER_CLASS], [
                 ["width", width + ""],
                 ["height", height + ""],
             ]);
-            const headerBg = createSvgElement("rect", [TsGanttConst.CHART_HEADER_BACKGROUND_CLASS], [
+            createSvgElement("rect", [TsGanttConst.CHART_HEADER_BACKGROUND_CLASS], [
                 ["width", width + ""],
                 ["height", height + ""],
             ], header);
@@ -953,14 +953,14 @@
                             ["height", height + ""],
                         ], header);
                         if (yearWidth >= 60) {
-                            const yearText = createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+                            createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
                                 ["x", "50%"],
                                 ["y", "50%"],
                                 ["dominant-baseline", "middle"],
                                 ["text-anchor", "middle"],
                             ], yearSvg, date.year() + "");
                         }
-                        const rightBorder = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                        createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
                             ["x1", nextDayOffset + ""],
                             ["y1", 0 + ""],
                             ["x2", nextDayOffset + ""],
@@ -976,7 +976,7 @@
                 const rowHeight = height / 2;
                 const y0 = 0;
                 const y1 = rowHeight;
-                const rowBottomBorder = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
                     ["x1", 0 + ""],
                     ["y1", y1 + ""],
                     ["x2", width + ""],
@@ -993,14 +993,14 @@
                             ["height", rowHeight + ""],
                         ], header);
                         if (yearWidth >= 60) {
-                            const yearText = createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+                            createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
                                 ["x", "50%"],
                                 ["y", "50%"],
                                 ["dominant-baseline", "middle"],
                                 ["text-anchor", "middle"],
                             ], yearSvg, date.year() + "");
                         }
-                        const yearRightBorder = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                        createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
                             ["x1", nextDayOffset + ""],
                             ["y1", y0 + ""],
                             ["x2", nextDayOffset + ""],
@@ -1018,14 +1018,14 @@
                         ], header);
                         if (monthWidth >= 60) {
                             const monthName = months[date.month()];
-                            const monthText = createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+                            createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
                                 ["x", "50%"],
                                 ["y", "50%"],
                                 ["dominant-baseline", "middle"],
                                 ["text-anchor", "middle"],
                             ], monthSvg, monthName);
                         }
-                        const monthRightBorder = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                        createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
                             ["x1", nextDayOffset + ""],
                             ["y1", y1 + ""],
                             ["x2", nextDayOffset + ""],
@@ -1042,13 +1042,13 @@
                 const y0 = 0;
                 const y1 = rowHeight;
                 const y2 = rowHeight * 2;
-                const rowBottomBorder1 = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
                     ["x1", 0 + ""],
                     ["y1", y1 + ""],
                     ["x2", width + ""],
                     ["y2", y1 + ""],
                 ], header);
-                const rowBottomBorder2 = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
                     ["x1", 0 + ""],
                     ["y1", y2 + ""],
                     ["x2", width + ""],
@@ -1065,14 +1065,14 @@
                             ["height", rowHeight + ""],
                         ], header);
                         if (yearWidth >= 60) {
-                            const yearText = createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+                            createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
                                 ["x", "50%"],
                                 ["y", "50%"],
                                 ["dominant-baseline", "middle"],
                                 ["text-anchor", "middle"],
                             ], yearSvg, date.year() + "");
                         }
-                        const yearRightBorder = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                        createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
                             ["x1", nextDayOffset + ""],
                             ["y1", y0 + ""],
                             ["x2", nextDayOffset + ""],
@@ -1090,14 +1090,14 @@
                         ], header);
                         if (monthWidth >= 60) {
                             const monthName = months[date.month()];
-                            const monthText = createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+                            createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
                                 ["x", "50%"],
                                 ["y", "50%"],
                                 ["dominant-baseline", "middle"],
                                 ["text-anchor", "middle"],
                             ], monthSvg, monthName);
                         }
-                        const monthRightBorder = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                        createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
                             ["x1", nextDayOffset + ""],
                             ["y1", y1 + ""],
                             ["x2", nextDayOffset + ""],
@@ -1114,13 +1114,13 @@
                     const dayName = dayWidth < 30
                         ? date.date() + ""
                         : daysShort[date.day()] + " " + date.date();
-                    const dayText = createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+                    createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
                         ["x", "50%"],
                         ["y", "50%"],
                         ["dominant-baseline", "middle"],
                         ["text-anchor", "middle"],
                     ], daySvg, dayName);
-                    const dayRightBorder = createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+                    createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
                         ["x1", nextDayOffset + ""],
                         ["y1", y2 + ""],
                         ["x2", nextDayOffset + ""],
@@ -1152,7 +1152,7 @@
                 ["width", width + ""],
                 ["height", height + ""],
             ]);
-            const bodyBg = createSvgElement("rect", [TsGanttConst.CHART_BODY_BACKGROUND_CLASS], [
+            createSvgElement("rect", [TsGanttConst.CHART_BODY_BACKGROUND_CLASS], [
                 ["width", width + ""],
                 ["height", height + ""],
             ], body);
@@ -1166,7 +1166,7 @@
             });
             for (let i = 0; i < barGroups.length;) {
                 const lineY = ++i * rowHeight - border / 2;
-                const horizontalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
+                createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
                     ["x1", 0 + ""],
                     ["y1", lineY + ""],
                     ["x2", width + ""],
@@ -1174,7 +1174,7 @@
                 ], body);
             }
             xCoords.forEach(x => {
-                const verticalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
+                createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
                     ["x1", x + ""],
                     ["y1", 0 + ""],
                     ["x2", x + ""],
@@ -1205,7 +1205,7 @@
                     }));
                 });
                 rowFgs.set(x.task.uuid, rowWrapper);
-                const row = createSvgElement("rect", [TsGanttConst.CHART_ROW_CLASS], [
+                createSvgElement("rect", [TsGanttConst.CHART_ROW_CLASS], [
                     ["width", width + ""],
                     ["height", rowHeight + ""],
                 ], rowWrapper);
@@ -1217,7 +1217,7 @@
                 }
             });
             if (drawTodayLine) {
-                const todayVerticalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_TODAY_LINE_CLASS], [
+                createSvgElement("line", [TsGanttConst.CHART_BODY_TODAY_LINE_CLASS], [
                     ["x1", todayX + ""],
                     ["y1", 0 + ""],
                     ["x2", todayX + ""],
