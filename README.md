@@ -94,7 +94,7 @@ task are updated in the same way. you should just pass actual task array when an
 #### Language
 you can instantly switch chart language
 ```javascript
-chart.locale = locale; // "en" | "uk" | "ru" or any custom locale you provided in chart options
+chart.locale = locale; // "en" | "uk" | "ru" | "ja" or any custom locale you provided in chart options
 ```
 #### Timeline scale
 you can instantly switch chart timeline scale
@@ -226,10 +226,10 @@ this.chart = new TsGantt("#container-selector", options);
   chartDayWidthPx: {[key: string]: number} = {"day": 60, "week": 20, "month": 3, "year": 1};
 
   locale = "en"; // default locale
-  localeDecimalSeparator: {[key: string]: string} = {en: ".", uk: ",", ru: ","};
+  localeDecimalSeparator: {[key: string]: string} = {en: ".", uk: ",", ru: ",", ja: "."};
   // you can provide any format strings that supported by dayjs
-  localeDateFormat: {[key: string]: string} = {en: "MM/DD/YYYY", uk: "DD.MM.YYYY", ru: "DD.MM.YYYY"};
-  localeFirstWeekDay: {[key: string]: number} = {en: 0, uk: 1, ru: 1}; // Sunday is 0
+  localeDateFormat: {[key: string]: string} = {en: "MM/DD/YYYY", uk: "DD.MM.YYYY", ru: "DD.MM.YYYY", ja: "YYYY/MM/DD"};
+  localeFirstWeekDay: {[key: string]: number} = {en: 0, uk: 1, ru: 1, ja: 0}; // Sunday is 0
   localeDateMonths: {[key: string]: string[]}; // array of 12 string values for each locale. eg ["January", "February", ...etc]  
   localeDateDays: {[key: string]: string[]}; // array of 7 string values for each locale. eg ["Sunday", "Monday", ...etc]
   localeDateDaysShort: {[key: string]: string[]}; // array of 7 string values for each locale. eg ["Su", "Mo", ...etc]
