@@ -8,7 +8,7 @@ const inputModels = [
     progress: 55, 
     datePlannedStart: new Date(2020, 4, 1), 
     datePlannedEnd: new Date(2021, 4, 30), 
-    localizedNames: {en: "Root one", uk: "Корінь один", ru: "Корень один"},
+    localizedNames: {en: "Root one", uk: "Корінь один", ru: "Корень один", ja: "1個目"},
   },
   {
     id: "root2id", 

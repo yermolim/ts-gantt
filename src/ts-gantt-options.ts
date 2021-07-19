@@ -59,16 +59,19 @@ class TsGanttOptions {
     en: ".",
     uk: ",",
     ru: ",",
+    ja: ".",
   };
   localeDateFormat: {[key: string]: string} = { 
     en: "MM/DD/YYYY",
     uk: "DD.MM.YYYY",
     ru: "DD.MM.YYYY",
+    ja: "YYYY/MM/DD",
   };
   localeFirstWeekDay: {[key: string]: number} = {
     en: 0,
     uk: 1,
     ru: 1,
+    ja: 0,
   };
   localeDateMonths: {[key: string]: string[]} = {
     en: ["January", "February", "March", "April", "May", "June", 
@@ -77,26 +80,32 @@ class TsGanttOptions {
       "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"],
     ru: ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", 
       "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
+    ja: ["1月", "2月", "3月", "4月", "5月", "6月",
+      "7月", "8月", "9月", "10月", "11月", "12月"],
   };
   localeDateDays: {[key: string]: string[]} = {
     en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
     uk: ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"],
     ru: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
+    ja: ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"],
   };
   localeDateDaysShort: {[key: string]: string[]} = {
     en: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
     uk: ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
     ru: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+    ja: ["日", "月", "火", "水", "木", "金", "土"],
   };
   localeDateScale: {[key: string]: string[]} = {
     en: ["Weeks", "Months", "Years"],
     uk: ["Тижні", "Місяці", "Роки"],
     ru: ["Недели", "Месяцы", "Годы"],
+    ja: ["週間", "月間", "年間"],
   };
   localeFooters: {[key: string]: string[]} = {
     en: ["Total tasks", "Completed"],
     uk: ["Всього задач", "Завершено"],
     ru: ["Всего задач", "Завершено"],
+    ja: ["総タスク", "完了"],
   };
   localeHeaders: {[key: string]: string[]} = {
     en: ["Name", "Progress", "Start date planned", "End date planned", 
@@ -105,6 +114,8 @@ class TsGanttOptions {
       "Дата початку фактична", "Дата завершення фактична", "Тривалість планована", "Тривалість фактична"],
     ru: ["Имя", "Прогресс", "Дата начала планируемая", "Дата окончания планируемая", 
       "Дата начала фактическая", "Дата окончания фактическая", "Длительность планируемая", "Длительность фактическая"],
+    ja: ["タイトル", "進捗", "予定開始日", "予定終了日", 
+      "実績開始日", "実績終了日", "予定日数", "実績日数"],
   };
   localeDurationFormatters: {[key: string]: (duration: number) => string} = {
     en: (duration: number) => duration === 1 ? "1 day" : duration + " days",
@@ -138,6 +149,7 @@ class TsGanttOptions {
         }
       }
     },
+    ja: (duration: number) => duration === 1 ? "1 日" : duration + " 日間",
   };
 
   columnValueGetters: ((a: TsGanttTask) => string)[] = [
