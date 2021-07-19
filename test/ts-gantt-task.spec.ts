@@ -1,65 +1,67 @@
 import { TsGanttTaskModel, TsGanttTask } from "../src/ts-gantt-task";
 import dayjs from "dayjs";
 
+const now = dayjs();
+
 const inputModels = [
   {
     id: "root1id", 
     name: "Root1", 
     progress: 55, 
-    datePlannedStart: new Date(2020, 4, 1), 
-    datePlannedEnd: new Date(2021, 4, 30), 
+    datePlannedStart: now.subtract(25, "days").toDate(), 
+    datePlannedEnd: now.add(1, "year").add(4, "days").toDate(), 
     localizedNames: {en: "Root one", uk: "Корінь один", ru: "Корень один", ja: "1個目"},
   },
   {
     id: "root2id", 
     name: "Root2", 
     progress: 75, 
-    datePlannedStart: new Date(2020, 4, 6), 
-    datePlannedEnd: new Date(2020, 4, 7), 
+    datePlannedStart: now.subtract(20, "days").toDate(), 
+    datePlannedEnd: now.subtract(19, "days").toDate(),
   },
   {
     id: "root3id", 
     name: "Root3", 
     progress: -5, 
-    datePlannedStart: new Date(2020, 6, 5), 
-    datePlannedEnd: new Date(2020, 6, 20), 
-    dateActualStart: new Date(2020, 7, 2), 
-    dateActualEnd: new Date(2020, 7, 28), 
+    datePlannedStart: now.add(2, "months").subtract(21, "days").toDate(),
+    datePlannedEnd: now.add(2, "months").subtract(6, "days").toDate(),
+    dateActualStart: now.add(3, "months").subtract(24, "days").toDate(),
+    dateActualEnd: now.add(3, "months").add(2, "days").toDate(),
   },
   {
     id: "root1child1id", 
     parentId: "root1id", 
     name: "Root1child1", 
     progress: 120, 
-    datePlannedStart: new Date(2020, 5, 1), 
-    datePlannedEnd: new Date(2020, 5, 15), 
+    datePlannedStart: now.add(1, "months").subtract(25, "days").toDate(), 
+    datePlannedEnd: now.add(1, "months").subtract(11, "days").toDate(),
   },
   {
     id: "root1child2id", 
     parentId: "root1id", 
     name: "Root1child2", 
     progress: 0, 
-    datePlannedStart: new Date(2020, 5, 16), 
-    datePlannedEnd: new Date(2020, 5, 30), 
-    dateActualStart: new Date(2020, 5, 30), 
+    datePlannedStart: now.add(1, "months").subtract(10, "days").toDate(), 
+    datePlannedEnd: now.add(1, "months").add(4, "days").toDate(), 
+    dateActualStart: now.add(1, "months").add(4, "days").toDate(), 
   },
   {
     id: "root1child1child1id", 
     parentId: "root1child1id", 
     name: "Root1child1child1", 
     progress: 100, 
-    datePlannedStart: new Date(2020, 5, 1), 
-    datePlannedEnd: new Date(2020, 5, 10), 
+    datePlannedStart: now.add(1, "months").subtract(25, "days").toDate(), 
+    datePlannedEnd: now.add(1, "months").subtract(16, "days").toDate(), 
   },
   {
     id: "root2child1id", 
     parentId: "root2id", 
     name: "Root2child1", 
     progress: 100, 
-    datePlannedStart: new Date(2020, 5, 6), 
-    datePlannedEnd: new Date(2020, 5, 16), 
-    dateActualStart: new Date(2020, 5, 6), 
-    dateActualEnd: new Date(2020, 5, 26), 
+    datePlannedStart: now.add(1, "months").subtract(20, "days").toDate(), 
+    datePlannedEnd: now.add(1, "months").subtract(10, "days").toDate(), 
+    dateActualStart: now.add(1, "months").subtract(20, "days").toDate(), 
+    dateActualEnd: now.add(1, "months").toDate(), 
   },
 ];
 
@@ -68,40 +70,40 @@ const inputModelsUpdated = [
     id: "root1id", 
     name: "Root1", 
     progress: 95, 
-    datePlannedStart: new Date(2020, 4, 1), 
-    datePlannedEnd: new Date(2020, 4, 30), 
+    datePlannedStart: now.subtract(25, "days").toDate(), 
+    datePlannedEnd: now.add(4, "days").toDate(), 
   },
   <TsGanttTaskModel>{
     id: "root2id", 
     name: "Root2", 
     progress: 75, 
-    datePlannedStart: new Date(2020, 4, 6), 
-    datePlannedEnd: new Date(2020, 4, 26), 
-    dateActualStart: new Date(2020, 4, 2), 
+    datePlannedStart: now.subtract(20, "days").toDate(), 
+    datePlannedEnd: now.toDate(), 
+    dateActualStart: now.subtract(24, "days").toDate(), 
   },
   <TsGanttTaskModel>{
     id: "root1child1id", 
     parentId: "root1id", 
     name: "Root1child1", 
     progress: 120, 
-    datePlannedStart: new Date(2020, 5, 1), 
-    datePlannedEnd: new Date(2020, 5, 15), 
+    datePlannedStart: now.add(1, "months").subtract(25, "days").toDate(), 
+    datePlannedEnd: now.add(1, "months").subtract(11, "days").toDate(), 
   },
   <TsGanttTaskModel>{
     id: "root1child1child1id", 
     parentId: "root1child1id", 
     name: "Root1child1child1", 
     progress: 100, 
-    datePlannedStart: new Date(2020, 5, 1), 
-    datePlannedEnd: new Date(2020, 5, 10), 
+    datePlannedStart: now.add(1, "months").subtract(25, "days").toDate(), 
+    datePlannedEnd: now.add(1, "months").subtract(16, "days").toDate(), 
   },
   <TsGanttTaskModel>{
     id: "root2child1id", 
     parentId: "root2id", 
     name: "Root2child1", 
     progress: 15, 
-    datePlannedStart: new Date(2020, 5, 6), 
-    datePlannedEnd: new Date(2020, 5, 16), 
+    datePlannedStart: now.add(1, "months").subtract(20, "days").toDate(), 
+    datePlannedEnd: now.add(1, "months").subtract(10, "days").toDate(), 
   },
   <TsGanttTaskModel>{
     id: "root2child1child1id", 
@@ -154,12 +156,12 @@ describe("TsGanttTask", () => {
   const taskForStateCheckInProgress =  new TsGanttTask("id", null, "name", null, 20);
   const taskForStateCheckCompletedNoPlannedEndDate =  new TsGanttTask("id", 
     null, "name", null, 100,
-    new  Date("2020-01-01"));
+    new  Date(now.year() + "-01-01"));
   const taskForStateCheckCompletedActualEndNotAfterPlanned =  new TsGanttTask("id", null, "name", null, 100,
-    new  Date("2020-01-01"),
-    new  Date("2020-02-02"),
-    new  Date("2020-02-02"),
-    new  Date("2020-02-02"));
+    new  Date(now.year() + "-01-01"),
+    new  Date(now.year() + "-02-02"),
+    new  Date(now.year() + "-02-02"),
+    new  Date(now.year() + "-02-02"));
     
   it("getState should return correct state", () => {
     expect(tasks.find(x => x.externalId === "root1id").getState()).toEqual("in-progress");
@@ -220,7 +222,7 @@ describe("TsGanttTask", () => {
     })).toEqual(1);
     expect(taskForCompare.compareTo(<TsGanttTask>{
       nestingLvl: 1, 
-      datePlannedStart: dayjs("2020-5-6"),
+      datePlannedStart: now.subtract(20, "days"),
     })).toEqual(1);
     expect(taskForCompare.compareTo(<TsGanttTask>{
       nestingLvl: 1, 
@@ -228,86 +230,86 @@ describe("TsGanttTask", () => {
     })).toEqual(1);
     expect(taskForCompare.compareTo(<TsGanttTask>{
       nestingLvl: 1, 
-      datePlannedStart: dayjs("2020-6-6"),
-      datePlannedEnd: dayjs("2020-5-16"),
-    })).toEqual(1);
+      datePlannedStart: now.add(1, "months").subtract(20, "days"),
+      datePlannedEnd: now.subtract(10, "days"),
+    })).toEqual(1); //
     expect(taskForCompare.compareTo(<TsGanttTask>{
       nestingLvl: 1, 
-      datePlannedStart: dayjs("2020-6-6"),
+      datePlannedStart: now.add(1, "months").subtract(20, "days"),
       datePlannedEnd: null,
-    })).toEqual(1);
+    })).toEqual(1); //
     expect(taskForCompare.compareTo(<TsGanttTask>{
       nestingLvl: 1, 
-      datePlannedStart: dayjs("2020-6-6"),
-      datePlannedEnd: dayjs("2020-6-16"),
-      dateActualStart: dayjs("2020-5-6"),
-    })).toEqual(1);
+      datePlannedStart: now.add(1, "months").subtract(20, "days"),
+      datePlannedEnd: now.add(1, "months").subtract(10, "days"),
+      dateActualStart: now.subtract(20, "days"),
+    })).toEqual(1); //
     expect(taskForCompare.compareTo(<TsGanttTask>{
       nestingLvl: 1, 
-      datePlannedStart: dayjs("2020-6-6"),
-      datePlannedEnd: dayjs("2020-6-16"),
+      datePlannedStart: now.add(1, "months").subtract(20, "days"),
+      datePlannedEnd: now.add(1, "months").subtract(10, "days"),
       dateActualStart: null,
-    })).toEqual(1);
+    })).toEqual(1); //
     expect(taskForCompare.compareTo(<TsGanttTask>{
       nestingLvl: 1, 
-      datePlannedStart: dayjs("2020-6-6"),
-      datePlannedEnd: dayjs("2020-6-16"),
-      dateActualStart: dayjs("2020-6-6"),
-      dateActualEnd: dayjs("2020-5-26"),
-    })).toEqual(1);
+      datePlannedStart: now.add(1, "months").subtract(20, "days"),
+      datePlannedEnd: now.add(1, "months").subtract(10, "days"),
+      dateActualStart: now.add(1, "months").subtract(20, "days"),
+      dateActualEnd: now.clone(),
+    })).toEqual(1); //
     expect(taskForCompare.compareTo(<TsGanttTask>{
       nestingLvl: 1, 
-      datePlannedStart: dayjs("2020-6-6"),
-      datePlannedEnd: dayjs("2020-6-16"),
-      dateActualStart: dayjs("2020-6-6"),
+      datePlannedStart: now.add(1, "months").subtract(20, "days"),
+      datePlannedEnd: now.add(1, "months").subtract(10, "days"),
+      dateActualStart: now.add(1, "months").subtract(20, "days"),
       dateActualEnd: null,
-    })).toEqual(1);
+    })).toEqual(1); //
     expect(taskForCompare.compareTo(<TsGanttTask>{
       nestingLvl: 2,
     })).toEqual(-1);
     expect(taskForCompare.compareTo(<TsGanttTask>{
       nestingLvl: 1, 
-      datePlannedStart: dayjs("2020-7-6"),
+      datePlannedStart: now.add(2, "months").subtract(20, "days"),
     })).toEqual(-1);
     expect(taskForCompareNoPlannedStartDate.compareTo(<TsGanttTask>{
       nestingLvl: 1, 
-      datePlannedStart: dayjs("2020-7-6"),
+      datePlannedStart: now.add(2, "months").subtract(20, "days"),
     })).toEqual(-1);
     expect(taskForCompare.compareTo(<TsGanttTask>{
       nestingLvl: 1,
-      datePlannedStart: dayjs("2020-6-6"),
-      datePlannedEnd: dayjs("2020-7-16"),
+      datePlannedStart: now.add(1, "months").subtract(20, "days"),
+      datePlannedEnd: now.add(2, "months").subtract(10, "days"),
     })).toEqual(-1);
     expect(taskForCompareNoPlannedEndDate.compareTo(<TsGanttTask>{
       nestingLvl: 1,
-      datePlannedStart: dayjs("2020-6-6"),
-      datePlannedEnd: dayjs("2020-7-16"),
+      datePlannedStart: now.add(1, "months").subtract(20, "days"),
+      datePlannedEnd: now.add(2, "months").subtract(10, "days"),
     })).toEqual(-1);
     expect(taskForCompare.compareTo(<TsGanttTask>{
       nestingLvl: 1, 
-      datePlannedStart: dayjs("2020-6-6"),
-      datePlannedEnd: dayjs("2020-6-16"),
-      dateActualStart: dayjs("2020-7-6"),
+      datePlannedStart: now.add(1, "months").subtract(20, "days"),
+      datePlannedEnd: now.add(1, "months").subtract(10, "days"),
+      dateActualStart: now.add(2, "months").subtract(20, "days"),
     })).toEqual(-1);
     expect(taskForCompareNoActualStartDate.compareTo(<TsGanttTask>{
       nestingLvl: 1, 
-      datePlannedStart: dayjs("2020-6-6"),
-      datePlannedEnd: dayjs("2020-6-16"),
-      dateActualStart: dayjs("2020-7-6"),
+      datePlannedStart: now.add(1, "months").subtract(20, "days"),
+      datePlannedEnd: now.add(1, "months").subtract(10, "days"),
+      dateActualStart: now.add(2, "months").subtract(20, "days"),
     })).toEqual(-1);
     expect(taskForCompare.compareTo(<TsGanttTask>{
       nestingLvl: 1, 
-      datePlannedStart: dayjs("2020-6-6"),
-      datePlannedEnd: dayjs("2020-6-16"),
-      dateActualStart: dayjs("2020-6-6"),
-      dateActualEnd: dayjs("2020-7-26"),
+      datePlannedStart: now.add(1, "months").subtract(20, "days"),
+      datePlannedEnd: now.add(1, "months").subtract(10, "days"),
+      dateActualStart: now.add(1, "months").subtract(20, "days"),
+      dateActualEnd: now.add(2, "months"),
     })).toEqual(-1);   
     expect(taskForCompareNoActualEndDate.compareTo(<TsGanttTask>{
       nestingLvl: 1, 
-      datePlannedStart: dayjs("2020-6-6"),
-      datePlannedEnd: dayjs("2020-6-16"),
-      dateActualStart: dayjs("2020-6-6"),
-      dateActualEnd: dayjs("2020-7-26"),
+      datePlannedStart: now.add(1, "months").subtract(20, "days"),
+      datePlannedEnd: now.add(1, "months").subtract(10, "days"),
+      dateActualStart: now.add(1, "months").subtract(20, "days"),
+      dateActualEnd: now.add(2, "months"),
     })).toEqual(-1);   
   });
   
