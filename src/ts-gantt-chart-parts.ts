@@ -47,25 +47,24 @@ class TsGanttChartBarGroup {
           minDate = dateActualStart;
           maxDate = dateActualEnd;
         }
-        minDate = minDate.subtract(1, "day"); // hereinafter substract 1 day to include first day
 
         barSvg = this.createSvg(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
         if (plannedDatesSet) {
           this.createBar(barSvg,
-            minDate, datePlannedStart.subtract(1, "day"), datePlannedEnd,
+            minDate, datePlannedStart, datePlannedEnd,
             dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR,
             "planned", task.progress, showProgress);
         }
         if (actualDatesSet) {
           this.createBar(barSvg,
-            minDate, dateActualStart.subtract(1, "day"), dateActualEnd,
+            minDate, dateActualStart, dateActualEnd,
             dayWidth, barMinWidth, barHeight, y1, barBorder, barCornerR,
             "actual", task.progress, showProgress);
         }   
       }     
 
     } else if (mode === "planned" && plannedDatesSet) {
-      minDate = datePlannedStart.subtract(1, "day");
+      minDate = datePlannedStart;
       maxDate = datePlannedEnd;
 
       barSvg = this.createSvg(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
@@ -75,7 +74,7 @@ class TsGanttChartBarGroup {
         "planned", task.progress, showProgress);
 
     } else if (mode === "actual" && actualDatesSet) {  
-      minDate = dateActualStart.subtract(1, "day");
+      minDate = dateActualStart;
       maxDate = dateActualEnd;
 
       barSvg = this.createSvg(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
@@ -95,7 +94,7 @@ class TsGanttChartBarGroup {
   private createSvg(minDate: dayjs.Dayjs, maxDate: dayjs.Dayjs,
     dayWidth: number, minWidth: number, rowHeight: number): SVGElement {
 
-    const widthDays = maxDate.diff(minDate, "day");
+    const widthDays = maxDate.diff(minDate, "day") + 1;
     const width = Math.max(widthDays * dayWidth + minWidth, minWidth);
     const barSvg = createSvgElement("svg", [TsGanttConst.CHART_BAR_GROUP_CLASS], [
       ["width", width + ""],
@@ -117,8 +116,8 @@ class TsGanttChartBarGroup {
       ? [TsGanttConst.CHART_BAR_PLANNED_PROGRESS_CLASS]
       : [TsGanttConst.CHART_BAR_ACTUAL_PROGRESS_CLASS];
         
-    const offsetX = start.diff(minDate, "day") * dayWidth;
-    const widthDays = end.diff(start, "day");
+    const offsetX = (start.diff(minDate, "day")) * dayWidth;
+    const widthDays = end.diff(start, "day") + 1;
     const wrapperWidth = Math.max(widthDays * dayWidth, minWrapperWidth);
     const wrapper = createSvgElement("svg", [TsGanttConst.CHART_BAR_WRAPPER_CLASS], [
       ["x", offsetX + ""],
