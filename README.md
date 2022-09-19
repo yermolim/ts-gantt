@@ -280,7 +280,7 @@ const ganttChart = new tsGantt.TsGantt("#gantt-container", options);
     <li><del>add optional multiple row selection</del> added in 0.2.0</li>
     <li><del>make grid columns resizable</del> added in 0.2.2</li>
     <li><del>add callbacks on chart events (on row click/double click, selection change)</del> added in 0.3.0</li>
-    <li><del>remove the hardcoded column number, allow adding custom columns<del> added in 0.4.0</li>
+    <li><del>remove the hardcoded column number, allow adding custom columns</del> added in 0.4.0</li>
     <li>move chart to shadow DOM</li>
     <li>allow grid column reorder</li>
     <li>add optional possibility to move/resize chart bars</li>
