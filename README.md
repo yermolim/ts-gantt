@@ -190,17 +190,12 @@ this.chart = new TsGantt("#container-selector", options);
  
 ```javascript
    // some default values ommited for brevity. you can always see them in 'TsGanttOptions' source code
-   
+
   multilineSelection = true; // allow multiple rows to be selected at the same time
   useCtrlKeyForMultilineSelection = false; // enable using ctrl key to select multiple rows
 
   drawTodayLine = true; // draw a vertical line on chart that represents today  
   highlightRowsDependingOnTaskState = true; // change row text color depending on task state
-
-  // columns order: "Name", "Progress", "Start date planned", "End date planned",
-  // "Start date actual", "End date actual", "Duration planned", "Duration actual"
-  columnsMinWidthPx: number[]; // array of 8 values, one for each of 8 columns. 0 to disable column
-  columnsContentAlign: ("start" | "center" | "end")[]; // array of 8 values, one for each of 8 columns.
 
   separatorWidthPx = 5; // vertical central line width
   headerHeightPx = 90; // lower values are not recommended, but you can still try
@@ -209,7 +204,7 @@ this.chart = new TsGantt("#container-selector", options);
   barStrokeWidthPx = 2;
   barMarginPx = 2;
   barCornerRadiusPx = 6;
-  
+
   // special row symbols. you can also use some HTML code
   rowSymbols: TsGanttRowSymbols = {childless: "◆", collapsed: "⬘", expanded: "⬙"};
 
@@ -227,21 +222,30 @@ this.chart = new TsGantt("#container-selector", options);
 
   locale = "en"; // default locale
   localeDecimalSeparator: {[key: string]: string} = {en: ".", uk: ",", ru: ",", ja: "."};
-  // you can provide any format strings that supported by dayjs
+  // you can provide any format strings that are supported by dayjs
   localeDateFormat: {[key: string]: string} = {en: "MM/DD/YYYY", uk: "DD.MM.YYYY", ru: "DD.MM.YYYY", ja: "YYYY/MM/DD"};
   localeFirstWeekDay: {[key: string]: number} = {en: 0, uk: 1, ru: 1, ja: 0}; // Sunday is 0
   localeDateMonths: {[key: string]: string[]}; // array of 12 string values for each locale. eg ["January", "February", ...etc]  
   localeDateDays: {[key: string]: string[]}; // array of 7 string values for each locale. eg ["Sunday", "Monday", ...etc]
   localeDateDaysShort: {[key: string]: string[]}; // array of 7 string values for each locale. eg ["Su", "Mo", ...etc]
-  
   localeDateScale: {[key: string]: string[]}; // array of 3 string values for each locale. eg ["Weeks", "Months", "Years"]
-  localeHeaders: {[key: string]: string[]}; // array of 8 string values for each locale
   localeDurationFormatters: {[key: string]: (duration: number) => string}; // duration formatter function for each locale
 
+  // Data columns setup.
+  // there are default 8 columns: "Name", "Progress", "Start date planned", "End date planned",
+  // "Start date actual", "End date actual", "Duration planned", "Duration actual".
+  // You can remove the columns or add your own ones, but you need too make sure to edit all of the following arrays respectively:
+  // you should provide a width, an alignment, a value getter, and localized headers.
+  // !!!the length of each column-related array should be equal to the columns count!!!
+  columnsMinWidthPx: number[]; // array of numeric values, one for each of the columns. 0 to disable column
+  columnsContentAlign: ("start" | "center" | "end")[]; // array of values, one for each of the columns
   // default column value getters return localized values by taking into account all the properties assigned above
   // but you can provide your own ones if you need more complex output 
   // returned value is assigned to cell's innerHTML property. so you can use html tags
-  columnValueGetters: ((a: TsGanttTask) => string)[]; // array of 8 string value getters for each locale
+  columnValueGetters: ((a: TsGanttTask) => string)[]; // array of string value getters for each locale
+  // column header locales should be provided for all the locales intended for use
+  localeHeaders: {[key: string]: string[]}; // array of string values for each locale
+  //
   
   taskComparer: (taskA: TsGanttTask, taskB: TsGanttTask) => number; // you can provide here your custom task comparer
 ```
@@ -258,11 +262,25 @@ onSelectionChangeCb: (models: TsGanttTaskModel[]) => void;
 ```
 context menu implementation is not provided, but you can implement your own using callback 
 
+### Adding a custom column to the end of the column list example
+```javascript
+const options = new tsGantt.TsGanttOptions();
+options.columnsMinWidthPx.push(100);
+options.columnsContentAlign.push("center");
+// the "customColumnKey" below is the property of the model object
+// which contains the value needed to be shown
+options.columnValueGetters.push(task => (task["customColumnKey"] ?? ""));
+options.localeHeaders.en.push("User column");
+
+const ganttChart = new tsGantt.TsGantt("#gantt-container", options);
+```
+
 ## TODO list
 <ul>
     <li><del>add optional multiple row selection</del> added in 0.2.0</li>
     <li><del>make grid columns resizable</del> added in 0.2.2</li>
     <li><del>add callbacks on chart events (on row click/double click, selection change)</del> added in 0.3.0</li>
+    <li>remove the hardcoded column number, allow adding custom columns</li>
     <li>move chart to shadow DOM</li>
     <li>allow grid column reorder</li>
     <li>add optional possibility to move/resize chart bars</li>

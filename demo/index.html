@@ -91,7 +91,8 @@
             .then(text => {
                 const inputModels = JSON.parse(text);
 
-                const ganttChart = new tsGantt.TsGantt("#gantt-container");
+                const options = new tsGantt.TsGanttOptions();
+                const ganttChart = new tsGantt.TsGantt("#gantt-container", options);
                 ganttChart.tasks = inputModels;
 
                 function setLocale(locale) {

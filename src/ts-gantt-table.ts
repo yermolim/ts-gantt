@@ -65,11 +65,12 @@ class TsGanttTable {
 
   private updateColumns() {
     const columns: TsGanttTableColumn[] = [];
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < this._options.columnsMinWidthPx.length; i++) {
       const minColumnWidth = this._options.columnsMinWidthPx[i];
-      const contentAlign = this._options.columnsContentAlign[i];
       if (minColumnWidth) {
-        columns.push(new TsGanttTableColumn(minColumnWidth, contentAlign, this._options.localeHeaders[this._options.locale][i] || "",
+        columns.push(new TsGanttTableColumn(minColumnWidth,
+          this._options.columnsContentAlign[i],
+          this._options.localeHeaders[this._options.locale][i] || "",
           this._options.columnValueGetters[i] || ((task: TsGanttTask) => "")));
       }
     }

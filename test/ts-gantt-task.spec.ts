@@ -152,12 +152,12 @@ describe("TsGanttTask", () => {
     expect(tasks.find(x => x.externalId === "root1child1child1id").hasChildren).toEqual(false);
   });
 
-  const taskForStateCheckNotStarted =  new TsGanttTask("id", null, "name", null, 0);
-  const taskForStateCheckInProgress =  new TsGanttTask("id", null, "name", null, 20);
-  const taskForStateCheckCompletedNoPlannedEndDate =  new TsGanttTask("id", 
+  const taskForStateCheckNotStarted =  new TsGanttTask(<TsGanttTaskModel>{}, "id", null, "name", null, 0);
+  const taskForStateCheckInProgress =  new TsGanttTask(<TsGanttTaskModel>{}, "id", null, "name", null, 20);
+  const taskForStateCheckCompletedNoPlannedEndDate =  new TsGanttTask(<TsGanttTaskModel>{}, "id", 
     null, "name", null, 100,
     new  Date(now.year() + "-01-01"));
-  const taskForStateCheckCompletedActualEndNotAfterPlanned =  new TsGanttTask("id", null, "name", null, 100,
+  const taskForStateCheckCompletedActualEndNotAfterPlanned =  new TsGanttTask(<TsGanttTaskModel>{}, "id", null, "name", null, 100,
     new  Date(now.year() + "-01-01"),
     new  Date(now.year() + "-02-02"),
     new  Date(now.year() + "-02-02"),
@@ -188,22 +188,22 @@ describe("TsGanttTask", () => {
   });
     
   const taskForCompare =  tasks.find(x => x.externalId === "root2child1id");
-  const taskForCompareNoPlannedStartDate =  new TsGanttTask(taskForCompare.externalId, 
+  const taskForCompareNoPlannedStartDate =  new TsGanttTask(<TsGanttTaskModel>{}, taskForCompare.externalId, 
     taskForCompare.parentExternalId,
     taskForCompare.name, null, 100,
     null);
-  const taskForCompareNoPlannedEndDate =  new TsGanttTask(taskForCompare.externalId, 
+  const taskForCompareNoPlannedEndDate =  new TsGanttTask(<TsGanttTaskModel>{}, taskForCompare.externalId, 
     taskForCompare.parentExternalId,
     taskForCompare.name, null, 100,
     taskForCompare.datePlannedStart.toDate(), 
     null);
-  const taskForCompareNoActualStartDate =  new TsGanttTask(taskForCompare.externalId, 
+  const taskForCompareNoActualStartDate =  new TsGanttTask(<TsGanttTaskModel>{}, taskForCompare.externalId, 
     taskForCompare.parentExternalId,
     taskForCompare.name, null, 100,
     taskForCompare.datePlannedStart.toDate(), 
     taskForCompare.datePlannedEnd.toDate(), 
     null);
-  const taskForCompareNoActualEndDate =  new TsGanttTask(taskForCompare.externalId, 
+  const taskForCompareNoActualEndDate =  new TsGanttTask(<TsGanttTaskModel>{}, taskForCompare.externalId, 
     taskForCompare.parentExternalId,
     taskForCompare.name, null, 100,
     taskForCompare.datePlannedStart.toDate(), 

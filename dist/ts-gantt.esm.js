@@ -288,7 +288,8 @@ var dayjs_min = {exports: {}};
 var dayjs = dayjs_min.exports;
 
 class TsGanttTask {
-    constructor(id, parentId, name, localizedNames, progress, datePlannedStart = null, datePlannedEnd = null, dateActualStart = null, dateActualEnd = null, nestingLvl = 0, hasChildren = false, parentUuid = null, uuid = null) {
+    constructor(source, id, parentId, name, localizedNames, progress, datePlannedStart = null, datePlannedEnd = null, dateActualStart = null, dateActualEnd = null, nestingLvl = 0, hasChildren = false, parentUuid = null, uuid = null) {
+        Object.assign(this, source);
         this.externalId = id;
         this.parentExternalId = parentId;
         this.name = name;
@@ -312,7 +313,7 @@ class TsGanttTask {
         for (let i = models.length - 1; i >= 0; i--) {
             const model = models[i];
             if (!model.parentId) {
-                const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 0, allParentIds.has(model.id), null, idMap.get(model.id));
+                const newTask = new TsGanttTask(model, model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, 0, allParentIds.has(model.id), null, idMap.get(model.id));
                 tasks.push(newTask);
                 currentLevelTasks.push(newTask);
                 models.splice(i, 1);
@@ -325,7 +326,7 @@ class TsGanttTask {
                 for (let i = models.length - 1; i >= 0; i--) {
                     const model = models[i];
                     if (model.parentId === task.externalId) {
-                        const newTask = new TsGanttTask(model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, currentNestingLvl, allParentIds.has(model.id), task.uuid, idMap.get(model.id));
+                        const newTask = new TsGanttTask(model, model.id, model.parentId, model.name, model.localizedNames, model.progress, model.datePlannedStart, model.datePlannedEnd, model.dateActualStart, model.dateActualEnd, currentNestingLvl, allParentIds.has(model.id), task.uuid, idMap.get(model.id));
                         tasks.push(newTask);
                         nextLevelTasks.push(newTask);
                         models.splice(i, 1);
@@ -468,17 +469,18 @@ class TsGanttTask {
     }
     toModel() {
         var _a, _b, _c, _d;
-        return {
-            id: this.externalId,
-            parentId: this.parentExternalId,
-            name: this.name,
-            progress: this.progress,
-            datePlannedStart: ((_a = this.datePlannedStart) === null || _a === void 0 ? void 0 : _a.toDate()) || null,
-            datePlannedEnd: ((_b = this.datePlannedEnd) === null || _b === void 0 ? void 0 : _b.toDate()) || null,
-            dateActualStart: ((_c = this.dateActualStart) === null || _c === void 0 ? void 0 : _c.toDate()) || null,
-            dateActualEnd: ((_d = this.dateActualEnd) === null || _d === void 0 ? void 0 : _d.toDate()) || null,
-            localizedNames: this.localizedNames
-        };
+        const model = {};
+        Object.assign(model, this);
+        model.id = this.externalId;
+        model.parentId = this.parentExternalId;
+        model.name = this.name;
+        model.progress = this.progress;
+        model.datePlannedStart = ((_a = this.datePlannedStart) === null || _a === void 0 ? void 0 : _a.toDate()) || null;
+        model.datePlannedEnd = ((_b = this.datePlannedEnd) === null || _b === void 0 ? void 0 : _b.toDate()) || null;
+        model.dateActualStart = ((_c = this.dateActualStart) === null || _c === void 0 ? void 0 : _c.toDate()) || null;
+        model.dateActualEnd = ((_d = this.dateActualEnd) === null || _d === void 0 ? void 0 : _d.toDate()) || null;
+        model.localizedNames = this.localizedNames;
+        return model;
     }
 }
 TsGanttTask.defaultComparer = (a, b) => a.compareTo(b);
@@ -648,11 +650,10 @@ class TsGanttTable {
     }
     updateColumns() {
         const columns = [];
-        for (let i = 0; i < 9; i++) {
+        for (let i = 0; i < this._options.columnsMinWidthPx.length; i++) {
             const minColumnWidth = this._options.columnsMinWidthPx[i];
-            const contentAlign = this._options.columnsContentAlign[i];
             if (minColumnWidth) {
-                columns.push(new TsGanttTableColumn(minColumnWidth, contentAlign, this._options.localeHeaders[this._options.locale][i] || "", this._options.columnValueGetters[i] || ((task) => "")));
+                columns.push(new TsGanttTableColumn(minColumnWidth, this._options.columnsContentAlign[i], this._options.localeHeaders[this._options.locale][i] || "", this._options.columnValueGetters[i] || ((task) => "")));
             }
         }
         this._tableColumns = columns;

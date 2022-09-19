@@ -20,7 +20,7 @@ export declare class TsGanttTask {
 	readonly progress: number;
 	shown: boolean;
 	expanded: boolean;
-	constructor(id: string, parentId: string, name: string, localizedNames: {
+	constructor(source: TsGanttTaskModel, id: string, parentId: string, name: string, localizedNames: {
 		[key: string]: string;
 	}, progress: number, datePlannedStart?: Date, datePlannedEnd?: Date, dateActualStart?: Date, dateActualEnd?: Date, nestingLvl?: number, hasChildren?: boolean, parentUuid?: string, uuid?: string);
 	static convertModelsToTasks(taskModels: TsGanttTaskModel[], idMap?: Map<string, string>): TsGanttTask[];

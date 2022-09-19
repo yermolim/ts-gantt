@@ -42,7 +42,7 @@ module.exports = {
         }
       }
     ],
-    "@typescript-eslint/member-ordering": "warn",
+    "@typescript-eslint/member-ordering": "off",
     "@typescript-eslint/no-empty-function": "off",
     "@typescript-eslint/no-empty-interface": "error",
     "@typescript-eslint/no-inferrable-types": "error",
@@ -132,6 +132,6 @@ module.exports = {
     "prefer-const": "error",
     "radix": "error",
     "spaced-comment": "warn",        
-    "import/no-unresolved": "off"
+    "import/no-unresolved": "off",
   }
 };

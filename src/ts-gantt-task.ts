@@ -23,8 +23,11 @@ class TsGanttTask {
 
   shown: boolean;
   expanded: boolean;
-    
-  constructor(id: string,
+
+  // TODO. Reduce the parameters count
+  constructor(
+    source: TsGanttTaskModel,
+    id: string,
     parentId: string,
     name: string,
     localizedNames: {[key: string]: string},
@@ -37,6 +40,9 @@ class TsGanttTask {
     hasChildren = false,
     parentUuid: string = null,
     uuid: string = null) {
+
+    // Note. Assign the source properties to allow custom column values
+    Object.assign(this, source);
 
     this.externalId = id;
     this.parentExternalId = parentId;
@@ -62,11 +68,12 @@ class TsGanttTask {
     const allParentIds = new Set(models.map(x => x.parentId));
     const tasks: TsGanttTask[] = [];
     let currentLevelTasks: TsGanttTask[] = [];
-         
+
     for (let i = models.length - 1; i >= 0; i--) {
       const model = models[i];
       if (!model.parentId) {
-        const newTask = new TsGanttTask(model.id, model.parentId, 
+        const newTask = new TsGanttTask(model, 
+          model.id, model.parentId, 
           model.name, model.localizedNames, model.progress,
           model.datePlannedStart, model.datePlannedEnd, 
           model.dateActualStart, model.dateActualEnd, 
@@ -86,7 +93,8 @@ class TsGanttTask {
         for (let i = models.length - 1; i >= 0; i--) {
           const model = models[i];
           if (model.parentId === task.externalId) {
-            const newTask = new TsGanttTask(model.id, model.parentId, 
+            const newTask = new TsGanttTask(model,
+              model.id, model.parentId, 
               model.name, model.localizedNames, model.progress,
               model.datePlannedStart, model.datePlannedEnd, 
               model.dateActualStart, model.dateActualEnd,
@@ -250,17 +258,22 @@ class TsGanttTask {
   }  
   
   toModel(): TsGanttTaskModel {
-    return <TsGanttTaskModel>{
-      id: this.externalId,
-      parentId: this.parentExternalId,
-      name: this.name,
-      progress: this.progress,
-      datePlannedStart: this.datePlannedStart?.toDate() || null,
-      datePlannedEnd: this.datePlannedEnd?.toDate() || null,
-      dateActualStart: this.dateActualStart?.toDate() || null,
-      dateActualEnd: this.dateActualEnd?.toDate() || null,
-      localizedNames: this.localizedNames
-    };
+    const model = <TsGanttTaskModel>{};
+
+    // Note. To keep the custom column values
+    Object.assign(model, this);
+
+    model.id = this.externalId;
+    model.parentId = this.parentExternalId;
+    model.name = this.name;
+    model.progress = this.progress;
+    model.datePlannedStart = this.datePlannedStart?.toDate() || null;
+    model.datePlannedEnd = this.datePlannedEnd?.toDate() || null;
+    model.dateActualStart = this.dateActualStart?.toDate() || null;
+    model.dateActualEnd = this.dateActualEnd?.toDate() || null;
+    model.localizedNames = this.localizedNames;
+
+    return model;
   }
 }
 
