@@ -124,7 +124,7 @@ const selectedTasks = chart.selectedTasks;
 ### Customize chart
 you can customize chart in two ways: 
 <ul>
-    <li>edit or override styles in styles.css file (if shadow DOM is not used)</li>
+    <li>edit or override styles in the styles file (if shadow DOM is not used)</li>
     <li>provide custom options to 'TsGantt' class constructor</li>
 </ul>
 
