@@ -9,6 +9,8 @@ class TsGanttOptions {
   // bindParentDatesToChild = true;
   // enableProgressEdit = true;
 
+  useShadowDom: false;
+
   multilineSelection = true;
   useCtrlKeyForMultilineSelection = true;
 

@@ -37,6 +37,7 @@ Simple library for creating gantt chart combined with task grid.
         </ul>
     </li>
     <li>written completely in Typescript</li>
+    <li>shadow DOM mode can be used to make sure it won't mess with your styling/layout</li>
     <li>light codebase: only one dependency (lightweight <a href="https://github.com/iamkun/dayjs">Day.js<a> is used to work with dates)</li>
 </ul>
       
@@ -66,6 +67,7 @@ const chart = new tsGantt.TsGantt("#container-selector");
 ```
 
 #### ⚠️for chart to function properly its container element must have relative, absolute or fixed position!
+#### ⚠️if you use the shadow DOM mode for the chart, including the stylesheet is not needed, the styles bundled inside the main file will be used.
 
 ### Set your task list
 your tasks must implement following interface
@@ -122,12 +124,12 @@ const selectedTasks = chart.selectedTasks;
 ### Customize chart
 you can customize chart in two ways: 
 <ul>
-    <li>edit or override styles in styles.css file</li>
+    <li>edit or override styles in styles.css file (if shadow DOM is not used)</li>
     <li>provide custom options to 'TsGantt' class constructor</li>
 </ul>
 
 #### Css
-preffered way to customize styling is to change css variable values
+preffered way to customize styling is to change css variable values. It'll work for both regular DOM and shadow DOM modes
 ```css
 :root {
   --tsg-table-min-width: 100px;
@@ -190,6 +192,8 @@ this.chart = new TsGantt("#container-selector", options);
  
 ```javascript
    // some default values ommited for brevity. you can always see them in 'TsGanttOptions' source code
+
+  useShadowDom = false; // render chart using shadow DOM
 
   multilineSelection = true; // allow multiple rows to be selected at the same time
   useCtrlKeyForMultilineSelection = false; // enable using ctrl key to select multiple rows
@@ -281,7 +285,7 @@ const ganttChart = new tsGantt.TsGantt("#gantt-container", options);
     <li><del>make grid columns resizable</del> added in 0.2.2</li>
     <li><del>add callbacks on chart events (on row click/double click, selection change)</del> added in 0.3.0</li>
     <li><del>remove the hardcoded column number, allow adding custom columns</del> added in 0.4.0</li>
-    <li>move chart to shadow DOM</li>
+    <li><del>move chart to shadow DOM</del> added as an option in 0.5.0</li>
     <li>allow grid column reorder</li>
     <li>add optional possibility to move/resize chart bars</li>
     <li>add tooltips on bar hover</li>

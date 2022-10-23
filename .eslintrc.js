@@ -131,7 +131,7 @@ module.exports = {
     "no-var": "error",
     "prefer-const": "error",
     "radix": "error",
-    "spaced-comment": "warn",        
+    "spaced-comment": "off",        
     "import/no-unresolved": "off",
   }
 };

@@ -1,17 +1,22 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import "./styles.css";
-import { TsGanttConst } from "./ts-gantt-const";
-import { compareTwoStringSets } from "./ts-gantt-common";
-import { TsGanttOptions } from "./ts-gantt-options";
-import { TsGanttTask, TsGanttTaskModel,
-  TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "./ts-gantt-task";
-import { TsGanttTable } from "./ts-gantt-table";
-import { TsGanttChart } from "./ts-gantt-chart";
+import "./styles.css"; // this import is here only for rollup
+import { styles } from "./assets/styles";
 
-class TsGantt {  
+import { TsGanttConst } from "./core/ts-gantt-const";
+import { compareTwoStringSets } from "./core/ts-gantt-common";
+import { TsGanttOptions } from "./core/ts-gantt-options";
+import { TsGanttTask, TsGanttTaskModel,
+  TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "./core/ts-gantt-task";
+
+import { TsGanttTable } from "./components/table/ts-gantt-table";
+import { TsGanttChart } from "./components/chart/ts-gantt-chart";
+
+class TsGantt {
   private _options: TsGanttOptions;
 
   private _htmlContainer: HTMLElement;
+  private _shadowRoot: ShadowRoot;
+
   private _htmlWrapper: HTMLDivElement;
   private _htmlTableWrapper: HTMLDivElement;
   private _htmlChartWrapper: HTMLDivElement;
@@ -125,15 +130,22 @@ class TsGantt {
     wrapper.append(tableWrapper);
     wrapper.append(separator);
     wrapper.append(chartWrapper);
-    tableWrapper.append(this._table.html);
-    chartWrapper.append(this._chart.html);
+    this._table.appendTo(tableWrapper);
+    this._chart.appendTo(chartWrapper);
 
     tableWrapper.addEventListener("scroll", this.onWrapperScroll);
     chartWrapper.addEventListener("scroll", this.onWrapperScroll);
     separator.addEventListener("mousedown", this.onMouseDownOnPartsSeparator);
     separator.addEventListener("touchstart", this.onMouseDownOnPartsSeparator);
-     
-    this._htmlContainer.append(wrapper);     
+
+    if (this._options.useShadowDom) {
+      this._shadowRoot = this._htmlContainer.attachShadow({mode: "open"});
+      this._shadowRoot.innerHTML = styles;
+      this._shadowRoot.append(wrapper);
+    } else {
+      this._htmlContainer.append(wrapper);
+    }
+
     this._htmlWrapper = wrapper;
     this._htmlTableWrapper = tableWrapper;
     this._htmlChartWrapper = chartWrapper;

@@ -17,11 +17,11 @@
   --tsg-completed-fg-color: darkgreen;
   --tsg-completed-late-fg-color: sienna;
 
-  --tsg-today-line-color: orangered;  
+  --tsg-today-line-color: orangered;
   --tsg-chart-bar-color-1: skyblue;
   --tsg-chart-bar-color-2: lightcoral;
   --tsg-chart-bar-accent-1: darkcyan;
-  --tsg-chart-bar-accent-2: darkred;  
+  --tsg-chart-bar-accent-2: darkred;
 
   --tsg-font-family: 'Calibri', sans-serif;
   --tsg-font-size: 14px;
@@ -29,7 +29,7 @@
   --tsg-max-cell-text-lines: 2;
 }
 
-.tsg-no-text-selection {  
+.tsg-no-text-selection {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -38,7 +38,7 @@
   user-select: none;
 }
 
-.tsg-wrapper {  
+.tsg-wrapper {
   position: relative;
   box-sizing: border-box;
   display: flex;
@@ -213,7 +213,7 @@
   min-width: calc(var(--tsg-nesting-indent) * 11) !important;
 }
 
-.tsg-table-body-cell-text {  
+.tsg-table-body-cell-text {
   position: relative;
   overflow: hidden;
   max-height: calc(var(--tsg-max-cell-text-lines) * var(--tsg-line-height));
@@ -259,12 +259,12 @@
 }
 
 .tsg-chart-header-gl,
-.tsg-chart-body-gl {  
+.tsg-chart-body-gl {
   stroke-width: var(--tsg-gridlines-width);
   stroke: var(--tsg-border-color);
   shape-rendering: crispEdges;
 }
-.tsg-chart-body-gl-today {  
+.tsg-chart-body-gl-today {
   stroke-width: calc(var(--tsg-gridlines-width) + 2px);
   stroke: var(--tsg-today-line-color);
 }

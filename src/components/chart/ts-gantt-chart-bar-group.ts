@@ -1,20 +1,10 @@
 import dayjs from "dayjs";
-import { TsGanttConst } from "./ts-gantt-const";
-import { createSvgElement } from "./ts-gantt-common";
-import { TsGanttTask } from "./ts-gantt-task";
 
-interface TsGanttChartBarGroupOptions {
-  mode: "planned" | "actual" | "both";
-  showProgress: boolean;
-  dayWidth: number;
-  rowHeight: number; 
-  barMinWidth: number;
-  barHeight: number;
-  barBorder: number; 
-  barCornerR: number;
-  y0: number; 
-  y1: number;
-}
+import { TsGanttConst } from "../../core/ts-gantt-const";
+import { createSvgElement } from "../../core/ts-gantt-common";
+import { TsGanttTask } from "../../core/ts-gantt-task";
+
+import { TsGanttChartBarGroupOptions } from "./ts-gantt-chart-bar-options";
 
 class TsGanttChartBarGroup {  
   readonly task: TsGanttTask;
@@ -153,4 +143,4 @@ class TsGanttChartBarGroup {
   }
 }
 
-export { TsGanttChartBarGroup, TsGanttChartBarGroupOptions };
+export { TsGanttChartBarGroup };

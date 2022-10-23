@@ -7,7 +7,7 @@
   "types": "dist/ts-gantt.d.ts",
   "scripts": {
     "test": "karma start",
-    "buildts": "tsc && copyfiles -f ./src/*.css ./tsc/src",
+    "buildts": "tsc && copyfiles -f ./src/**/*.css ./tsc/src",
     "buildru": "rollup -c",
     "build": "npm run buildts && npm run buildru && dts-bundle-generator -o dist/ts-gantt.d.ts src/ts-gantt.ts && copyfiles -f ./dist/styles.min.css ./dist/ts-gantt.umd.min.js ./demo",
     "start": "npm run build && lite-server -c ls-config.json",

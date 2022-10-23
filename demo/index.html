@@ -11,15 +11,16 @@
             height: 100%;
             margin: 0;
             padding: 0;
-        }        
+        }
         #gantt-container {
             box-sizing: border-box;
             position: relative;
             width: calc(100%-2*20px);
             height: 600px;
             padding: 0;
-            margin: 20px;
-            border: 2px solid slateblue;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: rgb(201, 229, 247);
         } 
         button {
             width: 80px;
@@ -28,9 +29,10 @@
             font-size: 12px;
             font-weight: bold;
             cursor: pointer;
-            background-color: white;
-            border: 2px solid slateblue;
-            color: slateblue;
+            background-color: rgb(41, 156, 195);
+            border: 0;
+            border-radius: 10px;
+            color: white;
         }  
         button:hover {
             width: 80px;
@@ -38,8 +40,7 @@
             margin: 0 5px 0 0;
             font-weight: bold;
             cursor: pointer;
-            background-color: slateblue;
-            border: 0;
+            background-color: rgb(29, 109, 135);
             color: white;
         }  
         .button-div {
@@ -47,7 +48,6 @@
             margin: 0 0 20px 20px;
         }
     </style>
-    <link rel="stylesheet" type="text/css" href="./styles.min.css">
     <link rel="icon" href="data:,">
     <base href="/">
     <meta charset="UTF-8">
@@ -82,8 +82,8 @@
         <div class="button-div">
             <button id="btn-all-expand">Expand</button>
             <button id="btn-all-collapse">Collapse</button>
-        </div>          
-      
+        </div>
+
         <script src="./ts-gantt.umd.min.js"></script>
         <script>
             fetch("./data.json")
@@ -91,7 +91,7 @@
             .then(text => {
                 const inputModels = JSON.parse(text);
 
-                const options = new tsGantt.TsGanttOptions();
+                const options = new tsGantt.TsGanttOptions({useShadowDom: true});
                 const ganttChart = new tsGantt.TsGantt("#gantt-container", options);
                 ganttChart.tasks = inputModels;
 

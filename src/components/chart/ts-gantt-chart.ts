@@ -1,9 +1,12 @@
 import dayjs from "dayjs";
-import { TsGanttConst } from "./ts-gantt-const";
-import { createSvgElement, getAllDatesBetweenTwoDates } from "./ts-gantt-common";
-import { TsGanttOptions } from "./ts-gantt-options";
-import { TsGanttTask, TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "./ts-gantt-task";
-import { TsGanttChartBarGroup, TsGanttChartBarGroupOptions } from "./ts-gantt-chart-parts";
+
+import { TsGanttConst } from "../../core/ts-gantt-const";
+import { createSvgElement, getAllDatesBetweenTwoDates } from "../../core/ts-gantt-common";
+import { TsGanttOptions } from "../../core/ts-gantt-options";
+import { TsGanttTask, TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
+
+import { TsGanttChartBarGroupOptions } from "./ts-gantt-chart-bar-options";
+import { TsGanttChartBarGroup } from "./ts-gantt-chart-bar-group";
 
 class TsGanttChart {
   private _options: TsGanttOptions;
@@ -12,13 +15,7 @@ class TsGanttChart {
   private _dateMaxOffset: dayjs.Dayjs;
   
   private _html: HTMLDivElement;
-  get html(): HTMLDivElement {
-    return this._html;
-  }    
   private _htmlHeader: SVGElement;
-  get htmlHeader(): SVGElement {
-    return this._htmlHeader;
-  }  
   private _htmlBody: SVGElement;
 
   private _chartBarGroups: Map<string, TsGanttChartBarGroup> = new Map<string, TsGanttChartBarGroup>();
@@ -37,7 +34,11 @@ class TsGanttChart {
     
     this._html = this.createChartDiv();
   }
-  
+
+  appendTo(parent: HTMLElement) {
+    parent.append(this._html);
+  }
+
   update(forceRedraw: boolean, data: TsGanttTaskChangeResult, uuids: string[] = null) {    
     const datesCheckResult = data 
       ? this.checkDates(data.all)
@@ -54,7 +55,7 @@ class TsGanttChart {
     this.refreshBody();
     this.redraw();
   }
-  
+
   applySelection(selectionResult: TsGanttTaskSelectionChangeResult) {
     const {selected, deselected} = selectionResult;
     for (const uuid of deselected) {
@@ -447,9 +448,9 @@ class TsGanttChart {
         ["y1", lineY + ""],
         ["x2", width + ""],
         ["y2", lineY + ""],
-      ], body);      
+      ], body);
     }
-    xCoords.forEach(x => {      
+    xCoords.forEach(x => {
       const verticalLine = createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
         ["x1", x + ""],
         ["y1", 0 + ""],
@@ -461,7 +462,7 @@ class TsGanttChart {
 
     const rowFgs = new Map<string, SVGElement>();
     const offsetsX = new Map<string, number>();
-    barGroups.forEach((x, i) => {            
+    barGroups.forEach((x, i) => {
       const offsetY = i * rowHeight;
       const rowWrapper = createSvgElement("svg", [TsGanttConst.CHART_ROW_WRAPPER_CLASS], [
         ["y", offsetY + ""],
@@ -472,12 +473,14 @@ class TsGanttChart {
       rowWrapper.addEventListener("click", (e: MouseEvent) => {
         rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK_EVENT, {
           bubbles: true,
+          composed: true,
           detail: {task: x.task, event: e},
         }));
       });
       rowWrapper.addEventListener("contextmenu", (e: MouseEvent) => {
         rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU_EVENT, {
           bubbles: true,
+          composed: true,
           detail: {task: x.task, event: e},
         }));
       });

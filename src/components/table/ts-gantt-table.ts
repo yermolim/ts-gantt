@@ -1,16 +1,14 @@
-import { TsGanttConst } from "./ts-gantt-const";
-import { TsGanttOptions } from "./ts-gantt-options";
-import { TsGanttTask, TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "./ts-gantt-task";
-import { TsGanttTableColumn, TsGanttTableRow } from "./ts-gantt-table-parts";
+import { TsGanttConst } from "../../core/ts-gantt-const";
+import { TsGanttOptions } from "../../core/ts-gantt-options";
+import { TsGanttTask, TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
+
+import { TsGanttTableColumn } from "./ts-gantt-table-column";
+import { TsGanttTableRow } from "./ts-gantt-table-row";
 
 class TsGanttTable {
   private _options: TsGanttOptions;
   
   private _html: HTMLTableElement;
-  get html(): HTMLTableElement {
-    return this._html;
-  }  
-
   private _htmlHead: HTMLTableSectionElement;
   private _htmlBody: HTMLTableSectionElement;
 
@@ -32,6 +30,10 @@ class TsGanttTable {
     this._html = table;
     
     this.updateColumns();
+  }
+
+  appendTo(parent: HTMLElement) {
+    parent.append(this._html);
   }
 
   update(updateColumns: boolean, data: TsGanttTaskChangeResult, uuids: string[] = null) {

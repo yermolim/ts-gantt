@@ -59,6 +59,7 @@ export interface TsGanttTaskChangeResult {
 	all: TsGanttTask[];
 }
 export declare class TsGanttOptions {
+	useShadowDom: false;
 	multilineSelection: boolean;
 	useCtrlKeyForMultilineSelection: boolean;
 	drawTodayLine: boolean;
@@ -128,6 +129,7 @@ export interface TsGanttRowSymbols {
 export declare class TsGantt {
 	private _options;
 	private _htmlContainer;
+	private _shadowRoot;
 	private _htmlWrapper;
 	private _htmlTableWrapper;
 	private _htmlChartWrapper;
