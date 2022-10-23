@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import "./styles.css"; // this import is here only for rollup
+import "./assets/styles.css"; // this import is here only for rollup
 import { styles } from "./assets/styles";
 
 import { TsGanttConst } from "./core/ts-gantt-const";

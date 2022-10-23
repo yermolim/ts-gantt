@@ -1842,10 +1842,7 @@
       scrollChartToTasks(uuids) {
           const offset = Math.min(...uuids.map(x => this._chart.getBarOffsetByTaskUuid(x)));
           if (offset) {
-              this._htmlChartWrapper.scroll({
-                  left: offset - 20,
-                  behavior: "smooth",
-              });
+              this._htmlChartWrapper.scrollLeft = offset - 20;
           }
       }
       updateLocale() {
