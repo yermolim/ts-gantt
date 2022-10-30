@@ -17,22 +17,21 @@
             position: relative;
             width: calc(100%-2*20px);
             height: 600px;
-            padding: 0;
-            padding: 20px;
-            margin-bottom: 20px;
-            background-color: rgb(201, 229, 247);
+            margin: 20px;
+            box-shadow: rgba(0, 0, 0, 0.56) 0px 1px 4px;
         } 
         button {
             width: 80px;
             height: 40px;
             margin: 0 5px 0 0;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: bold;
             cursor: pointer;
-            background-color: rgb(41, 156, 195);
             border: 0;
-            border-radius: 10px;
+            border-radius: 20px;
+            background-color: rgb(41, 156, 195);
             color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }  
         button:hover {
             width: 80px;
@@ -44,7 +43,7 @@
             color: white;
         }  
         .button-div {
-            display: inline-block;
+            display: block;
             margin: 0 0 20px 20px;
         }
     </style>
@@ -76,15 +75,11 @@
             <button id="btn-bar-both">Both</button>
             <button id="btn-bar-planned">Planned</button>
             <button id="btn-bar-actual">Actual</button>
-        </div>  
-        <div class="button-div">
-            <button id="btn-row-select">Select 1st</button>
         </div>
         <div class="button-div">
             <button id="btn-all-expand">Expand</button>
             <button id="btn-all-collapse">Collapse</button>
-        </div>
-        <div class="button-div">
+            <button id="btn-row-select">Select 1st</button>
             <button id="btn-destroy">Destroy</button>
         </div>
 

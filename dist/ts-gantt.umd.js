@@ -31,7 +31,7 @@
     --tsg-chart-bar-accent-1-final: var(--tsg-chart-bar-accent-1, darkcyan);
     --tsg-chart-bar-accent-2-final: var(--tsg-chart-bar-accent-2, darkred);
 
-    --tsg-font-family-final: var(--tsg-font-family, 'Montserrat', sans-serif);
+    --tsg-font-family-final: var(--tsg-font-family, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
     --tsg-font-size-final: var(--tsg-font-size, 14px);
     --tsg-line-height-final: var(--tsg-line-height, 16px);
     --tsg-max-cell-text-lines-final: var(--tsg-max-cell-text-lines, 2);
@@ -99,7 +99,7 @@
     padding: 5px;
     height: var(--tsg-header-height) !important;
     font-size: var(--tsg-font-size-final);
-    border-width: 0 var(--tsg-gridlines-width) var(--tsg-gridlines-width) 0;
+    border-width: var(--tsg-gridlines-width) var(--tsg-gridlines-width) var(--tsg-gridlines-width) 0;
     border-color: var(--tsg-border-color-final);
     border-style: solid;
     background-color: var(--tsg-header-color-final);
