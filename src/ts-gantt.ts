@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/member-ordering */
 import "./assets/styles.css"; // this import is here only for rollup
 import { styles } from "./assets/styles";
 
@@ -8,6 +7,7 @@ import { TsGanttOptions } from "./core/ts-gantt-options";
 import { TsGanttTask, TsGanttTaskModel,
   TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "./core/ts-gantt-task";
 
+import { TsGanttBaseComponent } from "./components/abstract/ts-gantt-base-component";
 import { TsGanttTable } from "./components/table/ts-gantt-table";
 import { TsGanttChart } from "./components/chart/ts-gantt-chart";
 
@@ -24,13 +24,14 @@ class TsGantt {
   private _separatorDragActive = false;
   private _ignoreNextScrollEvent = false;
 
+  private _baseComponents: TsGanttBaseComponent[] = [];
   private _table: TsGanttTable;
   private _chart: TsGanttChart; 
 
   private _tasks: TsGanttTask[] = [];
   get tasks(): TsGanttTaskModel[] {
     return this._tasks.map(x => x.toModel());
-  }  
+  }
   set tasks(models: TsGanttTaskModel[]) {
     this.updateTasks(models);
   }
@@ -44,7 +45,7 @@ class TsGantt {
     const ids = models.map(x => x.id);
     const targetTasks = this._tasks.filter(x => ids.includes(x.externalId));
     this.selectTasks(targetTasks);
-  } 
+  }
 
   set locale(value: string) {
     if (value !== this._options.locale) {
@@ -52,14 +53,14 @@ class TsGantt {
       this.updateLocale();
     }
   }
-  
+
   set chartScale(value: "day" | "week" | "month" | "year") {
     if (value !== this._options.chartScale) {
       this._options.chartScale = value;
       this.updateChartScale();
     }
   }
-    
+
   set chartDisplayMode(value: "planned" | "actual" | "both") {
     if (value !== this._options.chartDisplayMode) {
       this._options.chartDisplayMode = value;
@@ -91,6 +92,7 @@ class TsGantt {
   destroy() {
     this.removeWindowEventListeners();
     this.removeDocumentEventListeners();
+    this._baseComponents.forEach(bc => bc.destroy());
     this._htmlWrapper.remove();
   }
 
@@ -125,7 +127,8 @@ class TsGantt {
     separator.classList.add(TsGanttConst.SEPARATOR_CLASS);  
     
     this._table = new TsGanttTable(this._options);
-    this._chart = new TsGanttChart(this._options);      
+    this._chart = new TsGanttChart(this._options);
+    this._baseComponents.push(this._table, this._chart);
  
     wrapper.append(tableWrapper);
     wrapper.append(separator);
@@ -171,11 +174,11 @@ class TsGantt {
     document.addEventListener("touchmove", this.onMouseMoveWhileResizingParts);
     document.addEventListener("touchend", this.onMouseUpWhileResizingParts);
     this._separatorDragActive = true;
-  };      
+  };
   private onMouseMoveWhileResizingParts = (e: MouseEvent | TouchEvent) => {
     if (!this._separatorDragActive) {
       return false;
-    }  
+    }
     const rect = this._htmlWrapper.getBoundingClientRect();
     const wrapperLeftOffset = rect.left;
     const wrapperWidth = rect.width;
@@ -185,7 +188,7 @@ class TsGantt {
 
     this._htmlTableWrapper.style.width = (userDefinedWidth - this._options.separatorWidthPx) + "px";
     this._htmlChartWrapper.style.width = (wrapperWidth - userDefinedWidth) + "px";
-  };       
+  };
   private onMouseUpWhileResizingParts = (e: MouseEvent | TouchEvent) => {
     document.removeEventListener("mousemove", this.onMouseMoveWhileResizingParts);
     document.removeEventListener("mouseup", this.onMouseUpWhileResizingParts);
@@ -200,7 +203,7 @@ class TsGantt {
       return;
     }
     this._ignoreNextScrollEvent = true;
-    
+
     const wrapper = e.currentTarget as Element;
     const scroll = wrapper.scrollTop;
     if (wrapper === this._htmlTableWrapper) {
@@ -213,7 +216,7 @@ class TsGantt {
       }
     }
   });
-  
+
   private onRowClick = <EventListener>((e: CustomEvent) => {
     const detail: {task: TsGanttTask; event: MouseEvent} = e.detail;
     if (!detail) {
@@ -231,7 +234,7 @@ class TsGantt {
         this.onRowDoubleClickCb(task.toModel(), event);
       }
     }
-  });  
+  });
   private onRowContextMenu = <EventListener>((e: CustomEvent) => {
     const detail: {task: TsGanttTask; event: MouseEvent} = e.detail;
     if (!detail) {
@@ -276,7 +279,7 @@ class TsGantt {
     this._chart.update(false, data, uuids);
     this.refreshSelection();
   }
-  
+
   private toggleTaskExpanded(task: TsGanttTask) {
     task.expanded = !task.expanded;
     this.update(null);
@@ -339,9 +342,9 @@ class TsGantt {
     if (this.onSelectionChangeCb) {
       this.onSelectionChangeCb(newSelectedTasks.map(x => x.toModel()));
     }
-  } 
+  }
 
-  private scrollChartToTasks(uuids: string[]) {    
+  private scrollChartToTasks(uuids: string[]) {
     const offset = Math.min(...uuids.map(x => this._chart.getBarOffsetByTaskUuid(x)));
     if (offset) {
       this._htmlChartWrapper.scrollLeft = offset - 20;
@@ -358,7 +361,7 @@ class TsGantt {
     this._table.update(true, data);
     this._chart.update(true, data);
   }
-  
+
   private updateChartScale() {
     this._chart.update(true, <TsGanttTaskChangeResult>{
       deleted: [],
@@ -367,7 +370,7 @@ class TsGantt {
       all: this._tasks,
     });
     this.refreshSelection();
-  }  
+  }
 
   private updateChartDisplayMode() {
     this._chart.update(false, <TsGanttTaskChangeResult>{
@@ -377,8 +380,8 @@ class TsGantt {
       all: this._tasks,
     });
     this.refreshSelection();
-  }  
-  
+  }
+
   private groupAndSortTasks() {
     this._tasksByParentUuid.clear();
     for (const task of this._tasks) {

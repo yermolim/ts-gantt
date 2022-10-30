@@ -78,10 +78,13 @@
         </div>  
         <div class="button-div">
             <button id="btn-row-select">Select 1st</button>
-        </div>  
+        </div>
         <div class="button-div">
             <button id="btn-all-expand">Expand</button>
             <button id="btn-all-collapse">Collapse</button>
+        </div>
+        <div class="button-div">
+            <button id="btn-destroy">Destroy</button>
         </div>
 
         <script src="./ts-gantt.umd.min.js"></script>
@@ -113,6 +116,9 @@
                 function collapseAll() {
                     ganttChart.expandAll(false);
                 }
+                function destroy() {
+                    ganttChart.destroy();
+                }
 
                 document.getElementById("btn-locale-en").addEventListener("click", () => setLocale("en"));
                 document.getElementById("btn-locale-uk").addEventListener("click", () => setLocale("uk"));
@@ -132,6 +138,8 @@
 
                 document.getElementById("btn-all-expand").addEventListener("click", () => expandAll());
                 document.getElementById("btn-all-collapse").addEventListener("click", () => collapseAll());
+
+                document.getElementById("btn-destroy").addEventListener("click", () => destroy());
 
             }).catch(e => console.log(e));
         </script> 

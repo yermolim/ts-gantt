@@ -135,6 +135,7 @@ export declare class TsGantt {
 	private _htmlChartWrapper;
 	private _separatorDragActive;
 	private _ignoreNextScrollEvent;
+	private _baseComponents;
 	private _table;
 	private _chart;
 	private _tasks;

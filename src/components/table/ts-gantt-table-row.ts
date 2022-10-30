@@ -41,7 +41,7 @@ class TsGanttTableRow {
     if (addStateClass) {
       row.classList.add(this.task.getState());
     }
-    
+
     columns.forEach((x, i) => {
       const cell = document.createElement("td");
       cell.classList.add(TsGanttConst.TABLE_BODY_CELL_CLASS);

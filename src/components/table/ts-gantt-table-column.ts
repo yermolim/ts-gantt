@@ -6,6 +6,7 @@ class TsGanttTableColumn {
   readonly resizer: HTMLDivElement;
 
   readonly minWidth: number;
+  readonly order: number;
   readonly header: string;
   readonly contentAlign: "start" | "center" | "end";
 
@@ -13,15 +14,17 @@ class TsGanttTableColumn {
 
   private _dragActive = false;
 
-  constructor(minWidth: number, textAlign: "start" | "center" | "end", header: string, 
+  constructor(minWidth: number, order: number, header: string,
+    textAlign: "start" | "center" | "end", 
     valueGetter: (a: TsGanttTask) => string) {
 
     this.minWidth = minWidth;
-    this.contentAlign = textAlign;
+    this.order = order;
     this.header = header;
+    this.contentAlign = textAlign;
     this.valueGetter = valueGetter;
 
-    this.html = this.createHeader();
+    this.html = this.createHeaderCell();
 
     this.resizer = this.createResizer();
     this.resizer.addEventListener("mousedown", this.onMouseDownOnResizer);
@@ -59,12 +62,33 @@ class TsGanttTableColumn {
     this._dragActive = false;
   }; 
 
-  private createHeader(): HTMLTableCellElement {
+  private createHeaderCell(): HTMLTableCellElement {
     const headerCell = document.createElement("th");
     headerCell.classList.add(TsGanttConst.TABLE_HEADER_CLASS);
+    headerCell.dataset[TsGanttConst.TABLE_COLUMN_DATA_ORDER] = this.order + "";
     headerCell.style.minWidth = this.minWidth + "px";
     headerCell.style.width = this.minWidth + "px";
+    headerCell.draggable = true;
     headerCell.innerHTML = this.header;
+    headerCell.addEventListener("dragstart", (e: DragEvent) => {
+      e.dataTransfer.setData(TsGanttConst.TABLE_COLUMN_REORDER_DATA, this.order + "");
+    });
+    headerCell.addEventListener("dragover", (e: DragEvent) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    });
+    headerCell.addEventListener("drop", (e: DragEvent) => {
+      e.preventDefault();
+      const orderFrom = e.dataTransfer.getData(TsGanttConst.TABLE_COLUMN_REORDER_DATA);
+      if (!orderFrom && orderFrom !== "0") {
+        return;
+      }
+      headerCell.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_COLUMN_REORDER_EVENT, {
+        bubbles: true,
+        composed: true,
+        detail: {orderFrom: +orderFrom, orderTo: this.order, event: e},
+      }));
+    });
     return headerCell;
   }
 

@@ -31,7 +31,7 @@
     --tsg-chart-bar-accent-1-final: var(--tsg-chart-bar-accent-1, darkcyan);
     --tsg-chart-bar-accent-2-final: var(--tsg-chart-bar-accent-2, darkred);
 
-    --tsg-font-family-final: var(--tsg-font-family, 'Calibri', sans-serif);
+    --tsg-font-family-final: var(--tsg-font-family, 'Montserrat', sans-serif);
     --tsg-font-size-final: var(--tsg-font-size, 14px);
     --tsg-line-height-final: var(--tsg-line-height, 16px);
     --tsg-max-cell-text-lines-final: var(--tsg-max-cell-text-lines, 2);
@@ -340,6 +340,9 @@
   TsGanttConst.TABLE_WRAPPER_CLASS = "tsg-table-wrapper";
   TsGanttConst.TABLE_CLASS = "tsg-table";
   TsGanttConst.TABLE_COLUMN_RESIZER_CLASS = "tsg-table-col-resizer";
+  TsGanttConst.TABLE_COLUMN_DATA_ORDER = "tsgColOrder";
+  TsGanttConst.TABLE_COLUMN_REORDER_DATA = "application/tsg-col-order";
+  TsGanttConst.TABLE_COLUMN_REORDER_EVENT = "tsgtablecolreorder";
   TsGanttConst.TABLE_HEADER_CLASS = "tsg-table-header";
   TsGanttConst.TABLE_BODY_ROW_CLASS = "tsg-table-body-row";
   TsGanttConst.TABLE_BODY_CELL_CLASS = "tsg-table-body-cell";
@@ -664,19 +667,25 @@
       }
       static detectTaskChanges(data) {
           const { oldTasks, newTasks } = data;
-          const oldUuids = oldTasks.map(x => x.uuid);
-          const newUuids = newTasks.map(x => x.uuid);
-          const deleted = oldTasks.filter(x => !newUuids.includes(x.uuid));
+          const oldTaskByUuid = new Map();
+          oldTasks.forEach(task => {
+              oldTaskByUuid.set(task.uuid, task);
+          });
+          const newUuids = new Set();
+          newTasks.forEach(task => {
+              newUuids.add(task.uuid);
+          });
+          const deleted = oldTasks.filter(x => !newUuids.has(x.uuid));
           const added = [];
           const changed = [];
           const all = [];
           for (const newTask of newTasks) {
-              if (!oldUuids.includes(newTask.uuid)) {
+              if (!oldTaskByUuid.has(newTask.uuid)) {
                   added.push(newTask);
                   all.push(newTask);
                   continue;
               }
-              const oldTask = oldTasks.find(x => x.uuid === newTask.uuid);
+              const oldTask = oldTaskByUuid.get(newTask.uuid);
               if (!newTask.equals(oldTask)) {
                   changed.push(newTask);
                   all.push(newTask);
@@ -809,8 +818,22 @@
   }
   TsGanttTask.defaultComparer = (a, b) => a.compareTo(b);
 
+  class TsGanttTableColumnOrder {
+      constructor(length) {
+          this._columnOrder = Array.from(new Array(length).keys());
+      }
+      move(from, to) {
+          this._columnOrder.splice(to, 0, this._columnOrder.splice(from, 1)[0]);
+      }
+      *[Symbol.iterator]() {
+          for (const columnIndex of this._columnOrder) {
+              yield columnIndex;
+          }
+      }
+  }
+
   class TsGanttTableColumn {
-      constructor(minWidth, textAlign, header, valueGetter) {
+      constructor(minWidth, order, header, textAlign, valueGetter) {
           this._dragActive = false;
           this.onMouseDownOnResizer = (e) => {
               document.addEventListener("mousemove", this.onMouseMoveWhileResizing);
@@ -838,21 +861,43 @@
               this._dragActive = false;
           };
           this.minWidth = minWidth;
-          this.contentAlign = textAlign;
+          this.order = order;
           this.header = header;
+          this.contentAlign = textAlign;
           this.valueGetter = valueGetter;
-          this.html = this.createHeader();
+          this.html = this.createHeaderCell();
           this.resizer = this.createResizer();
           this.resizer.addEventListener("mousedown", this.onMouseDownOnResizer);
           this.resizer.addEventListener("touchstart", this.onMouseDownOnResizer);
           this.html.append(this.resizer);
       }
-      createHeader() {
+      createHeaderCell() {
           const headerCell = document.createElement("th");
           headerCell.classList.add(TsGanttConst.TABLE_HEADER_CLASS);
+          headerCell.dataset[TsGanttConst.TABLE_COLUMN_DATA_ORDER] = this.order + "";
           headerCell.style.minWidth = this.minWidth + "px";
           headerCell.style.width = this.minWidth + "px";
+          headerCell.draggable = true;
           headerCell.innerHTML = this.header;
+          headerCell.addEventListener("dragstart", (e) => {
+              e.dataTransfer.setData(TsGanttConst.TABLE_COLUMN_REORDER_DATA, this.order + "");
+          });
+          headerCell.addEventListener("dragover", (e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+          });
+          headerCell.addEventListener("drop", (e) => {
+              e.preventDefault();
+              const orderFrom = e.dataTransfer.getData(TsGanttConst.TABLE_COLUMN_REORDER_DATA);
+              if (!orderFrom && orderFrom !== "0") {
+                  return;
+              }
+              headerCell.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_COLUMN_REORDER_EVENT, {
+                  bubbles: true,
+                  composed: true,
+                  detail: { orderFrom: +orderFrom, orderTo: this.order, event: e },
+              }));
+          });
           return headerCell;
       }
       createResizer() {
@@ -936,15 +981,22 @@
       constructor(options) {
           this._tableRows = new Map();
           this._activeUuids = [];
+          this._currentTasks = [];
+          this.onColumnReorder = ((e) => {
+              const detail = e.detail;
+              if (!detail) {
+                  return;
+              }
+              this.changeColumnIndex(detail.orderFrom, detail.orderTo);
+          });
           this._options = options;
-          const table = document.createElement("table");
-          table.classList.add(TsGanttConst.TABLE_CLASS);
-          const tableHead = table.createTHead();
-          const tableBody = table.createTBody();
-          this._htmlHead = tableHead;
-          this._htmlBody = tableBody;
-          this._html = table;
-          this.updateColumns();
+          this.initBaseHtml();
+          this.initColumns();
+          document.addEventListener(TsGanttConst.TABLE_COLUMN_REORDER_EVENT, this.onColumnReorder);
+      }
+      destroy() {
+          this._html.remove();
+          document.removeEventListener(TsGanttConst.TABLE_COLUMN_REORDER_EVENT, this.onColumnReorder);
       }
       appendTo(parent) {
           parent.append(this._html);
@@ -976,15 +1028,41 @@
               }
           }
       }
+      initBaseHtml() {
+          const table = document.createElement("table");
+          table.classList.add(TsGanttConst.TABLE_CLASS);
+          const tableHead = table.createTHead();
+          const tableBody = table.createTBody();
+          this._htmlHead = tableHead;
+          this._htmlBody = tableBody;
+          this._html = table;
+      }
+      initColumns() {
+          this._columnOrder = new TsGanttTableColumnOrder(this._options.columnsMinWidthPx.length);
+          this.updateColumns();
+      }
       updateColumns() {
           const columns = [];
-          for (let i = 0; i < this._options.columnsMinWidthPx.length; i++) {
+          let currentOrder = 0;
+          for (const i of this._columnOrder) {
               const minColumnWidth = this._options.columnsMinWidthPx[i];
-              if (minColumnWidth) {
-                  columns.push(new TsGanttTableColumn(minColumnWidth, this._options.columnsContentAlign[i], this._options.localeHeaders[this._options.locale][i] || "", this._options.columnValueGetters[i] || ((task) => "")));
+              if (!minColumnWidth) {
+                  continue;
               }
+              columns.push(new TsGanttTableColumn(minColumnWidth, currentOrder++, this._options.localeHeaders[this._options.locale][i] || "", this._options.columnsContentAlign[i], this._options.columnValueGetters[i] || ((task) => "")));
           }
           this._tableColumns = columns;
+      }
+      changeColumnIndex(oldIndex, newIndex) {
+          this._columnOrder.move(oldIndex, newIndex);
+          this.updateColumns();
+          this.updateRows({
+              added: [],
+              deleted: [],
+              changed: this._currentTasks,
+              all: this._currentTasks,
+          });
+          this.redraw();
       }
       updateRows(data) {
           const columns = this._tableColumns;
@@ -993,6 +1071,7 @@
           data.deleted.forEach(x => rows.delete(x.uuid));
           data.changed.forEach(x => rows.set(x.uuid, new TsGanttTableRow(x, columns, addStateClass)));
           data.added.forEach(x => rows.set(x.uuid, new TsGanttTableRow(x, columns, addStateClass)));
+          this._currentTasks = data.all;
       }
       redraw() {
           const headerRow = document.createElement("tr");
@@ -1126,6 +1205,9 @@
           this._activeUuids = [];
           this._options = options;
           this._html = this.createChartDiv();
+      }
+      destroy() {
+          this._html.remove();
       }
       appendTo(parent) {
           parent.append(this._html);
@@ -1575,6 +1657,7 @@
       constructor(containerSelector, options = null) {
           this._separatorDragActive = false;
           this._ignoreNextScrollEvent = false;
+          this._baseComponents = [];
           this._tasks = [];
           this._tasksByParentUuid = new Map();
           this._selectedTasks = [];
@@ -1706,6 +1789,7 @@
       destroy() {
           this.removeWindowEventListeners();
           this.removeDocumentEventListeners();
+          this._baseComponents.forEach(bc => bc.destroy());
           this._htmlWrapper.remove();
       }
       expandAll(state) {
@@ -1735,6 +1819,7 @@
           separator.classList.add(TsGanttConst.SEPARATOR_CLASS);
           this._table = new TsGanttTable(this._options);
           this._chart = new TsGanttChart(this._options);
+          this._baseComponents.push(this._table, this._chart);
           wrapper.append(tableWrapper);
           wrapper.append(separator);
           wrapper.append(chartWrapper);

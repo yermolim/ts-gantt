@@ -5,10 +5,12 @@ import { createSvgElement, getAllDatesBetweenTwoDates } from "../../core/ts-gant
 import { TsGanttOptions } from "../../core/ts-gantt-options";
 import { TsGanttTask, TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
 
+import { TsGanttBaseComponent } from "../abstract/ts-gantt-base-component";
+
 import { TsGanttChartBarGroupOptions } from "./ts-gantt-chart-bar-options";
 import { TsGanttChartBarGroup } from "./ts-gantt-chart-bar-group";
 
-class TsGanttChart {
+class TsGanttChart implements TsGanttBaseComponent {
   private _options: TsGanttOptions;
   
   private _dateMinOffset: dayjs.Dayjs;
@@ -28,11 +30,15 @@ class TsGanttChart {
   private _verticalLinesXCoords: number[];
 
   private _activeUuids: string[] = [];
-  
+
   constructor(options: TsGanttOptions) {
     this._options = options;
-    
+
     this._html = this.createChartDiv();
+  }
+
+  destroy() {
+    this._html.remove();
   }
 
   appendTo(parent: HTMLElement) {
