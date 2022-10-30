@@ -18,7 +18,7 @@ Simple library for creating gantt chart combined with task grid.
 <ul>
     <li>highly customizable</li>
     <li>contains two resizable parts: task grid and Gantt chart</li>
-    <li>resizable grid columns</li>
+    <li>resizable grid columns with drag'n'drop reordering support</li>
     <li>tree-like structure with expandable and selectable rows</li>
     <li>support for tasks with two date pairs (planned and actual)</li>
     <li>single or multiple row selection mode</li>
@@ -40,8 +40,8 @@ Simple library for creating gantt chart combined with task grid.
     <li>shadow DOM mode can be used to make sure it won't mess with your styling/layout</li>
     <li>light codebase: only one dependency (lightweight <a href="https://github.com/iamkun/dayjs">Day.js<a> is used to work with dates)</li>
 </ul>
-      
-      
+
+
 ## Getting started
 
 ### Install and initialize
@@ -286,7 +286,7 @@ const ganttChart = new tsGantt.TsGantt("#gantt-container", options);
     <li><del>add callbacks on chart events (on row click/double click, selection change)</del> added in 0.3.0</li>
     <li><del>remove the hardcoded column number, allow adding custom columns</del> added in 0.4.0</li>
     <li><del>move chart to shadow DOM</del> added as an option in 0.5.0</li>
-    <li>allow grid column reorder</li>
+    <li><del>allow drag'n'drop grid column reordering</del> added in 0.6.0</li>
     <li>add optional possibility to move/resize chart bars</li>
     <li>add tooltips on bar hover</li>
     <li>increase code coverage</li>
