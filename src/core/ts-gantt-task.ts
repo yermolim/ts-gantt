@@ -113,24 +113,32 @@ class TsGanttTask {
 
     return tasks;
   }
-    
+
   static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult {
     const { oldTasks, newTasks } = data;
-    const oldUuids = oldTasks.map(x => x.uuid);
-    const newUuids = newTasks.map(x => x.uuid);
 
-    const deleted: TsGanttTask[] = oldTasks.filter(x => !newUuids.includes(x.uuid));
+    const oldTaskByUuid = new Map<string, TsGanttTask>();
+    oldTasks.forEach(task => {
+      oldTaskByUuid.set(task.uuid, task);
+    });
+
+    const newUuids = new Set<string>();
+    newTasks.forEach(task => {
+      newUuids.add(task.uuid);
+    });
+
+    const deleted: TsGanttTask[] = oldTasks.filter(x => !newUuids.has(x.uuid));
     const added: TsGanttTask[] = [];
     const changed: TsGanttTask[] = [];
     const all: TsGanttTask[] = [];
 
     for (const newTask of newTasks) {
-      if (!oldUuids.includes(newTask.uuid)) {
+      if (!oldTaskByUuid.has(newTask.uuid)) {
         added.push(newTask);
         all.push(newTask);
         continue;
       }
-      const oldTask = oldTasks.find(x => x.uuid === newTask.uuid);
+      const oldTask = oldTaskByUuid.get(newTask.uuid);
       if (!newTask.equals(oldTask)) {
         changed.push(newTask);
         all.push(newTask);
@@ -172,11 +180,11 @@ class TsGanttTask {
         return true;
       }
     }
-    return false;      
+    return false;
   }
 
   static defaultComparer = (a: TsGanttTask, b: TsGanttTask) => a.compareTo(b);
-      
+
   static sortTasksRecursively(tasks: TsGanttTask[], 
     parentUuid: string): TsGanttTask[] {      
     const tasksFiltered = tasks.filter(x => x.parentUuid === parentUuid)
