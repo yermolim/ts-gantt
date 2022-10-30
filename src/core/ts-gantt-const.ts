@@ -19,6 +19,9 @@ class TsGanttConst {
   static readonly TABLE_WRAPPER_CLASS = "tsg-table-wrapper";
   static readonly TABLE_CLASS = "tsg-table";
   static readonly TABLE_COLUMN_RESIZER_CLASS = "tsg-table-col-resizer";
+  static readonly TABLE_COLUMN_DATA_ORDER = "tsgColOrder";
+  static readonly TABLE_COLUMN_REORDER_DATA = "application/tsg-col-order";
+  static readonly TABLE_COLUMN_REORDER_EVENT = "tsgtablecolreorder";
   static readonly TABLE_HEADER_CLASS = "tsg-table-header";
   static readonly TABLE_BODY_ROW_CLASS = "tsg-table-body-row";
   static readonly TABLE_BODY_CELL_CLASS = "tsg-table-body-cell";
