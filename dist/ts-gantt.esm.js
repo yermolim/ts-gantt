@@ -411,7 +411,6 @@ function getAllDatesBetweenTwoDates(start, end) {
 
 class TsGanttOptions {
     constructor(item = null) {
-        this.enableChartEdit = false;
         this.multilineSelection = true;
         this.useCtrlKeyForMultilineSelection = true;
         this.drawTodayLine = true;
@@ -1124,10 +1123,125 @@ class TsGanttTable {
     }
 }
 
+class TsGanttChartBarGroupOptions {
+    static getFromGanttOptions(options) {
+        const mode = options.chartDisplayMode;
+        const showProgress = options.chartShowProgress;
+        const dayWidth = options.chartDayWidthPx[options.chartScale];
+        const rowHeight = options.rowHeightPx;
+        const border = options.borderWidthPx;
+        const barMargin = options.barMarginPx;
+        const barBorder = options.barStrokeWidthPx;
+        const barCornerR = options.barCornerRadiusPx;
+        const barMinWidth = barBorder + 2 * barCornerR;
+        const y0 = barMargin - border / 2;
+        let barHeight;
+        let y1;
+        switch (mode) {
+            case "both":
+                barHeight = (rowHeight - 3 * barMargin) / 2;
+                y1 = barHeight + 2 * barMargin - border / 2;
+                break;
+            case "planned":
+            case "actual":
+                barHeight = rowHeight - 2 * barMargin;
+                break;
+        }
+        return { mode, showProgress, dayWidth, rowHeight,
+            barMinWidth, barHeight, barBorder, barCornerR, y0, y1 };
+    }
+}
+
+class TsGanttChartBarGroup {
+    constructor(task, options) {
+        this.svg = this.createSvg(options, task);
+        this.task = task;
+    }
+    createSvg(options, task) {
+        const { mode, showProgress, dayWidth, rowHeight, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
+        const { minDate, maxDate } = task.getMinMaxDates(mode);
+        const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = task;
+        const plannedDatesSet = datePlannedStart && datePlannedEnd;
+        const actualDatesSet = dateActualStart && dateActualEnd;
+        let barSvg;
+        if (mode === "both") {
+            if (actualDatesSet || plannedDatesSet) {
+                barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
+                if (plannedDatesSet) {
+                    this.drawBar(barSvg, minDate, datePlannedStart, datePlannedEnd, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "planned", task.progress, showProgress);
+                }
+                if (actualDatesSet) {
+                    this.drawBar(barSvg, minDate, dateActualStart, dateActualEnd, dayWidth, barMinWidth, barHeight, y1, barBorder, barCornerR, "actual", task.progress, showProgress);
+                }
+            }
+        }
+        else if (mode === "planned" && plannedDatesSet) {
+            barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
+            this.drawBar(barSvg, minDate, minDate, maxDate, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "planned", task.progress, showProgress);
+        }
+        else if (mode === "actual" && actualDatesSet) {
+            barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
+            this.drawBar(barSvg, minDate, minDate, maxDate, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "actual", task.progress, showProgress);
+        }
+        return barSvg;
+    }
+    createBarGroupWrapper(minDate, maxDate, dayWidth, minWidth, rowHeight) {
+        const widthDays = maxDate.diff(minDate, "day") + 1;
+        const width = Math.max(widthDays * dayWidth + minWidth, minWidth);
+        const barSvg = createSvgElement("svg", [TsGanttConst.CHART_BAR_GROUP_CLASS], [
+            ["width", width + ""],
+            ["height", rowHeight + ""],
+        ]);
+        return barSvg;
+    }
+    drawBar(parent, minDate, start, end, dayWidth, minWrapperWidth, wrapperHeight, y, borderWidth, cornerRadius, barType, progress, showProgress) {
+        const barClassList = barType === "planned"
+            ? [TsGanttConst.CHART_BAR_PLANNED_CLASS]
+            : [TsGanttConst.CHART_BAR_ACTUAL_CLASS];
+        const progressBarClassList = barType === "planned"
+            ? [TsGanttConst.CHART_BAR_PLANNED_PROGRESS_CLASS]
+            : [TsGanttConst.CHART_BAR_ACTUAL_PROGRESS_CLASS];
+        const offsetX = (start.diff(minDate, "day")) * dayWidth;
+        const widthDays = end.diff(start, "day") + 1;
+        const wrapperWidth = Math.max(widthDays * dayWidth, minWrapperWidth);
+        const wrapper = createSvgElement("svg", [TsGanttConst.CHART_BAR_WRAPPER_CLASS], [
+            ["x", offsetX + ""],
+            ["y", y + ""],
+            ["width", wrapperWidth + ""],
+            ["height", wrapperHeight + ""],
+        ], parent);
+        const margin = borderWidth / 2;
+        const width = wrapperWidth - borderWidth;
+        const height = wrapperHeight - borderWidth;
+        createSvgElement("rect", barClassList, [
+            ["x", margin + ""],
+            ["y", margin + ""],
+            ["width", width + ""],
+            ["height", height + ""],
+            ["rx", cornerRadius + ""],
+            ["ry", cornerRadius + ""],
+        ], wrapper);
+        if (showProgress) {
+            const calculatedProgressWidth = width * progress / 100;
+            const progressWidth = calculatedProgressWidth < minWrapperWidth - borderWidth
+                ? 0
+                : calculatedProgressWidth;
+            createSvgElement("rect", progressBarClassList, [
+                ["x", margin + ""],
+                ["y", margin + ""],
+                ["width", progressWidth + ""],
+                ["height", height + ""],
+                ["rx", cornerRadius + ""],
+                ["ry", cornerRadius + ""],
+            ], wrapper);
+        }
+    }
+}
+
 class TsGanttChartHeader {
     constructor(options, minDate, maxDate) {
         this._options = options;
-        this._svg = this.createSvg(minDate, maxDate);
+        this.createAndDrawSvg(minDate, maxDate);
     }
     get width() {
         return this._width;
@@ -1144,7 +1258,7 @@ class TsGanttChartHeader {
     appendTo(parent) {
         parent.append(this._svg);
     }
-    createSvg(minDate, maxDate) {
+    createAndDrawSvg(minDate, maxDate) {
         const scale = this._options.chartScale;
         const dayWidth = this._options.chartDayWidthPx[scale];
         const height = this._options.headerHeightPx;
@@ -1164,10 +1278,10 @@ class TsGanttChartHeader {
         else if (scale === "week" || scale === "day") {
             xCoords = this.drawWeekDayScaledHeaderContent(header, months, daysShort, dates, maxDate, height, width, dayWidth);
         }
+        this._svg = header;
         this._width = width;
         this._height = height;
         this._xCoords = xCoords;
-        return header;
     }
     createHeaderWrapper(width, height) {
         const header = createSvgElement("svg", [TsGanttConst.CHART_HEADER_CLASS], [
@@ -1305,120 +1419,16 @@ class TsGanttChartHeader {
     }
 }
 
-class TsGanttChartBarGroup {
-    constructor(task, options) {
-        this.svg = this.createSvg(options, task);
-        this.task = task;
-    }
-    createSvg(options, task) {
-        const { mode, showProgress, dayWidth, rowHeight, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
-        const { minDate, maxDate } = task.getMinMaxDates(mode);
-        const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = task;
-        const plannedDatesSet = datePlannedStart && datePlannedEnd;
-        const actualDatesSet = dateActualStart && dateActualEnd;
-        let barSvg;
-        if (mode === "both") {
-            if (actualDatesSet || plannedDatesSet) {
-                barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
-                if (plannedDatesSet) {
-                    this.drawBar(barSvg, minDate, datePlannedStart, datePlannedEnd, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "planned", task.progress, showProgress);
-                }
-                if (actualDatesSet) {
-                    this.drawBar(barSvg, minDate, dateActualStart, dateActualEnd, dayWidth, barMinWidth, barHeight, y1, barBorder, barCornerR, "actual", task.progress, showProgress);
-                }
-            }
-        }
-        else if (mode === "planned" && plannedDatesSet) {
-            barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
-            this.drawBar(barSvg, minDate, minDate, maxDate, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "planned", task.progress, showProgress);
-        }
-        else if (mode === "actual" && actualDatesSet) {
-            barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
-            this.drawBar(barSvg, minDate, minDate, maxDate, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "actual", task.progress, showProgress);
-        }
-        return barSvg;
-    }
-    createBarGroupWrapper(minDate, maxDate, dayWidth, minWidth, rowHeight) {
-        const widthDays = maxDate.diff(minDate, "day") + 1;
-        const width = Math.max(widthDays * dayWidth + minWidth, minWidth);
-        const barSvg = createSvgElement("svg", [TsGanttConst.CHART_BAR_GROUP_CLASS], [
-            ["width", width + ""],
-            ["height", rowHeight + ""],
-        ]);
-        return barSvg;
-    }
-    drawBar(parent, minDate, start, end, dayWidth, minWrapperWidth, wrapperHeight, y, borderWidth, cornerRadius, barType, progress, showProgress) {
-        const barClassList = barType === "planned"
-            ? [TsGanttConst.CHART_BAR_PLANNED_CLASS]
-            : [TsGanttConst.CHART_BAR_ACTUAL_CLASS];
-        const progressBarClassList = barType === "planned"
-            ? [TsGanttConst.CHART_BAR_PLANNED_PROGRESS_CLASS]
-            : [TsGanttConst.CHART_BAR_ACTUAL_PROGRESS_CLASS];
-        const offsetX = (start.diff(minDate, "day")) * dayWidth;
-        const widthDays = end.diff(start, "day") + 1;
-        const wrapperWidth = Math.max(widthDays * dayWidth, minWrapperWidth);
-        const wrapper = createSvgElement("svg", [TsGanttConst.CHART_BAR_WRAPPER_CLASS], [
-            ["x", offsetX + ""],
-            ["y", y + ""],
-            ["width", wrapperWidth + ""],
-            ["height", wrapperHeight + ""],
-        ], parent);
-        const margin = borderWidth / 2;
-        const width = wrapperWidth - borderWidth;
-        const height = wrapperHeight - borderWidth;
-        createSvgElement("rect", barClassList, [
-            ["x", margin + ""],
-            ["y", margin + ""],
-            ["width", width + ""],
-            ["height", height + ""],
-            ["rx", cornerRadius + ""],
-            ["ry", cornerRadius + ""],
-        ], wrapper);
-        if (showProgress) {
-            const calculatedProgressWidth = width * progress / 100;
-            const progressWidth = calculatedProgressWidth < minWrapperWidth - borderWidth
-                ? 0
-                : calculatedProgressWidth;
-            createSvgElement("rect", progressBarClassList, [
-                ["x", margin + ""],
-                ["y", margin + ""],
-                ["width", progressWidth + ""],
-                ["height", height + ""],
-                ["rx", cornerRadius + ""],
-                ["ry", cornerRadius + ""],
-            ], wrapper);
-        }
-    }
-}
-
-class TsGanttChart {
-    constructor(options) {
-        this._chartBarGroups = new Map();
-        this._activeUuids = [];
+class TsGanttChartBody {
+    constructor(options, barGroups, xCoords, minDate, top, width) {
         this._options = options;
-        this._html = this.createChartDiv();
+        this.createAndDrawSvg(barGroups, xCoords, minDate, top, width);
     }
     destroy() {
-        this._html.remove();
+        this._svg.remove();
     }
     appendTo(parent) {
-        parent.append(this._html);
-    }
-    update(forceRedraw, data, uuids = null) {
-        const datesCheckResult = data
-            ? this.updateMinMaxDates(data.all)
-            : true;
-        if (!datesCheckResult || forceRedraw) {
-            this._header = new TsGanttChartHeader(this._options, this._dateMinOffset, this._dateMaxOffset);
-        }
-        if (data) {
-            this.refreshBarGroups(data);
-        }
-        if (uuids) {
-            this._activeUuids = uuids;
-        }
-        this.refreshBody();
-        this.redraw();
+        parent.append(this._svg);
     }
     applySelection(selectionResult) {
         const { selected, deselected } = selectionResult;
@@ -1446,95 +1456,15 @@ class TsGanttChart {
     getBarOffsetByTaskUuid(uuid) {
         return this._chartOffsetsX.get(uuid);
     }
-    createChartDiv() {
-        const svg = document.createElement("div");
-        svg.classList.add(TsGanttConst.CHART_CLASS);
-        return svg;
-    }
-    updateMinMaxDates(tasks) {
-        const currentDateMin = this._dateMinOffset;
-        const currentDateMax = this._dateMaxOffset;
-        const chartScale = this._options.chartScale;
-        const dateOffsetMin = this._options.chartDateOffsetDaysMin[chartScale];
-        const dateOffset = this._options.chartDateOffsetDays[chartScale];
-        let dateMin = dayjs();
-        let dateMax = dayjs();
-        for (const task of tasks) {
-            const plannedStart = dayjs(task.datePlannedStart);
-            const plannedEnd = dayjs(task.datePlannedEnd);
-            const actualStart = task.dateActualStart ? dayjs(task.dateActualStart) : null;
-            const actualEnd = task.dateActualEnd ? dayjs(task.dateActualEnd) : null;
-            if (plannedStart.isBefore(dateMin)) {
-                dateMin = plannedStart;
-            }
-            if (plannedEnd.isAfter(dateMax)) {
-                dateMax = plannedEnd;
-            }
-            if (actualStart && actualStart.isBefore(dateMin)) {
-                dateMin = actualStart;
-            }
-            if (actualEnd && actualEnd.isAfter(dateMax)) {
-                dateMax = actualEnd;
-            }
-        }
-        if (!currentDateMin
-            || currentDateMin.isAfter(dateMin)
-            || dateMin.diff(currentDateMin, "day") < dateOffsetMin) {
-            this._dateMinOffset = dateMin.subtract(dateOffset, "day");
-        }
-        if (!currentDateMax
-            || currentDateMax.isBefore(dateMax)
-            || currentDateMax.diff(dateMax, "day") < dateOffsetMin) {
-            this._dateMaxOffset = dateMax.add(dateOffset, "day");
-        }
-        return this._dateMinOffset === currentDateMin && this._dateMaxOffset === currentDateMax;
-    }
-    getBarGroupOptions() {
-        const mode = this._options.chartDisplayMode;
-        const showProgress = this._options.chartShowProgress;
-        const dayWidth = this._options.chartDayWidthPx[this._options.chartScale];
-        const rowHeight = this._options.rowHeightPx;
-        const border = this._options.borderWidthPx;
-        const barMargin = this._options.barMarginPx;
-        const barBorder = this._options.barStrokeWidthPx;
-        const barCornerR = this._options.barCornerRadiusPx;
-        const barMinWidth = barBorder + 2 * barCornerR;
-        const y0 = barMargin - border / 2;
-        let barHeight;
-        let y1;
-        switch (mode) {
-            case "both":
-                barHeight = (rowHeight - 3 * barMargin) / 2;
-                y1 = barHeight + 2 * barMargin - border / 2;
-                break;
-            case "planned":
-            case "actual":
-                barHeight = rowHeight - 2 * barMargin;
-                break;
-        }
-        return { mode, showProgress, dayWidth, rowHeight,
-            barMinWidth, barHeight, barBorder, barCornerR, y0, y1 };
-    }
-    refreshBarGroups(data) {
-        const barGroupOptions = this.getBarGroupOptions();
-        data.deleted.forEach(x => this._chartBarGroups.delete(x.uuid));
-        data.changed.forEach(x => this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions)));
-        data.added.forEach(x => this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions)));
-    }
-    refreshBody() {
+    createAndDrawSvg(barGroups, xCoords, minDate, top, width) {
         const scale = this._options.chartScale;
         const dayWidth = this._options.chartDayWidthPx[scale];
         const rowHeight = this._options.rowHeightPx;
         const border = this._options.borderWidthPx;
         const todayLineEnabled = this._options.drawTodayLine;
         const mode = this._options.chartDisplayMode;
-        const barGroups = this._activeUuids.map(x => this._chartBarGroups.get(x));
-        const minDate = this._dateMinOffset;
         const height = rowHeight * barGroups.length;
-        const width = this._header.width;
-        const y0 = this._header.height;
-        const xCoords = this._header.xCoords;
-        const body = this.createChartBody(y0, width, height);
+        const body = this.createChartBody(top, width, height);
         const rowBgs = this.createRowBackgrounds(body, barGroups, rowHeight, width);
         this.createChartGridLines(body, barGroups, rowHeight, width, height, border, xCoords);
         const rowFgs = new Map();
@@ -1555,10 +1485,10 @@ class TsGanttChart {
         if (todayLineEnabled) {
             this.createTodayLine(body, minDate, dayWidth, height);
         }
+        this._svg = body;
         this._chartRowBgs = rowBgs;
         this._chartRowFgs = rowFgs;
         this._chartOffsetsX = offsetsX;
-        this._htmlBody = body;
     }
     createRow(parent, task, offsetY, width, height) {
         const rowWrapper = createSvgElement("svg", [TsGanttConst.CHART_ROW_WRAPPER_CLASS], [
@@ -1642,12 +1572,101 @@ class TsGanttChart {
             ["y2", height + ""],
         ], parent);
     }
+}
+
+class TsGanttChart {
+    constructor(options) {
+        this._chartBarGroups = new Map();
+        this._activeUuids = [];
+        this._options = options;
+        this._html = this.createChartDiv();
+    }
+    destroy() {
+        this._html.remove();
+    }
+    appendTo(parent) {
+        parent.append(this._html);
+    }
+    update(forceRedraw, data, uuids = null) {
+        const datesCheckResult = data
+            ? this.updateMinMaxDates(data.all)
+            : true;
+        if (!datesCheckResult || forceRedraw) {
+            this._header = new TsGanttChartHeader(this._options, this._dateMinOffset, this._dateMaxOffset);
+        }
+        if (data) {
+            this.refreshBarGroups(data);
+        }
+        if (uuids) {
+            this._activeUuids = uuids;
+        }
+        const barGroups = this._activeUuids.map(x => this._chartBarGroups.get(x));
+        this._body = new TsGanttChartBody(this._options, barGroups, this._header.xCoords, this._dateMinOffset, this._header.height, this._header.width);
+        this.redraw();
+    }
+    applySelection(selectionResult) {
+        var _a;
+        (_a = this._body) === null || _a === void 0 ? void 0 : _a.applySelection(selectionResult);
+    }
+    getBarOffsetByTaskUuid(uuid) {
+        var _a;
+        return (_a = this._body) === null || _a === void 0 ? void 0 : _a.getBarOffsetByTaskUuid(uuid);
+    }
+    createChartDiv() {
+        const svg = document.createElement("div");
+        svg.classList.add(TsGanttConst.CHART_CLASS);
+        return svg;
+    }
+    updateMinMaxDates(tasks) {
+        const currentDateMin = this._dateMinOffset;
+        const currentDateMax = this._dateMaxOffset;
+        const chartScale = this._options.chartScale;
+        const dateOffsetMin = this._options.chartDateOffsetDaysMin[chartScale];
+        const dateOffset = this._options.chartDateOffsetDays[chartScale];
+        let dateMin = dayjs();
+        let dateMax = dayjs();
+        for (const task of tasks) {
+            const plannedStart = dayjs(task.datePlannedStart);
+            const plannedEnd = dayjs(task.datePlannedEnd);
+            const actualStart = task.dateActualStart ? dayjs(task.dateActualStart) : null;
+            const actualEnd = task.dateActualEnd ? dayjs(task.dateActualEnd) : null;
+            if (plannedStart.isBefore(dateMin)) {
+                dateMin = plannedStart;
+            }
+            if (plannedEnd.isAfter(dateMax)) {
+                dateMax = plannedEnd;
+            }
+            if (actualStart && actualStart.isBefore(dateMin)) {
+                dateMin = actualStart;
+            }
+            if (actualEnd && actualEnd.isAfter(dateMax)) {
+                dateMax = actualEnd;
+            }
+        }
+        if (!currentDateMin
+            || currentDateMin.isAfter(dateMin)
+            || dateMin.diff(currentDateMin, "day") < dateOffsetMin) {
+            this._dateMinOffset = dateMin.subtract(dateOffset, "day");
+        }
+        if (!currentDateMax
+            || currentDateMax.isBefore(dateMax)
+            || currentDateMax.diff(dateMax, "day") < dateOffsetMin) {
+            this._dateMaxOffset = dateMax.add(dateOffset, "day");
+        }
+        return this._dateMinOffset === currentDateMin && this._dateMaxOffset === currentDateMax;
+    }
+    refreshBarGroups(data) {
+        const barGroupOptions = TsGanttChartBarGroupOptions.getFromGanttOptions(this._options);
+        data.deleted.forEach(x => this._chartBarGroups.delete(x.uuid));
+        data.changed.forEach(x => this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions)));
+        data.added.forEach(x => this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions)));
+    }
     redraw() {
         const oldHtml = this._html;
         const newHtml = document.createElement("div");
         newHtml.classList.add(TsGanttConst.CHART_CLASS);
         this._header.appendTo(newHtml);
-        newHtml.append(this._htmlBody);
+        this._body.appendTo(newHtml);
         oldHtml.replaceWith(newHtml);
         this._html = newHtml;
     }

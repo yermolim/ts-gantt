@@ -5,8 +5,9 @@ import { createSvgElement, getAllDatesBetweenTwoDates } from "../../core/ts-gant
 import { TsGanttOptions } from "../../core/ts-gantt-options";
 
 class TsGanttChartHeader {
-  private readonly _options: TsGanttOptions;  
-  private readonly _svg: SVGElement;
+  private readonly _options: TsGanttOptions;
+
+  private _svg: SVGElement;
 
   private _width: number;
   get width(): number {
@@ -25,7 +26,7 @@ class TsGanttChartHeader {
 
   constructor(options: TsGanttOptions, minDate: dayjs.Dayjs, maxDate: dayjs.Dayjs) {
     this._options = options;
-    this._svg = this.createSvg(minDate, maxDate);
+    this.createAndDrawSvg(minDate, maxDate);
   }
 
   destroy() {
@@ -36,7 +37,7 @@ class TsGanttChartHeader {
     parent.append(this._svg);
   }
 
-  private createSvg(minDate: dayjs.Dayjs, maxDate: dayjs.Dayjs): SVGElement {
+  private createAndDrawSvg(minDate: dayjs.Dayjs, maxDate: dayjs.Dayjs) {
     const scale = this._options.chartScale;
     const dayWidth = this._options.chartDayWidthPx[scale];
     const height = this._options.headerHeightPx;
@@ -62,11 +63,10 @@ class TsGanttChartHeader {
         header, months, daysShort, dates, maxDate, height, width, dayWidth);
     }
 
+    this._svg = header;
     this._width = width;
     this._height = height;
     this._xCoords = xCoords;
-
-    return header;
   }
 
   private createHeaderWrapper(width: number, height: number): SVGElement {

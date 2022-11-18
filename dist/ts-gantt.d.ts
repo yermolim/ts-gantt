@@ -69,7 +69,6 @@ export interface TsGanttTaskChangeResult {
 	all: TsGanttTask[];
 }
 export declare class TsGanttOptions {
-	enableChartEdit: boolean;
 	useShadowDom: false;
 	multilineSelection: boolean;
 	useCtrlKeyForMultilineSelection: boolean;
