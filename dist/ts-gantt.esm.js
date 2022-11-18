@@ -411,6 +411,7 @@ function getAllDatesBetweenTwoDates(start, end) {
 
 class TsGanttOptions {
     constructor(item = null) {
+        this.enableChartEdit = false;
         this.multilineSelection = true;
         this.useCtrlKeyForMultilineSelection = true;
         this.drawTodayLine = true;
@@ -809,6 +810,38 @@ class TsGanttTask {
         model.localizedNames = this.localizedNames;
         return model;
     }
+    getMinMaxDates(chartBarMode) {
+        const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = this;
+        const plannedDatesSet = datePlannedStart && datePlannedEnd;
+        const actualDatesSet = dateActualStart && dateActualEnd;
+        let minDate;
+        let maxDate;
+        if (chartBarMode === "both") {
+            if (actualDatesSet || plannedDatesSet) {
+                if (actualDatesSet && plannedDatesSet) {
+                    minDate = datePlannedStart.isBefore(dateActualStart) ? datePlannedStart : dateActualStart;
+                    maxDate = datePlannedEnd.isAfter(dateActualEnd) ? datePlannedEnd : dateActualEnd;
+                }
+                else if (plannedDatesSet) {
+                    minDate = datePlannedStart;
+                    maxDate = datePlannedEnd;
+                }
+                else {
+                    minDate = dateActualStart;
+                    maxDate = dateActualEnd;
+                }
+            }
+        }
+        else if (chartBarMode === "planned" && plannedDatesSet) {
+            minDate = datePlannedStart;
+            maxDate = datePlannedEnd;
+        }
+        else if (chartBarMode === "actual" && actualDatesSet) {
+            minDate = dateActualStart;
+            maxDate = dateActualEnd;
+        }
+        return { minDate, maxDate };
+    }
 }
 TsGanttTask.defaultComparer = (a, b) => a.compareTo(b);
 
@@ -1091,56 +1124,221 @@ class TsGanttTable {
     }
 }
 
+class TsGanttChartHeader {
+    constructor(options, minDate, maxDate) {
+        this._options = options;
+        this._svg = this.createSvg(minDate, maxDate);
+    }
+    get width() {
+        return this._width;
+    }
+    get height() {
+        return this._height;
+    }
+    get xCoords() {
+        return this._xCoords;
+    }
+    destroy() {
+        this._svg.remove();
+    }
+    appendTo(parent) {
+        parent.append(this._svg);
+    }
+    createSvg(minDate, maxDate) {
+        const scale = this._options.chartScale;
+        const dayWidth = this._options.chartDayWidthPx[scale];
+        const height = this._options.headerHeightPx;
+        const dates = getAllDatesBetweenTwoDates(minDate, maxDate);
+        const width = dates.length * dayWidth;
+        const header = this.createHeaderWrapper(width, height);
+        const locale = this._options.locale;
+        const months = this._options.localeDateMonths[locale];
+        const daysShort = this._options.localeDateDaysShort[locale];
+        let xCoords;
+        if (scale === "year") {
+            xCoords = this.drawYearScaledHeaderContent(header, dates, maxDate, dayWidth, height);
+        }
+        else if (scale === "month") {
+            xCoords = this.drawMonthScaledHeaderContent(header, months, dates, maxDate, height, width, dayWidth);
+        }
+        else if (scale === "week" || scale === "day") {
+            xCoords = this.drawWeekDayScaledHeaderContent(header, months, daysShort, dates, maxDate, height, width, dayWidth);
+        }
+        this._width = width;
+        this._height = height;
+        this._xCoords = xCoords;
+        return header;
+    }
+    createHeaderWrapper(width, height) {
+        const header = createSvgElement("svg", [TsGanttConst.CHART_HEADER_CLASS], [
+            ["width", width + ""],
+            ["height", height + ""],
+        ]);
+        createSvgElement("rect", [TsGanttConst.CHART_HEADER_BACKGROUND_CLASS], [
+            ["width", width + ""],
+            ["height", height + ""],
+        ], header);
+        return header;
+    }
+    createAndDrawHeaderElementWrapper(parent, left, top, width, height) {
+        return createSvgElement("svg", [], [
+            ["x", left + ""],
+            ["y", top + ""],
+            ["width", width + ""],
+            ["height", height + ""],
+        ], parent);
+    }
+    drawHorizontalBorder(header, top, width) {
+        createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+            ["x1", 0 + ""],
+            ["y1", top + ""],
+            ["x2", width + ""],
+            ["y2", top + ""],
+        ], header);
+    }
+    drawVerticalBorder(header, left, top, height) {
+        createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+            ["x1", left + ""],
+            ["y1", top + ""],
+            ["x2", left + ""],
+            ["y2", top + height + ""],
+        ], header);
+    }
+    drawText(parent, text) {
+        createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+            ["x", "50%"],
+            ["y", "50%"],
+            ["dominant-baseline", "middle"],
+            ["text-anchor", "middle"],
+        ], parent, text);
+    }
+    drawYear(header, date, nextDayOffset, yearStartOffset, top, rowHeight) {
+        const yearWidth = nextDayOffset - yearStartOffset;
+        const yearSvg = this.createAndDrawHeaderElementWrapper(header, yearStartOffset, top, yearWidth, rowHeight);
+        if (yearWidth >= 60) {
+            this.drawText(yearSvg, date.year() + "");
+        }
+        this.drawVerticalBorder(header, nextDayOffset, top, rowHeight);
+    }
+    drawMonth(header, months, date, nextDayOffset, monthStartOffset, top, rowHeight) {
+        const monthWidth = nextDayOffset - monthStartOffset;
+        const monthSvg = this.createAndDrawHeaderElementWrapper(header, monthStartOffset, top, monthWidth, rowHeight);
+        if (monthWidth >= 60) {
+            const monthName = months[date.month()];
+            this.drawText(monthSvg, monthName);
+        }
+        this.drawVerticalBorder(header, nextDayOffset, top, rowHeight);
+    }
+    drawDay(header, daysShort, date, currentDayOffset, nextDayOffset, dayWidth, top, rowHeight) {
+        const daySvg = this.createAndDrawHeaderElementWrapper(header, currentDayOffset, top, dayWidth, rowHeight);
+        const dayName = dayWidth < 30
+            ? date.date() + ""
+            : daysShort[date.day()] + " " + date.date();
+        this.drawText(daySvg, dayName);
+        this.drawVerticalBorder(header, nextDayOffset, top, rowHeight);
+    }
+    drawWeekDayScaledHeaderContent(header, months, daysShort, dates, maxDate, height, width, dayWidth) {
+        const verticalLinesXCoords = [];
+        const rowHeight = height / 3;
+        const y0 = 0;
+        const y1 = rowHeight;
+        const y2 = rowHeight * 2;
+        this.drawHorizontalBorder(header, y1, width);
+        this.drawHorizontalBorder(header, y2, width);
+        let yearStartOffset = 0;
+        let currentDayOffset = 0;
+        let monthStartOffset = 0;
+        for (const date of dates) {
+            const nextDayOffset = currentDayOffset + dayWidth;
+            if (date.isSame(date.endOf("year").startOf("day")) || date.isSame(maxDate)) {
+                this.drawYear(header, date, nextDayOffset, yearStartOffset, y0, rowHeight);
+                yearStartOffset = nextDayOffset;
+            }
+            if (date.isSame(date.endOf("month").startOf("day")) || date.isSame(maxDate)) {
+                this.drawMonth(header, months, date, nextDayOffset, monthStartOffset, y1, rowHeight);
+                monthStartOffset = nextDayOffset;
+            }
+            this.drawDay(header, daysShort, date, currentDayOffset, nextDayOffset, dayWidth, y2, rowHeight);
+            verticalLinesXCoords.push(nextDayOffset);
+            currentDayOffset = nextDayOffset;
+        }
+        return verticalLinesXCoords;
+    }
+    drawMonthScaledHeaderContent(header, months, dates, maxDate, height, width, dayWidth) {
+        const verticalLinesXCoords = [];
+        const rowHeight = height / 2;
+        const y0 = 0;
+        const y1 = rowHeight;
+        this.drawHorizontalBorder(header, y1, width);
+        let yearStartOffset = 0;
+        let currentDayOffset = 0;
+        let monthStartOffset = 0;
+        for (const date of dates) {
+            const nextDayOffset = currentDayOffset + dayWidth;
+            if (date.isSame(date.endOf("year").startOf("day")) || date.isSame(maxDate)) {
+                this.drawYear(header, date, nextDayOffset, yearStartOffset, y0, rowHeight);
+                yearStartOffset = nextDayOffset;
+            }
+            if (date.isSame(date.endOf("month").startOf("day")) || date.isSame(maxDate)) {
+                this.drawMonth(header, months, date, nextDayOffset, monthStartOffset, y1, rowHeight);
+                verticalLinesXCoords.push(nextDayOffset);
+                monthStartOffset = nextDayOffset;
+            }
+            currentDayOffset = nextDayOffset;
+        }
+        return verticalLinesXCoords;
+    }
+    drawYearScaledHeaderContent(header, dates, maxDate, dayWidth, height) {
+        const verticalLinesXCoords = [];
+        let yearStartOffset = 0;
+        let currentDayOffset = 0;
+        for (const date of dates) {
+            const nextDayOffset = currentDayOffset + dayWidth;
+            if (date.isSame(date.endOf("year").startOf("day")) || date.isSame(maxDate)) {
+                this.drawYear(header, date, nextDayOffset, yearStartOffset, 0, height);
+                verticalLinesXCoords.push(nextDayOffset);
+                yearStartOffset = nextDayOffset;
+            }
+            currentDayOffset = nextDayOffset;
+        }
+        return verticalLinesXCoords;
+    }
+}
+
 class TsGanttChartBarGroup {
     constructor(task, options) {
+        this.svg = this.createSvg(options, task);
+        this.task = task;
+    }
+    createSvg(options, task) {
         const { mode, showProgress, dayWidth, rowHeight, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
+        const { minDate, maxDate } = task.getMinMaxDates(mode);
         const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = task;
         const plannedDatesSet = datePlannedStart && datePlannedEnd;
         const actualDatesSet = dateActualStart && dateActualEnd;
-        let minDate;
-        let maxDate;
         let barSvg;
         if (mode === "both") {
             if (actualDatesSet || plannedDatesSet) {
-                if (actualDatesSet && plannedDatesSet) {
-                    minDate = datePlannedStart.isBefore(dateActualStart) ? datePlannedStart : dateActualStart;
-                    maxDate = datePlannedEnd.isAfter(dateActualEnd) ? datePlannedEnd : dateActualEnd;
-                }
-                else if (plannedDatesSet) {
-                    minDate = datePlannedStart;
-                    maxDate = datePlannedEnd;
-                }
-                else {
-                    minDate = dateActualStart;
-                    maxDate = dateActualEnd;
-                }
-                barSvg = this.createSvg(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
+                barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
                 if (plannedDatesSet) {
-                    this.createBar(barSvg, minDate, datePlannedStart, datePlannedEnd, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "planned", task.progress, showProgress);
+                    this.drawBar(barSvg, minDate, datePlannedStart, datePlannedEnd, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "planned", task.progress, showProgress);
                 }
                 if (actualDatesSet) {
-                    this.createBar(barSvg, minDate, dateActualStart, dateActualEnd, dayWidth, barMinWidth, barHeight, y1, barBorder, barCornerR, "actual", task.progress, showProgress);
+                    this.drawBar(barSvg, minDate, dateActualStart, dateActualEnd, dayWidth, barMinWidth, barHeight, y1, barBorder, barCornerR, "actual", task.progress, showProgress);
                 }
             }
         }
         else if (mode === "planned" && plannedDatesSet) {
-            minDate = datePlannedStart;
-            maxDate = datePlannedEnd;
-            barSvg = this.createSvg(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
-            this.createBar(barSvg, minDate, minDate, maxDate, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "planned", task.progress, showProgress);
+            barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
+            this.drawBar(barSvg, minDate, minDate, maxDate, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "planned", task.progress, showProgress);
         }
         else if (mode === "actual" && actualDatesSet) {
-            minDate = dateActualStart;
-            maxDate = dateActualEnd;
-            barSvg = this.createSvg(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
-            this.createBar(barSvg, minDate, minDate, maxDate, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "actual", task.progress, showProgress);
+            barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
+            this.drawBar(barSvg, minDate, minDate, maxDate, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "actual", task.progress, showProgress);
         }
-        this.minDate = minDate;
-        this.maxDate = maxDate;
-        this.barSvg = barSvg;
-        this.task = task;
+        return barSvg;
     }
-    createSvg(minDate, maxDate, dayWidth, minWidth, rowHeight) {
+    createBarGroupWrapper(minDate, maxDate, dayWidth, minWidth, rowHeight) {
         const widthDays = maxDate.diff(minDate, "day") + 1;
         const width = Math.max(widthDays * dayWidth + minWidth, minWidth);
         const barSvg = createSvgElement("svg", [TsGanttConst.CHART_BAR_GROUP_CLASS], [
@@ -1149,7 +1347,7 @@ class TsGanttChartBarGroup {
         ]);
         return barSvg;
     }
-    createBar(parent, minDate, start, end, dayWidth, minWrapperWidth, wrapperHeight, y, borderWidth, cornerRadius, barType, progress, showProgress) {
+    drawBar(parent, minDate, start, end, dayWidth, minWrapperWidth, wrapperHeight, y, borderWidth, cornerRadius, barType, progress, showProgress) {
         const barClassList = barType === "planned"
             ? [TsGanttConst.CHART_BAR_PLANNED_CLASS]
             : [TsGanttConst.CHART_BAR_ACTUAL_CLASS];
@@ -1208,10 +1406,10 @@ class TsGanttChart {
     }
     update(forceRedraw, data, uuids = null) {
         const datesCheckResult = data
-            ? this.checkDates(data.all)
+            ? this.updateMinMaxDates(data.all)
             : true;
         if (!datesCheckResult || forceRedraw) {
-            this.refreshHeader();
+            this._header = new TsGanttChartHeader(this._options, this._dateMinOffset, this._dateMaxOffset);
         }
         if (data) {
             this.refreshBarGroups(data);
@@ -1253,7 +1451,7 @@ class TsGanttChart {
         svg.classList.add(TsGanttConst.CHART_CLASS);
         return svg;
     }
-    checkDates(tasks) {
+    updateMinMaxDates(tasks) {
         const currentDateMin = this._dateMinOffset;
         const currentDateMax = this._dateMaxOffset;
         const chartScale = this._options.chartScale;
@@ -1323,236 +1521,73 @@ class TsGanttChart {
         data.changed.forEach(x => this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions)));
         data.added.forEach(x => this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions)));
     }
-    refreshHeader() {
-        const scale = this._options.chartScale;
-        const dayWidth = this._options.chartDayWidthPx[scale];
-        const height = this._options.headerHeightPx;
-        this._dateMinOffset;
-        const maxDate = this._dateMaxOffset;
-        const dates = getAllDatesBetweenTwoDates(this._dateMinOffset, this._dateMaxOffset);
-        const width = dates.length * dayWidth;
-        const locale = this._options.locale;
-        const months = this._options.localeDateMonths[locale];
-        const daysShort = this._options.localeDateDaysShort[locale];
-        this._options.localeDateDays[locale];
-        const header = createSvgElement("svg", [TsGanttConst.CHART_HEADER_CLASS], [
-            ["width", width + ""],
-            ["height", height + ""],
-        ]);
-        createSvgElement("rect", [TsGanttConst.CHART_HEADER_BACKGROUND_CLASS], [
-            ["width", width + ""],
-            ["height", height + ""],
-        ], header);
-        let currentDayOffset = 0;
-        let monthStartOffset = 0;
-        let yearStartOffset = 0;
-        const verticalLinesXCoords = [];
-        if (scale === "year") {
-            for (const date of dates) {
-                const nextDayOffset = currentDayOffset + dayWidth;
-                if (date.isSame(date.endOf("year").startOf("day")) || date.isSame(maxDate)) {
-                    const yearWidth = nextDayOffset - yearStartOffset;
-                    const yearSvg = createSvgElement("svg", [], [
-                        ["x", yearStartOffset + ""],
-                        ["y", "0"],
-                        ["width", yearWidth + ""],
-                        ["height", height + ""],
-                    ], header);
-                    if (yearWidth >= 60) {
-                        createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
-                            ["x", "50%"],
-                            ["y", "50%"],
-                            ["dominant-baseline", "middle"],
-                            ["text-anchor", "middle"],
-                        ], yearSvg, date.year() + "");
-                    }
-                    createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
-                        ["x1", nextDayOffset + ""],
-                        ["y1", 0 + ""],
-                        ["x2", nextDayOffset + ""],
-                        ["y2", height + ""],
-                    ], header);
-                    verticalLinesXCoords.push(nextDayOffset);
-                    yearStartOffset = nextDayOffset;
-                }
-                currentDayOffset = nextDayOffset;
-            }
-        }
-        else if (scale === "month") {
-            const rowHeight = height / 2;
-            const y0 = 0;
-            const y1 = rowHeight;
-            createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
-                ["x1", 0 + ""],
-                ["y1", y1 + ""],
-                ["x2", width + ""],
-                ["y2", y1 + ""],
-            ], header);
-            for (const date of dates) {
-                const nextDayOffset = currentDayOffset + dayWidth;
-                if (date.isSame(date.endOf("year").startOf("day")) || date.isSame(maxDate)) {
-                    const yearWidth = nextDayOffset - yearStartOffset;
-                    const yearSvg = createSvgElement("svg", [], [
-                        ["x", yearStartOffset + ""],
-                        ["y", y0 + ""],
-                        ["width", yearWidth + ""],
-                        ["height", rowHeight + ""],
-                    ], header);
-                    if (yearWidth >= 60) {
-                        createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
-                            ["x", "50%"],
-                            ["y", "50%"],
-                            ["dominant-baseline", "middle"],
-                            ["text-anchor", "middle"],
-                        ], yearSvg, date.year() + "");
-                    }
-                    createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
-                        ["x1", nextDayOffset + ""],
-                        ["y1", y0 + ""],
-                        ["x2", nextDayOffset + ""],
-                        ["y2", y1 + ""],
-                    ], header);
-                    yearStartOffset = nextDayOffset;
-                }
-                if (date.isSame(date.endOf("month").startOf("day")) || date.isSame(maxDate)) {
-                    const monthWidth = nextDayOffset - monthStartOffset;
-                    const monthSvg = createSvgElement("svg", [], [
-                        ["x", monthStartOffset + ""],
-                        ["y", y1 + ""],
-                        ["width", monthWidth + ""],
-                        ["height", rowHeight + ""],
-                    ], header);
-                    if (monthWidth >= 60) {
-                        const monthName = months[date.month()];
-                        createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
-                            ["x", "50%"],
-                            ["y", "50%"],
-                            ["dominant-baseline", "middle"],
-                            ["text-anchor", "middle"],
-                        ], monthSvg, monthName);
-                    }
-                    createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
-                        ["x1", nextDayOffset + ""],
-                        ["y1", y1 + ""],
-                        ["x2", nextDayOffset + ""],
-                        ["y2", height + ""],
-                    ], header);
-                    verticalLinesXCoords.push(nextDayOffset);
-                    monthStartOffset = nextDayOffset;
-                }
-                currentDayOffset = nextDayOffset;
-            }
-        }
-        else if (scale === "week" || scale === "day") {
-            const rowHeight = height / 3;
-            const y0 = 0;
-            const y1 = rowHeight;
-            const y2 = rowHeight * 2;
-            createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
-                ["x1", 0 + ""],
-                ["y1", y1 + ""],
-                ["x2", width + ""],
-                ["y2", y1 + ""],
-            ], header);
-            createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
-                ["x1", 0 + ""],
-                ["y1", y2 + ""],
-                ["x2", width + ""],
-                ["y2", y2 + ""],
-            ], header);
-            for (const date of dates) {
-                const nextDayOffset = currentDayOffset + dayWidth;
-                if (date.isSame(date.endOf("year").startOf("day")) || date.isSame(maxDate)) {
-                    const yearWidth = nextDayOffset - yearStartOffset;
-                    const yearSvg = createSvgElement("svg", [], [
-                        ["x", yearStartOffset + ""],
-                        ["y", y0 + ""],
-                        ["width", yearWidth + ""],
-                        ["height", rowHeight + ""],
-                    ], header);
-                    if (yearWidth >= 60) {
-                        createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
-                            ["x", "50%"],
-                            ["y", "50%"],
-                            ["dominant-baseline", "middle"],
-                            ["text-anchor", "middle"],
-                        ], yearSvg, date.year() + "");
-                    }
-                    createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
-                        ["x1", nextDayOffset + ""],
-                        ["y1", y0 + ""],
-                        ["x2", nextDayOffset + ""],
-                        ["y2", y1 + ""],
-                    ], header);
-                    yearStartOffset = nextDayOffset;
-                }
-                if (date.isSame(date.endOf("month").startOf("day")) || date.isSame(maxDate)) {
-                    const monthWidth = nextDayOffset - monthStartOffset;
-                    const monthSvg = createSvgElement("svg", [], [
-                        ["x", monthStartOffset + ""],
-                        ["y", y1 + ""],
-                        ["width", monthWidth + ""],
-                        ["height", rowHeight + ""],
-                    ], header);
-                    if (monthWidth >= 60) {
-                        const monthName = months[date.month()];
-                        createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
-                            ["x", "50%"],
-                            ["y", "50%"],
-                            ["dominant-baseline", "middle"],
-                            ["text-anchor", "middle"],
-                        ], monthSvg, monthName);
-                    }
-                    createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
-                        ["x1", nextDayOffset + ""],
-                        ["y1", y1 + ""],
-                        ["x2", nextDayOffset + ""],
-                        ["y2", y2 + ""],
-                    ], header);
-                    monthStartOffset = nextDayOffset;
-                }
-                const daySvg = createSvgElement("svg", [], [
-                    ["x", currentDayOffset + ""],
-                    ["y", y2 + ""],
-                    ["width", dayWidth + ""],
-                    ["height", rowHeight + ""],
-                ], header);
-                const dayName = dayWidth < 30
-                    ? date.date() + ""
-                    : daysShort[date.day()] + " " + date.date();
-                createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
-                    ["x", "50%"],
-                    ["y", "50%"],
-                    ["dominant-baseline", "middle"],
-                    ["text-anchor", "middle"],
-                ], daySvg, dayName);
-                createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
-                    ["x1", nextDayOffset + ""],
-                    ["y1", y2 + ""],
-                    ["x2", nextDayOffset + ""],
-                    ["y2", height + ""],
-                ], header);
-                verticalLinesXCoords.push(nextDayOffset);
-                currentDayOffset = nextDayOffset;
-            }
-        }
-        this._width = width;
-        this._headerHeight = height;
-        this._verticalLinesXCoords = verticalLinesXCoords;
-        this._htmlHeader = header;
-    }
     refreshBody() {
         const scale = this._options.chartScale;
         const dayWidth = this._options.chartDayWidthPx[scale];
         const rowHeight = this._options.rowHeightPx;
         const border = this._options.borderWidthPx;
+        const todayLineEnabled = this._options.drawTodayLine;
+        const mode = this._options.chartDisplayMode;
         const barGroups = this._activeUuids.map(x => this._chartBarGroups.get(x));
         const minDate = this._dateMinOffset;
-        const xCoords = this._verticalLinesXCoords;
-        const width = this._width;
         const height = rowHeight * barGroups.length;
-        const y0 = this._headerHeight;
-        const drawTodayLine = this._options.drawTodayLine;
+        const width = this._header.width;
+        const y0 = this._header.height;
+        const xCoords = this._header.xCoords;
+        const body = this.createChartBody(y0, width, height);
+        const rowBgs = this.createRowBackgrounds(body, barGroups, rowHeight, width);
+        this.createChartGridLines(body, barGroups, rowHeight, width, height, border, xCoords);
+        const rowFgs = new Map();
+        const offsetsX = new Map();
+        barGroups.forEach((x, i) => {
+            const task = x.task;
+            const offsetY = i * rowHeight;
+            const row = this.createRow(body, task, offsetY, width, rowHeight);
+            rowFgs.set(task.uuid, row);
+            if (x.svg) {
+                const { minDate: taskMinDate } = task.getMinMaxDates(mode);
+                const offsetX = taskMinDate.diff(minDate, "day") * dayWidth;
+                offsetsX.set(task.uuid, offsetX);
+                x.svg.setAttribute("x", offsetX + "");
+                row.append(x.svg);
+            }
+        });
+        if (todayLineEnabled) {
+            this.createTodayLine(body, minDate, dayWidth, height);
+        }
+        this._chartRowBgs = rowBgs;
+        this._chartRowFgs = rowFgs;
+        this._chartOffsetsX = offsetsX;
+        this._htmlBody = body;
+    }
+    createRow(parent, task, offsetY, width, height) {
+        const rowWrapper = createSvgElement("svg", [TsGanttConst.CHART_ROW_WRAPPER_CLASS], [
+            ["y", offsetY + ""],
+            ["width", width + ""],
+            ["height", height + ""],
+            ["data-tsg-row-uuid", task.uuid],
+        ], parent);
+        rowWrapper.addEventListener("click", (e) => {
+            rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK_EVENT, {
+                bubbles: true,
+                composed: true,
+                detail: { task, event: e },
+            }));
+        });
+        rowWrapper.addEventListener("contextmenu", (e) => {
+            rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU_EVENT, {
+                bubbles: true,
+                composed: true,
+                detail: { task, event: e },
+            }));
+        });
+        createSvgElement("rect", [TsGanttConst.CHART_ROW_CLASS], [
+            ["width", width + ""],
+            ["height", height + ""],
+        ], rowWrapper);
+        return rowWrapper;
+    }
+    createChartBody(y0, width, height) {
         const body = createSvgElement("svg", [TsGanttConst.CHART_BODY_CLASS], [
             ["y", y0 + ""],
             ["width", width + ""],
@@ -1562,14 +1597,24 @@ class TsGanttChart {
             ["width", width + ""],
             ["height", height + ""],
         ], body);
+        return body;
+    }
+    createRowBackground(barGroupIndex, rowHeight, width, body) {
+        const rowBg = createSvgElement("rect", [TsGanttConst.CHART_ROW_BACKGROUND_CLASS], [
+            ["y", (barGroupIndex * rowHeight) + ""],
+            ["width", width + ""],
+            ["height", rowHeight + ""],
+        ], body);
+        return rowBg;
+    }
+    createRowBackgrounds(parent, barGroups, rowHeight, width) {
         const rowBgs = new Map();
         barGroups.forEach((x, i) => {
-            rowBgs.set(x.task.uuid, createSvgElement("rect", [TsGanttConst.CHART_ROW_BACKGROUND_CLASS], [
-                ["y", (i * rowHeight) + ""],
-                ["width", width + ""],
-                ["height", rowHeight + ""],
-            ], body));
+            rowBgs.set(x.task.uuid, this.createRowBackground(i, rowHeight, width, parent));
         });
+        return rowBgs;
+    }
+    createChartGridLines(parent, barGroups, rowHeight, width, height, border, xCoords) {
         for (let i = 0; i < barGroups.length;) {
             const lineY = ++i * rowHeight - border / 2;
             createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
@@ -1577,7 +1622,7 @@ class TsGanttChart {
                 ["y1", lineY + ""],
                 ["x2", width + ""],
                 ["y2", lineY + ""],
-            ], body);
+            ], parent);
         }
         xCoords.forEach(x => {
             createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
@@ -1585,63 +1630,24 @@ class TsGanttChart {
                 ["y1", 0 + ""],
                 ["x2", x + ""],
                 ["y2", height + ""],
-            ], body);
+            ], parent);
         });
+    }
+    createTodayLine(parent, minDate, dayWidth, height) {
         const todayX = dayjs().startOf("day").diff(minDate, "day") * dayWidth;
-        const rowFgs = new Map();
-        const offsetsX = new Map();
-        barGroups.forEach((x, i) => {
-            const offsetY = i * rowHeight;
-            const rowWrapper = createSvgElement("svg", [TsGanttConst.CHART_ROW_WRAPPER_CLASS], [
-                ["y", offsetY + ""],
-                ["width", width + ""],
-                ["height", rowHeight + ""],
-                ["data-tsg-row-uuid", x.task.uuid],
-            ], body);
-            rowWrapper.addEventListener("click", (e) => {
-                rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK_EVENT, {
-                    bubbles: true,
-                    composed: true,
-                    detail: { task: x.task, event: e },
-                }));
-            });
-            rowWrapper.addEventListener("contextmenu", (e) => {
-                rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU_EVENT, {
-                    bubbles: true,
-                    composed: true,
-                    detail: { task: x.task, event: e },
-                }));
-            });
-            rowFgs.set(x.task.uuid, rowWrapper);
-            createSvgElement("rect", [TsGanttConst.CHART_ROW_CLASS], [
-                ["width", width + ""],
-                ["height", rowHeight + ""],
-            ], rowWrapper);
-            if (x.barSvg) {
-                const offsetX = x.minDate.diff(minDate, "day") * dayWidth;
-                offsetsX.set(x.task.uuid, offsetX);
-                x.barSvg.setAttribute("x", offsetX + "");
-                rowWrapper.append(x.barSvg);
-            }
-        });
-        if (drawTodayLine) {
-            createSvgElement("line", [TsGanttConst.CHART_BODY_TODAY_LINE_CLASS], [
-                ["x1", todayX + ""],
-                ["y1", 0 + ""],
-                ["x2", todayX + ""],
-                ["y2", height + ""],
-            ], body);
-        }
-        this._chartRowBgs = rowBgs;
-        this._chartRowFgs = rowFgs;
-        this._chartOffsetsX = offsetsX;
-        this._htmlBody = body;
+        createSvgElement("line", [TsGanttConst.CHART_BODY_TODAY_LINE_CLASS], [
+            ["x1", todayX + ""],
+            ["y1", 0 + ""],
+            ["x2", todayX + ""],
+            ["y2", height + ""],
+        ], parent);
     }
     redraw() {
         const oldHtml = this._html;
         const newHtml = document.createElement("div");
         newHtml.classList.add(TsGanttConst.CHART_CLASS);
-        newHtml.append(this._htmlHeader, this._htmlBody);
+        this._header.appendTo(newHtml);
+        newHtml.append(this._htmlBody);
         oldHtml.replaceWith(newHtml);
         this._html = newHtml;
     }

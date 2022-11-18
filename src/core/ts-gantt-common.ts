@@ -52,5 +52,14 @@ function getAllDatesBetweenTwoDates(start: dayjs.Dayjs, end: dayjs.Dayjs): dayjs
   return dates;
 }
 
+interface TsGanttRowSymbols {
+  expanded: string;
+  collapsed: string;
+  childless: string;
+}
+
+type ChartBarMode = "planned" | "actual" | "both";
+
 export { getRandomUuid, createSvgElement, 
-  getAllDatesBetweenTwoDates, compareTwoStringSets };
+  getAllDatesBetweenTwoDates, compareTwoStringSets,
+  TsGanttRowSymbols, ChartBarMode };

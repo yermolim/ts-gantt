@@ -2,6 +2,12 @@
 
 import dayjs from 'dayjs';
 
+export interface TsGanttRowSymbols {
+	expanded: string;
+	collapsed: string;
+	childless: string;
+}
+export declare type ChartBarMode = "planned" | "actual" | "both";
 export declare class TsGanttTask {
 	readonly uuid: string;
 	readonly parentUuid: string;
@@ -34,6 +40,10 @@ export declare class TsGanttTask {
 	compareTo(another: TsGanttTask): number;
 	getState(): "not-started" | "in-progress" | "overdue" | "completed" | "completed-late";
 	toModel(): TsGanttTaskModel;
+	getMinMaxDates(chartBarMode: ChartBarMode): {
+		minDate: dayjs.Dayjs;
+		maxDate: dayjs.Dayjs;
+	};
 }
 export interface TsGanttTaskModel {
 	id: string;
@@ -59,6 +69,7 @@ export interface TsGanttTaskChangeResult {
 	all: TsGanttTask[];
 }
 export declare class TsGanttOptions {
+	enableChartEdit: boolean;
 	useShadowDom: false;
 	multilineSelection: boolean;
 	useCtrlKeyForMultilineSelection: boolean;
@@ -120,11 +131,6 @@ export declare class TsGanttOptions {
 	columnValueGetters: ((a: TsGanttTask) => string)[];
 	taskComparer: (taskA: TsGanttTask, taskB: TsGanttTask) => number;
 	constructor(item?: object);
-}
-export interface TsGanttRowSymbols {
-	expanded: string;
-	collapsed: string;
-	childless: string;
 }
 export declare class TsGantt {
 	private _options;

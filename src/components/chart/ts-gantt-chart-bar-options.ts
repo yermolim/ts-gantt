@@ -1,5 +1,7 @@
+import { ChartBarMode } from "../../core/ts-gantt-common";
+
 interface TsGanttChartBarGroupOptions {
-  mode: "planned" | "actual" | "both";
+  mode: ChartBarMode;
   showProgress: boolean;
   dayWidth: number;
   rowHeight: number; 

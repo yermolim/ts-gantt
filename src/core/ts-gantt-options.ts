@@ -1,3 +1,4 @@
+import { TsGanttRowSymbols } from "./ts-gantt-common";
 import { TsGanttTask } from "./ts-gantt-task";
 
 class TsGanttOptions {
@@ -203,10 +204,5 @@ class TsGanttOptions {
   }
 }
 
-interface TsGanttRowSymbols {
-  expanded: string; 
-  collapsed: string; 
-  childless: string;
-}
 
-export { TsGanttOptions, TsGanttRowSymbols };
+export { TsGanttOptions };

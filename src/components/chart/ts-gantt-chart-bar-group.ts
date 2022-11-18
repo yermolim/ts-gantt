@@ -6,82 +6,59 @@ import { TsGanttTask } from "../../core/ts-gantt-task";
 
 import { TsGanttChartBarGroupOptions } from "./ts-gantt-chart-bar-options";
 
-class TsGanttChartBarGroup {  
+class TsGanttChartBarGroup {
   readonly task: TsGanttTask;
-  readonly minDate: dayjs.Dayjs;
-  readonly maxDate: dayjs.Dayjs;
-  readonly barSvg: SVGElement;
+  readonly svg: SVGElement;
 
   constructor(task: TsGanttTask, options: TsGanttChartBarGroupOptions) {
-    const { mode, showProgress, dayWidth, rowHeight, 
-      barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
+    this.svg = this.createSvg(options, task);
+    this.task = task;
+  }
 
-    const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = task;    
+  private createSvg(options: TsGanttChartBarGroupOptions, task: TsGanttTask) {
+    const { mode, showProgress, dayWidth, rowHeight, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
+
+    const { minDate, maxDate } = task.getMinMaxDates(mode);
+
+    const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = task;
     const plannedDatesSet = datePlannedStart && datePlannedEnd;
     const actualDatesSet = dateActualStart && dateActualEnd;
 
-    let minDate: dayjs.Dayjs;
-    let maxDate: dayjs.Dayjs;
     let barSvg: SVGElement;
-
     if (mode === "both") {
-
       if (actualDatesSet || plannedDatesSet) {
-        if (actualDatesSet && plannedDatesSet) {
-          minDate = datePlannedStart.isBefore(dateActualStart) ? datePlannedStart : dateActualStart;
-          maxDate = datePlannedEnd.isAfter(dateActualEnd) ? datePlannedEnd : dateActualEnd;
-        } else if (plannedDatesSet) {
-          minDate = datePlannedStart;
-          maxDate = datePlannedEnd;
-        } else {
-          minDate = dateActualStart;
-          maxDate = dateActualEnd;
-        }
-
-        barSvg = this.createSvg(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
+        barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
         if (plannedDatesSet) {
-          this.createBar(barSvg,
+          this.drawBar(barSvg,
             minDate, datePlannedStart, datePlannedEnd,
             dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR,
             "planned", task.progress, showProgress);
         }
         if (actualDatesSet) {
-          this.createBar(barSvg,
+          this.drawBar(barSvg,
             minDate, dateActualStart, dateActualEnd,
             dayWidth, barMinWidth, barHeight, y1, barBorder, barCornerR,
             "actual", task.progress, showProgress);
-        }   
-      }     
-
+        }
+      }
     } else if (mode === "planned" && plannedDatesSet) {
-      minDate = datePlannedStart;
-      maxDate = datePlannedEnd;
-
-      barSvg = this.createSvg(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
-      this.createBar(barSvg,
+      barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
+      this.drawBar(barSvg,
         minDate, minDate, maxDate,
         dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR,
         "planned", task.progress, showProgress);
 
-    } else if (mode === "actual" && actualDatesSet) {  
-      minDate = dateActualStart;
-      maxDate = dateActualEnd;
-
-      barSvg = this.createSvg(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
-      this.createBar(barSvg,
+    } else if (mode === "actual" && actualDatesSet) {
+      barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
+      this.drawBar(barSvg,
         minDate, minDate, maxDate,
         dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR,
         "actual", task.progress, showProgress);
-    }   
-
-    this.minDate = minDate;
-    this.maxDate = maxDate;
-    this.barSvg = barSvg;
-
-    this.task = task;
+    }
+    return barSvg;
   }
 
-  private createSvg(minDate: dayjs.Dayjs, maxDate: dayjs.Dayjs,
+  private createBarGroupWrapper(minDate: dayjs.Dayjs, maxDate: dayjs.Dayjs,
     dayWidth: number, minWidth: number, rowHeight: number): SVGElement {
 
     const widthDays = maxDate.diff(minDate, "day") + 1;
@@ -93,12 +70,13 @@ class TsGanttChartBarGroup {
     return barSvg;
   }
 
-  private createBar(parent: SVGElement, 
+  private drawBar(parent: SVGElement, 
     minDate: dayjs.Dayjs, start: dayjs.Dayjs, end: dayjs.Dayjs,
     dayWidth: number, minWrapperWidth: number, wrapperHeight: number, y: number,
     borderWidth: number, cornerRadius: number,
-    barType: "planned" | "actual",    
+    barType: "planned" | "actual",
     progress: number, showProgress: boolean) {
+
     const barClassList = barType === "planned"
       ? [TsGanttConst.CHART_BAR_PLANNED_CLASS]
       : [TsGanttConst.CHART_BAR_ACTUAL_CLASS];

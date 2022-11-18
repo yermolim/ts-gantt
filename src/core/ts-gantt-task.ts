@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { getRandomUuid } from "./ts-gantt-common";
+import { ChartBarMode, getRandomUuid } from "./ts-gantt-common";
 
 class TsGanttTask {
   readonly uuid: string;
@@ -282,6 +282,39 @@ class TsGanttTask {
     model.localizedNames = this.localizedNames;
 
     return model;
+  }
+
+  getMinMaxDates(chartBarMode: ChartBarMode): { minDate: dayjs.Dayjs; maxDate: dayjs.Dayjs } {    
+    const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = this;
+    const plannedDatesSet = datePlannedStart && datePlannedEnd;
+    const actualDatesSet = dateActualStart && dateActualEnd;
+
+    let minDate: dayjs.Dayjs;
+    let maxDate: dayjs.Dayjs;
+
+    if (chartBarMode === "both") {
+      if (actualDatesSet || plannedDatesSet) {
+        if (actualDatesSet && plannedDatesSet) {
+          minDate = datePlannedStart.isBefore(dateActualStart) ? datePlannedStart : dateActualStart;
+          maxDate = datePlannedEnd.isAfter(dateActualEnd) ? datePlannedEnd : dateActualEnd;
+        } else if (plannedDatesSet) {
+          minDate = datePlannedStart;
+          maxDate = datePlannedEnd;
+        } else {
+          minDate = dateActualStart;
+          maxDate = dateActualEnd;
+        }
+      }
+
+    } else if (chartBarMode === "planned" && plannedDatesSet) {
+      minDate = datePlannedStart;
+      maxDate = datePlannedEnd;
+    } else if (chartBarMode === "actual" && actualDatesSet) {  
+      minDate = dateActualStart;
+      maxDate = dateActualEnd;
+    }
+
+    return { minDate, maxDate };
   }
 }
 
