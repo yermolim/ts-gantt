@@ -4,7 +4,7 @@ import { compareTwoStringSets } from "./ts-gantt-common";
 
 import { TsGanttOptions } from "./ts-gantt-options";
 import { TsGanttTaskModel } from "./ts-gantt-task-model";
-import { TsGanttTask, TsGanttDataChangeResult, TsGanttTaskSelectionChangeResult } from "./ts-gantt-task";
+import { TsGanttTask, TsGanttTaskSelectionChangeResult, TsGanttTaskChangeResult } from "./ts-gantt-task";
 
 export class TsGanttData {
   private _options: TsGanttOptions;
@@ -102,7 +102,7 @@ export class TsGanttData {
     } else {
       newSelectedTasks = <TsGanttTask[]>tasks || [];
     }
-    
+
     const oldSelectedTasks = this._selectedTasks;
     const selectionEmpty = oldSelectedTasks.length === 0 && newSelectedTasks.length === 0;
     if (selectionEmpty) {
@@ -203,4 +203,8 @@ export class TsGanttData {
 
     return this._dateMinOffset !== currentDateMin || this._dateMaxOffset !== currentDateMax;
   }  
+}
+
+export interface TsGanttDataChangeResult extends TsGanttTaskChangeResult {
+  datesChanged: boolean; 
 }

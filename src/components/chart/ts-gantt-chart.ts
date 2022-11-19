@@ -1,6 +1,6 @@
 import { TsGanttConst } from "../../core/ts-gantt-const";
-import { TsGanttData } from "../../core/ts-gantt-data";
-import { TsGanttDataChangeResult, TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
+import { TsGanttData, TsGanttDataChangeResult } from "../../core/ts-gantt-data";
+import { TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
 
 import { TsGanttBaseComponent } from "../abstract/ts-gantt-base-component";
 
@@ -11,7 +11,7 @@ import { TsGanttChartBody } from "./ts-gantt-chart-body";
 
 class TsGanttChart implements TsGanttBaseComponent {
   private _data: TsGanttData;
-
+  
   private _activeUuids: string[] = [];
 
   private _html: HTMLDivElement;

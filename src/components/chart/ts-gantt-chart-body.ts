@@ -88,8 +88,10 @@ class TsGanttChartBody {
 
       if (barGroup.svg) {
         const offsetX = task.getHorizontalOffsetPx(chartDisplayMode, minDate, dayWidthPx);
-        barGroup.svg.setAttribute("x", offsetX + "");
-        row.append(barGroup.svg);
+        if (offsetX) {
+          barGroup.svg.setAttribute("x", offsetX + "");
+          row.append(barGroup.svg);
+        }
       }
     });
 

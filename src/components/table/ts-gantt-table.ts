@@ -1,15 +1,17 @@
 import { TsGanttConst } from "../../core/ts-gantt-const";
-import { TsGanttTask, TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
+import { TsGanttTask, TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
+import { TsGanttData, TsGanttDataChangeResult } from "../../core/ts-gantt-data";
 
 import { TsGanttBaseComponent } from "../abstract/ts-gantt-base-component";
 
 import { TsGanttTableColumnOrder } from "./ts-gantt-table-column-order";
 import { TsGanttTableColumn } from "./ts-gantt-table-column";
 import { TsGanttTableRow } from "./ts-gantt-table-row";
-import { TsGanttData } from "../../core/ts-gantt-data";
 
 class TsGanttTable implements TsGanttBaseComponent {
   private _data: TsGanttData;
+  
+  private _activeUuids: string[] = [];
 
   private _html: HTMLTableElement;
   private _htmlHead: HTMLTableSectionElement;
@@ -18,9 +20,6 @@ class TsGanttTable implements TsGanttBaseComponent {
   private _columnOrder: TsGanttTableColumnOrder;
   private _tableColumns: TsGanttTableColumn[];
   private _tableRows: Map<string, TsGanttTableRow> = new Map<string, TsGanttTableRow>();
-
-  private _activeUuids: string[] = [];
-  private _currentTasks: TsGanttTask[] = [];
 
   constructor(data: TsGanttData) {
     this._data = data;
@@ -40,7 +39,7 @@ class TsGanttTable implements TsGanttBaseComponent {
     parent.append(this._html);
   }
 
-  update(updateColumns: boolean, data: TsGanttTaskChangeResult, uuids: string[]) {
+  update(updateColumns: boolean, data: TsGanttDataChangeResult, uuids: string[]) {
     if (updateColumns) {
       this.updateColumns();
     }
@@ -106,25 +105,19 @@ class TsGanttTable implements TsGanttBaseComponent {
   private changeColumnIndex(oldIndex: number, newIndex: number) {
     this._columnOrder.move(oldIndex, newIndex);
     this.updateColumns();
-    this.updateRows({
-      added: [],
-      deleted: [],
-      changed: this._currentTasks,
-      all: this._currentTasks,
-    });
+    this.updateRows(this._data.getAllTasksAsChanged());
     this.redraw();
   }
 
-  private updateRows(data: TsGanttTaskChangeResult) {
+  private updateRows(data: TsGanttDataChangeResult) {
+    const addStateClass = this._data.options.highlightRowsDependingOnTaskState;
+
     const columns = this._tableColumns;
     const rows = this._tableRows;
-    const addStateClass = this._data.options.highlightRowsDependingOnTaskState;
 
     data.deleted.forEach(x => rows.delete(x.uuid));
     data.changed.forEach(x => rows.set(x.uuid, new TsGanttTableRow(x, columns, addStateClass)));
     data.added.forEach(x => rows.set(x.uuid, new TsGanttTableRow(x, columns, addStateClass)));
-
-    this._currentTasks = data.all;
   }
 
   private redraw() {

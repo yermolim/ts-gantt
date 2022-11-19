@@ -3,9 +3,9 @@ import { styles } from "./assets/styles";
 
 import { TsGanttConst } from "./core/ts-gantt-const";
 import { TsGanttOptions } from "./core/ts-gantt-options";
-import { TsGanttData } from "./core/ts-gantt-data";
 import { TsGanttTaskModel } from "./core/ts-gantt-task-model";
-import { TsGanttTask, TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "./core/ts-gantt-task";
+import { TsGanttTask, TsGanttTaskSelectionChangeResult } from "./core/ts-gantt-task";
+import { TsGanttData, TsGanttDataChangeResult } from "./core/ts-gantt-data";
 
 import { TsGanttBaseComponent } from "./components/abstract/ts-gantt-base-component";
 import { TsGanttTable } from "./components/table/ts-gantt-table";
@@ -295,7 +295,7 @@ class TsGantt {
   
   // #region global chart updates
 
-  private update(data: TsGanttTaskChangeResult) {
+  private update(data: TsGanttDataChangeResult) {
     const uuids = this._data.getShownTaskUuidsRecursively();
     this._table.update(false, data, uuids);
     this._chart.update(false, data, uuids);
@@ -334,7 +334,9 @@ class TsGantt {
 
   private scrollChartToTasks(tasks: TsGanttTask[]) {
     const { dayWidthPx, chartDisplayMode } = this._options;
-    const offsets = tasks.map(task => task.getHorizontalOffsetPx(chartDisplayMode, this._data.dateMinOffset, dayWidthPx));
+    const offsets = tasks
+      .map(task => task.getHorizontalOffsetPx(chartDisplayMode, this._data.dateMinOffset, dayWidthPx))
+      .filter(offset => !!offset);
     const minOffset = Math.min(...offsets);
     if (minOffset) {
       this._htmlChartWrapper.scrollLeft = minOffset - 20;

@@ -350,6 +350,9 @@ class TsGanttTask {
 
   getHorizontalOffsetPx(chartBarMode: ChartBarMode, chartMinDate: dayjs.Dayjs, dayWidthPx: number): number {
     const { minDate: taskMinDate } = this.getMinMaxDates(chartBarMode);
+    if (!taskMinDate) {
+      return null;
+    }
     const offsetX = taskMinDate.diff(chartMinDate, "day") * dayWidthPx;
     return offsetX;
   }
@@ -367,10 +370,6 @@ interface TsGanttTaskChangeResult {
   all: TsGanttTask[];
 }
 
-interface TsGanttDataChangeResult extends TsGanttTaskChangeResult {
-  datesChanged: boolean; 
-}
-
 interface TsGanttTaskSelectionChangeResult {
   deselected: string[];
   selected: string[];
@@ -379,5 +378,5 @@ interface TsGanttTaskSelectionChangeResult {
   selectedTasks: TsGanttTask[];
 }
 
-export { TsGanttTask, TsGanttTaskUpdateResult, TsGanttDataChangeResult,
+export { TsGanttTask, TsGanttTaskUpdateResult,
   TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult };
