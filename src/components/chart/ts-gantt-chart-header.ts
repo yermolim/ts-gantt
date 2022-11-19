@@ -26,7 +26,7 @@ class TsGanttChartHeader {
 
   constructor(options: TsGanttOptions, minDate: dayjs.Dayjs, maxDate: dayjs.Dayjs) {
     this._options = options;
-    this.createAndDrawSvg(minDate, maxDate);
+    this.drawSvg(minDate, maxDate);
   }
 
   destroy() {
@@ -37,7 +37,19 @@ class TsGanttChartHeader {
     parent.append(this._svg);
   }
 
-  private createAndDrawSvg(minDate: dayjs.Dayjs, maxDate: dayjs.Dayjs) {
+  private createWrapper(width: number, height: number): SVGElement {
+    const header = createSvgElement("svg", [TsGanttConst.CHART_HEADER_CLASS], [
+      ["width", width + ""],
+      ["height", height + ""],
+    ]);
+    createSvgElement("rect", [TsGanttConst.CHART_HEADER_BACKGROUND_CLASS], [
+      ["width", width + ""],
+      ["height", height + ""],
+    ], header);
+    return header;
+  }
+
+  private drawSvg(minDate: dayjs.Dayjs, maxDate: dayjs.Dayjs) {
     const scale = this._options.chartScale;
     const dayWidth = this._options.chartDayWidthPx[scale];
     const height = this._options.headerHeightPx;
@@ -45,7 +57,7 @@ class TsGanttChartHeader {
     const dates = getAllDatesBetweenTwoDates(minDate, maxDate);
     const width = dates.length * dayWidth;
 
-    const header = this.createHeaderWrapper(width, height);
+    const header = this.createWrapper(width, height);
 
     const locale = this._options.locale;
     const months = this._options.localeDateMonths[locale];
@@ -69,19 +81,7 @@ class TsGanttChartHeader {
     this._xCoords = xCoords;
   }
 
-  private createHeaderWrapper(width: number, height: number): SVGElement {
-    const header = createSvgElement("svg", [TsGanttConst.CHART_HEADER_CLASS], [
-      ["width", width + ""],
-      ["height", height + ""],
-    ]);
-    createSvgElement("rect", [TsGanttConst.CHART_HEADER_BACKGROUND_CLASS], [
-      ["width", width + ""],
-      ["height", height + ""],
-    ], header);
-    return header;
-  }
-
-  private createAndDrawHeaderElementWrapper(parent: SVGElement, left: number, top: number, width: number, height: number): SVGElement {
+  private drawHeaderElementWrapper(parent: SVGElement, left: number, top: number, width: number, height: number): SVGElement {
     return createSvgElement("svg", [], [
       ["x", left + ""],
       ["y", top + ""],
@@ -122,7 +122,7 @@ class TsGanttChartHeader {
     top: number, rowHeight: number) {
 
     const yearWidth = nextDayOffset - yearStartOffset;
-    const yearSvg = this.createAndDrawHeaderElementWrapper(header, yearStartOffset, top, yearWidth, rowHeight);
+    const yearSvg = this.drawHeaderElementWrapper(header, yearStartOffset, top, yearWidth, rowHeight);
     if (yearWidth >= 60) {
       this.drawText(yearSvg, date.year() + "");
     }
@@ -134,7 +134,7 @@ class TsGanttChartHeader {
     top: number, rowHeight: number) {
 
     const monthWidth = nextDayOffset - monthStartOffset;
-    const monthSvg =  this.createAndDrawHeaderElementWrapper(header, monthStartOffset, top, monthWidth, rowHeight);
+    const monthSvg =  this.drawHeaderElementWrapper(header, monthStartOffset, top, monthWidth, rowHeight);
     if (monthWidth >= 60) {
       const monthName = months[date.month()];
       this.drawText(monthSvg, monthName);
@@ -146,7 +146,7 @@ class TsGanttChartHeader {
     currentDayOffset: number, nextDayOffset: number, dayWidth: number,
     top: number, rowHeight: number) {
 
-    const daySvg =  this.createAndDrawHeaderElementWrapper(header, currentDayOffset, top, dayWidth, rowHeight);
+    const daySvg =  this.drawHeaderElementWrapper(header, currentDayOffset, top, dayWidth, rowHeight);
     const dayName = dayWidth < 30
       ? date.date() + ""
       : daysShort[date.day()] + " " + date.date();

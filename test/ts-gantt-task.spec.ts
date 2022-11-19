@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
-import { TsGanttTaskModel, TsGanttTask } from "../src/core/ts-gantt-task";
+import { TsGanttTask } from "../src/core/ts-gantt-task";
+import { TsGanttTaskModel } from "../src/core/ts-gantt-task-model";
 
 const now = dayjs();
 

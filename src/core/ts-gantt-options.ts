@@ -195,6 +195,10 @@ class TsGanttOptions {
     },
   ];
 
+  get dayWidthPx(): number {    
+    return this.chartDayWidthPx[this.chartScale];
+  }
+
   taskComparer: (taskA: TsGanttTask, taskB: TsGanttTask) => number;
   
   constructor(item: object = null) {
@@ -203,6 +207,5 @@ class TsGanttOptions {
     }
   }
 }
-
 
 export { TsGanttOptions };

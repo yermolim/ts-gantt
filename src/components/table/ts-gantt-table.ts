@@ -1,5 +1,4 @@
 import { TsGanttConst } from "../../core/ts-gantt-const";
-import { TsGanttOptions } from "../../core/ts-gantt-options";
 import { TsGanttTask, TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
 
 import { TsGanttBaseComponent } from "../abstract/ts-gantt-base-component";
@@ -7,9 +6,10 @@ import { TsGanttBaseComponent } from "../abstract/ts-gantt-base-component";
 import { TsGanttTableColumnOrder } from "./ts-gantt-table-column-order";
 import { TsGanttTableColumn } from "./ts-gantt-table-column";
 import { TsGanttTableRow } from "./ts-gantt-table-row";
+import { TsGanttData } from "../../core/ts-gantt-data";
 
 class TsGanttTable implements TsGanttBaseComponent {
-  private _options: TsGanttOptions;
+  private _data: TsGanttData;
 
   private _html: HTMLTableElement;
   private _htmlHead: HTMLTableSectionElement;
@@ -22,8 +22,8 @@ class TsGanttTable implements TsGanttBaseComponent {
   private _activeUuids: string[] = [];
   private _currentTasks: TsGanttTask[] = [];
 
-  constructor(options: TsGanttOptions) {    
-    this._options = options;
+  constructor(data: TsGanttData) {
+    this._data = data;
 
     this.initBaseHtml();
     this.initColumns();
@@ -40,7 +40,7 @@ class TsGanttTable implements TsGanttBaseComponent {
     parent.append(this._html);
   }
 
-  update(updateColumns: boolean, data: TsGanttTaskChangeResult, uuids: string[] = null) {
+  update(updateColumns: boolean, data: TsGanttTaskChangeResult, uuids: string[]) {
     if (updateColumns) {
       this.updateColumns();
     }
@@ -81,22 +81,24 @@ class TsGanttTable implements TsGanttBaseComponent {
   }
 
   private initColumns() {
-    this._columnOrder = new TsGanttTableColumnOrder(this._options.columnsMinWidthPx.length);
+    this._columnOrder = new TsGanttTableColumnOrder(this._data.options.columnsMinWidthPx.length);
     this.updateColumns();
   }
 
   private updateColumns() {
+    const options = this._data.options;
+
     const columns: TsGanttTableColumn[] = [];
     let currentOrder = 0;
     for (const i of this._columnOrder) {
-      const minColumnWidth = this._options.columnsMinWidthPx[i];
+      const minColumnWidth = options.columnsMinWidthPx[i];
       if (!minColumnWidth) {
         continue;
       }
       columns.push(new TsGanttTableColumn(minColumnWidth, currentOrder++,
-        this._options.localeHeaders[this._options.locale][i] || "",
-        this._options.columnsContentAlign[i],
-        this._options.columnValueGetters[i] || ((task: TsGanttTask) => "")));
+        options.localeHeaders[options.locale][i] || "",
+        options.columnsContentAlign[i],
+        options.columnValueGetters[i] || ((task: TsGanttTask) => "")));
     }
     this._tableColumns = columns;
   }
@@ -116,7 +118,7 @@ class TsGanttTable implements TsGanttBaseComponent {
   private updateRows(data: TsGanttTaskChangeResult) {
     const columns = this._tableColumns;
     const rows = this._tableRows;
-    const addStateClass = this._options.highlightRowsDependingOnTaskState;
+    const addStateClass = this._data.options.highlightRowsDependingOnTaskState;
 
     data.deleted.forEach(x => rows.delete(x.uuid));
     data.changed.forEach(x => rows.set(x.uuid, new TsGanttTableRow(x, columns, addStateClass)));
@@ -137,7 +139,7 @@ class TsGanttTable implements TsGanttBaseComponent {
   }
 
   private getRowHtml(uuid: string): HTMLTableRowElement {    
-    const symbols = this._options.rowSymbols;
+    const symbols = this._data.options.rowSymbols;
     const row = this._tableRows.get(uuid);
     if (!row.task.hasChildren) {
       row.expander.innerHTML = symbols.childless;

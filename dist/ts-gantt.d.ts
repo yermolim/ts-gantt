@@ -8,6 +8,19 @@ export interface TsGanttRowSymbols {
 	childless: string;
 }
 export declare type ChartBarMode = "planned" | "actual" | "both";
+export interface TsGanttTaskModel {
+	id: string;
+	parentId: string;
+	name: string;
+	progress: number;
+	datePlannedStart: Date;
+	datePlannedEnd: Date;
+	dateActualStart: Date;
+	dateActualEnd: Date;
+	localizedNames: {
+		[key: string]: string;
+	};
+}
 export declare class TsGanttTask {
 	readonly uuid: string;
 	readonly parentUuid: string;
@@ -33,30 +46,23 @@ export declare class TsGanttTask {
 	static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult;
 	static createTasksIdMap(tasks: TsGanttTask[]): Map<string, string>;
 	static checkPaternity(tasks: TsGanttTask[], parent: TsGanttTask, child: TsGanttTask): boolean;
-	static checkForCollapsedParent(tasks: TsGanttTask[], task: TsGanttTask): boolean;
+	static checkForCollapsedParent(tasks: readonly TsGanttTask[], task: TsGanttTask): boolean;
 	static defaultComparer: (a: TsGanttTask, b: TsGanttTask) => number;
 	static sortTasksRecursively(tasks: TsGanttTask[], parentUuid: string): TsGanttTask[];
+	static getMinMaxDates(tasks: TsGanttTask[]): {
+		minDate: dayjs.Dayjs;
+		maxDate: dayjs.Dayjs;
+	};
 	equals(another: TsGanttTask): boolean;
 	compareTo(another: TsGanttTask): number;
 	getState(): "not-started" | "in-progress" | "overdue" | "completed" | "completed-late";
 	toModel(): TsGanttTaskModel;
+	toggleExpanded(): void;
 	getMinMaxDates(chartBarMode: ChartBarMode): {
 		minDate: dayjs.Dayjs;
 		maxDate: dayjs.Dayjs;
 	};
-}
-export interface TsGanttTaskModel {
-	id: string;
-	parentId: string;
-	name: string;
-	progress: number;
-	datePlannedStart: Date;
-	datePlannedEnd: Date;
-	dateActualStart: Date;
-	dateActualEnd: Date;
-	localizedNames: {
-		[key: string]: string;
-	};
+	getHorizontalOffsetPx(chartBarMode: ChartBarMode, chartMinDate: dayjs.Dayjs, dayWidthPx: number): number;
 }
 export interface TsGanttTaskUpdateResult {
 	oldTasks: TsGanttTask[];
@@ -128,11 +134,13 @@ export declare class TsGanttOptions {
 		[key: string]: (duration: number) => string;
 	};
 	columnValueGetters: ((a: TsGanttTask) => string)[];
+	get dayWidthPx(): number;
 	taskComparer: (taskA: TsGanttTask, taskB: TsGanttTask) => number;
 	constructor(item?: object);
 }
 export declare class TsGantt {
-	private _options;
+	private readonly _data;
+	private get _options();
 	private _htmlContainer;
 	private _shadowRoot;
 	private _htmlWrapper;
@@ -143,11 +151,8 @@ export declare class TsGantt {
 	private _baseComponents;
 	private _table;
 	private _chart;
-	private _tasks;
 	get tasks(): TsGanttTaskModel[];
 	set tasks(models: TsGanttTaskModel[]);
-	private _tasksByParentUuid;
-	private _selectedTasks;
 	get selectedTasks(): TsGanttTaskModel[];
 	set selectedTasks(models: TsGanttTaskModel[]);
 	set locale(value: string);
@@ -172,18 +177,17 @@ export declare class TsGantt {
 	private onRowExpanderClick;
 	private removeWindowEventListeners;
 	private removeDocumentEventListeners;
-	private updateTasks;
-	private update;
-	private toggleTaskExpanded;
-	private changeSelection;
+	private toggleTaskSelection;
 	private refreshSelection;
-	private selectTasks;
-	private scrollChartToTasks;
+	private updateSelection;
+	private applySelectionResult;
+	private update;
+	private updateTasks;
 	private updateLocale;
 	private updateChartScale;
 	private updateChartDisplayMode;
-	private groupAndSortTasks;
-	private getShownUuidsRecursively;
+	private toggleTaskExpanded;
+	private scrollChartToTasks;
 }
 
 export {};

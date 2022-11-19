@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { ChartBarMode, getRandomUuid } from "./ts-gantt-common";
+import { TsGanttTaskModel } from "./ts-gantt-task-model";
 
 class TsGanttTask {
   readonly uuid: string;
@@ -172,7 +173,7 @@ class TsGanttTask {
     return false;
   }
 
-  static checkForCollapsedParent(tasks: TsGanttTask[], 
+  static checkForCollapsedParent(tasks: readonly TsGanttTask[], 
     task: TsGanttTask): boolean {
     while(task.parentUuid) {
       task = tasks.find(x => x.uuid === task.parentUuid);
@@ -195,6 +196,32 @@ class TsGanttTask {
       sorted.push(...this.sortTasksRecursively(tasks, task.uuid));
     }
     return sorted;
+  }
+
+  static getMinMaxDates(tasks: TsGanttTask[]): { minDate: dayjs.Dayjs; maxDate: dayjs.Dayjs } {
+    let minDate = dayjs();
+    let maxDate = dayjs();
+
+    for (const task of tasks) {
+      const plannedStart = dayjs(task.datePlannedStart);
+      const plannedEnd = dayjs(task.datePlannedEnd);
+      const actualStart = task.dateActualStart ? dayjs(task.dateActualStart) : null;
+      const actualEnd = task.dateActualEnd ? dayjs(task.dateActualEnd) : null;
+      if (plannedStart.isBefore(minDate)) {
+        minDate = plannedStart;
+      }
+      if (plannedEnd.isAfter(maxDate)) {
+        maxDate = plannedEnd;
+      }
+      if (actualStart && actualStart.isBefore(minDate)) {
+        minDate = actualStart;
+      }
+      if (actualEnd && actualEnd.isAfter(maxDate)) {
+        maxDate = actualEnd;
+      }
+    }
+
+    return { minDate, maxDate };
   }
 
   equals(another: TsGanttTask): boolean {
@@ -284,6 +311,10 @@ class TsGanttTask {
     return model;
   }
 
+  toggleExpanded() {
+    this.expanded = !this.expanded;
+  }
+
   getMinMaxDates(chartBarMode: ChartBarMode): { minDate: dayjs.Dayjs; maxDate: dayjs.Dayjs } {    
     const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = this;
     const plannedDatesSet = datePlannedStart && datePlannedEnd;
@@ -316,21 +347,12 @@ class TsGanttTask {
 
     return { minDate, maxDate };
   }
-}
 
-interface TsGanttTaskModel {
-  id: string;
-  parentId: string;
-
-  name: string;  
-  progress: number;
-
-  datePlannedStart: Date;
-  datePlannedEnd: Date;  
-  dateActualStart: Date;
-  dateActualEnd: Date;
-  
-  localizedNames: {[key: string]: string};
+  getHorizontalOffsetPx(chartBarMode: ChartBarMode, chartMinDate: dayjs.Dayjs, dayWidthPx: number): number {
+    const { minDate: taskMinDate } = this.getMinMaxDates(chartBarMode);
+    const offsetX = taskMinDate.diff(chartMinDate, "day") * dayWidthPx;
+    return offsetX;
+  }
 }
 
 interface TsGanttTaskUpdateResult {
@@ -345,10 +367,17 @@ interface TsGanttTaskChangeResult {
   all: TsGanttTask[];
 }
 
+interface TsGanttDataChangeResult extends TsGanttTaskChangeResult {
+  datesChanged: boolean; 
+}
+
 interface TsGanttTaskSelectionChangeResult {
   deselected: string[];
   selected: string[];
+
+  deselectedTasks: TsGanttTask[];
+  selectedTasks: TsGanttTask[];
 }
 
-export { TsGanttTask, TsGanttTaskModel, TsGanttTaskUpdateResult, 
+export { TsGanttTask, TsGanttTaskUpdateResult, TsGanttDataChangeResult,
   TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult };

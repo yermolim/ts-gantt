@@ -371,50 +371,6 @@
   TsGanttConst.CHART_BAR_ACTUAL_CLASS = "tsg-chart-bar-actual";
   TsGanttConst.CHART_BAR_ACTUAL_PROGRESS_CLASS = "tsg-chart-bar-actual-progress";
 
-  function getRandomUuid() {
-      return crypto.getRandomValues(new Uint32Array(4)).join("-");
-  }
-  function compareTwoStringSets(setA, setB) {
-      if (setA.size !== setB.size) {
-          return false;
-      }
-      const commonSet = new Set([...setA, ...setB]);
-      return setA.size === commonSet.size;
-  }
-  function createSvgElement(elementTag, classList = [], attributes = [], parent = null, innerHtml = null) {
-      const element = document.createElementNS("http://www.w3.org/2000/svg", elementTag);
-      for (const attribute of attributes) {
-          element.setAttribute(attribute[0], attribute[1]);
-      }
-      if (classList.length !== 0) {
-          element.classList.add(...classList);
-      }
-      if (innerHtml) {
-          element.innerHTML = innerHtml;
-      }
-      if (parent) {
-          parent.append(element);
-      }
-      return element;
-  }
-  function getAllDatesBetweenTwoDates(start, end) {
-      const dateStart = start.startOf("day");
-      const dateEnd = end.startOf("day");
-      if (!dateStart || !dateEnd || dateEnd.diff(dateStart) < 0) {
-          return [];
-      }
-      if (dateEnd.diff(dateStart) === 0) {
-          return [dateStart];
-      }
-      const dates = [];
-      let currentDate = dateStart;
-      while (currentDate.isBefore(dateEnd) || currentDate.isSame(dateEnd)) {
-          dates.push(currentDate);
-          currentDate = currentDate.add(1, "day");
-      }
-      return dates;
-  }
-
   class TsGanttOptions {
       constructor(item = null) {
           this.multilineSelection = true;
@@ -602,6 +558,53 @@
               Object.assign(this, item);
           }
       }
+      get dayWidthPx() {
+          return this.chartDayWidthPx[this.chartScale];
+      }
+  }
+
+  function getRandomUuid() {
+      return crypto.getRandomValues(new Uint32Array(4)).join("-");
+  }
+  function compareTwoStringSets(setA, setB) {
+      if (setA.size !== setB.size) {
+          return false;
+      }
+      const commonSet = new Set([...setA, ...setB]);
+      return setA.size === commonSet.size;
+  }
+  function createSvgElement(elementTag, classList = [], attributes = [], parent = null, innerHtml = null) {
+      const element = document.createElementNS("http://www.w3.org/2000/svg", elementTag);
+      for (const attribute of attributes) {
+          element.setAttribute(attribute[0], attribute[1]);
+      }
+      if (classList.length !== 0) {
+          element.classList.add(...classList);
+      }
+      if (innerHtml) {
+          element.innerHTML = innerHtml;
+      }
+      if (parent) {
+          parent.append(element);
+      }
+      return element;
+  }
+  function getAllDatesBetweenTwoDates(start, end) {
+      const dateStart = start.startOf("day");
+      const dateEnd = end.startOf("day");
+      if (!dateStart || !dateEnd || dateEnd.diff(dateStart) < 0) {
+          return [];
+      }
+      if (dateEnd.diff(dateStart) === 0) {
+          return [dateStart];
+      }
+      const dates = [];
+      let currentDate = dateStart;
+      while (currentDate.isBefore(dateEnd) || currentDate.isSame(dateEnd)) {
+          dates.push(currentDate);
+          currentDate = currentDate.add(1, "day");
+      }
+      return dates;
   }
 
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
@@ -735,6 +738,29 @@
           }
           return sorted;
       }
+      static getMinMaxDates(tasks) {
+          let minDate = dayjs();
+          let maxDate = dayjs();
+          for (const task of tasks) {
+              const plannedStart = dayjs(task.datePlannedStart);
+              const plannedEnd = dayjs(task.datePlannedEnd);
+              const actualStart = task.dateActualStart ? dayjs(task.dateActualStart) : null;
+              const actualEnd = task.dateActualEnd ? dayjs(task.dateActualEnd) : null;
+              if (plannedStart.isBefore(minDate)) {
+                  minDate = plannedStart;
+              }
+              if (plannedEnd.isAfter(maxDate)) {
+                  maxDate = plannedEnd;
+              }
+              if (actualStart && actualStart.isBefore(minDate)) {
+                  minDate = actualStart;
+              }
+              if (actualEnd && actualEnd.isAfter(maxDate)) {
+                  maxDate = actualEnd;
+              }
+          }
+          return { minDate, maxDate };
+      }
       equals(another) {
           var _a, _b, _c, _d, _e, _f, _g, _h;
           return this.externalId === another.externalId
@@ -815,6 +841,9 @@
           model.localizedNames = this.localizedNames;
           return model;
       }
+      toggleExpanded() {
+          this.expanded = !this.expanded;
+      }
       getMinMaxDates(chartBarMode) {
           const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = this;
           const plannedDatesSet = datePlannedStart && datePlannedEnd;
@@ -847,8 +876,170 @@
           }
           return { minDate, maxDate };
       }
+      getHorizontalOffsetPx(chartBarMode, chartMinDate, dayWidthPx) {
+          const { minDate: taskMinDate } = this.getMinMaxDates(chartBarMode);
+          const offsetX = taskMinDate.diff(chartMinDate, "day") * dayWidthPx;
+          return offsetX;
+      }
   }
   TsGanttTask.defaultComparer = (a, b) => a.compareTo(b);
+
+  class TsGanttData {
+      constructor(options) {
+          this._tasks = [];
+          this._tasksByParentUuid = new Map();
+          this._selectedTasks = [];
+          this._options = options;
+      }
+      get options() {
+          return this._options;
+      }
+      get dateMinOffset() {
+          return this._dateMinOffset;
+      }
+      get dateMaxOffset() {
+          return this._dateMaxOffset;
+      }
+      get tasks() {
+          return this._tasks;
+      }
+      get models() {
+          return this._tasks.map(x => x.toModel());
+      }
+      get selectedTasks() {
+          return this._selectedTasks;
+      }
+      get selectedModels() {
+          return this._selectedTasks.map(x => x.toModel());
+      }
+      getAllTasksAsChanged() {
+          const minMaxDatesUpdated = this.updateMinMaxDates();
+          return {
+              deleted: [],
+              added: [],
+              changed: this._tasks,
+              all: this._tasks,
+              datesChanged: minMaxDatesUpdated,
+          };
+      }
+      getShownTaskUuidsRecursively(parentUuid = null) {
+          const tasks = this._tasksByParentUuid.get(parentUuid) || [];
+          const uuids = [];
+          for (const task of tasks) {
+              uuids.push(task.uuid);
+              if (task.expanded) {
+                  uuids.push(...this.getShownTaskUuidsRecursively(task.uuid));
+              }
+          }
+          return uuids;
+      }
+      updateTasks(taskModels) {
+          const oldTasks = this._tasks;
+          const oldTasksIdMap = TsGanttTask.createTasksIdMap(oldTasks);
+          const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldTasksIdMap);
+          const changes = TsGanttTask.detectTaskChanges({ oldTasks, newTasks });
+          this._tasks = changes.all;
+          this.groupAndSortTasks();
+          const datesChanged = this.updateMinMaxDates();
+          return Object.assign({}, changes, { datesChanged });
+      }
+      expandAllTasks(state) {
+          for (const task of this._tasks) {
+              task.expanded = state;
+              if (task.parentUuid) {
+                  task.shown = state;
+              }
+          }
+      }
+      updateSelectedTasks(tasks) {
+          let newSelectedTasks;
+          if ((tasks === null || tasks === void 0 ? void 0 : tasks.length) && !(tasks[0] instanceof TsGanttTask)) {
+              const ids = new Set(tasks.map(x => x.id));
+              newSelectedTasks = this._tasks.filter(x => ids.has(x.externalId));
+          }
+          else {
+              newSelectedTasks = tasks || [];
+          }
+          const oldSelectedTasks = this._selectedTasks;
+          const selectionEmpty = oldSelectedTasks.length === 0 && newSelectedTasks.length === 0;
+          if (selectionEmpty) {
+              return null;
+          }
+          const oldUuids = oldSelectedTasks.map(x => x.uuid);
+          const newUuids = newSelectedTasks.map(x => x.uuid);
+          const selectionNotChanged = compareTwoStringSets(new Set(oldUuids), new Set(newUuids));
+          if (selectionNotChanged) {
+              return null;
+          }
+          this._selectedTasks = newSelectedTasks;
+          const deselectedTasks = oldSelectedTasks.filter(x => !newUuids.includes(x.uuid));
+          const deselectedUuids = deselectedTasks.map(x => x.uuid);
+          return {
+              selected: newUuids,
+              deselected: deselectedUuids,
+              selectedTasks: newSelectedTasks,
+              deselectedTasks,
+          };
+      }
+      refreshSelectedTasks() {
+          const tasks = this._selectedTasks.filter(x => !TsGanttTask.checkForCollapsedParent(this._tasks, x));
+          return this.updateSelectedTasks(tasks);
+      }
+      toggleTaskSelection(task, ctrl) {
+          if (!task) {
+              return;
+          }
+          const selectedTasks = [];
+          const taskInCurrentSelected = this._selectedTasks.includes(task);
+          if (this._options.multilineSelection
+              && (!this._options.useCtrlKeyForMultilineSelection
+                  || (this._options.useCtrlKeyForMultilineSelection && ctrl))) {
+              selectedTasks.push(...this._selectedTasks);
+              if (!taskInCurrentSelected) {
+                  selectedTasks.push(task);
+              }
+              else {
+                  selectedTasks.splice(selectedTasks.findIndex(x => x === task), 1);
+              }
+          }
+          else {
+              selectedTasks.push(task);
+          }
+          return this.updateSelectedTasks(selectedTasks);
+      }
+      groupAndSortTasks() {
+          this._tasksByParentUuid.clear();
+          for (const task of this._tasks) {
+              if (this._tasksByParentUuid.has(task.parentUuid)) {
+                  this._tasksByParentUuid.get(task.parentUuid).push(task);
+              }
+              else {
+                  this._tasksByParentUuid.set(task.parentUuid, [task]);
+              }
+          }
+          this._tasksByParentUuid.forEach((v) => v.sort(this._options.taskComparer || TsGanttTask.defaultComparer));
+      }
+      updateMinMaxDates() {
+          const tasks = this._tasks;
+          const currentDateMin = this._dateMinOffset;
+          const currentDateMax = this._dateMaxOffset;
+          const chartScale = this._options.chartScale;
+          const dateOffsetMin = this._options.chartDateOffsetDaysMin[chartScale];
+          const dateOffset = this._options.chartDateOffsetDays[chartScale];
+          const { minDate, maxDate } = TsGanttTask.getMinMaxDates(tasks);
+          if (!currentDateMin
+              || currentDateMin.isAfter(minDate)
+              || minDate.diff(currentDateMin, "day") < dateOffsetMin) {
+              this._dateMinOffset = minDate.subtract(dateOffset, "day");
+          }
+          if (!currentDateMax
+              || currentDateMax.isBefore(maxDate)
+              || currentDateMax.diff(maxDate, "day") < dateOffsetMin) {
+              this._dateMaxOffset = maxDate.add(dateOffset, "day");
+          }
+          return this._dateMinOffset !== currentDateMin || this._dateMaxOffset !== currentDateMax;
+      }
+  }
 
   class TsGanttTableColumnOrder {
       constructor(length) {
@@ -1010,7 +1201,7 @@
   }
 
   class TsGanttTable {
-      constructor(options) {
+      constructor(data) {
           this._tableRows = new Map();
           this._activeUuids = [];
           this._currentTasks = [];
@@ -1021,7 +1212,7 @@
               }
               this.changeColumnIndex(detail.orderFrom, detail.orderTo);
           });
-          this._options = options;
+          this._data = data;
           this.initBaseHtml();
           this.initColumns();
           document.addEventListener(TsGanttConst.TABLE_COLUMN_REORDER_EVENT, this.onColumnReorder);
@@ -1033,7 +1224,7 @@
       appendTo(parent) {
           parent.append(this._html);
       }
-      update(updateColumns, data, uuids = null) {
+      update(updateColumns, data, uuids) {
           if (updateColumns) {
               this.updateColumns();
           }
@@ -1070,18 +1261,19 @@
           this._html = table;
       }
       initColumns() {
-          this._columnOrder = new TsGanttTableColumnOrder(this._options.columnsMinWidthPx.length);
+          this._columnOrder = new TsGanttTableColumnOrder(this._data.options.columnsMinWidthPx.length);
           this.updateColumns();
       }
       updateColumns() {
+          const options = this._data.options;
           const columns = [];
           let currentOrder = 0;
           for (const i of this._columnOrder) {
-              const minColumnWidth = this._options.columnsMinWidthPx[i];
+              const minColumnWidth = options.columnsMinWidthPx[i];
               if (!minColumnWidth) {
                   continue;
               }
-              columns.push(new TsGanttTableColumn(minColumnWidth, currentOrder++, this._options.localeHeaders[this._options.locale][i] || "", this._options.columnsContentAlign[i], this._options.columnValueGetters[i] || ((task) => "")));
+              columns.push(new TsGanttTableColumn(minColumnWidth, currentOrder++, options.localeHeaders[options.locale][i] || "", options.columnsContentAlign[i], options.columnValueGetters[i] || ((task) => "")));
           }
           this._tableColumns = columns;
       }
@@ -1099,7 +1291,7 @@
       updateRows(data) {
           const columns = this._tableColumns;
           const rows = this._tableRows;
-          const addStateClass = this._options.highlightRowsDependingOnTaskState;
+          const addStateClass = this._data.options.highlightRowsDependingOnTaskState;
           data.deleted.forEach(x => rows.delete(x.uuid));
           data.changed.forEach(x => rows.set(x.uuid, new TsGanttTableRow(x, columns, addStateClass)));
           data.added.forEach(x => rows.set(x.uuid, new TsGanttTableRow(x, columns, addStateClass)));
@@ -1114,7 +1306,7 @@
           this._htmlBody.append(...this._activeUuids.map(x => this.getRowHtml(x)));
       }
       getRowHtml(uuid) {
-          const symbols = this._options.rowSymbols;
+          const symbols = this._data.options.rowSymbols;
           const row = this._tableRows.get(uuid);
           if (!row.task.hasChildren) {
               row.expander.innerHTML = symbols.childless;
@@ -1247,7 +1439,7 @@
   class TsGanttChartHeader {
       constructor(options, minDate, maxDate) {
           this._options = options;
-          this.createAndDrawSvg(minDate, maxDate);
+          this.drawSvg(minDate, maxDate);
       }
       get width() {
           return this._width;
@@ -1264,13 +1456,24 @@
       appendTo(parent) {
           parent.append(this._svg);
       }
-      createAndDrawSvg(minDate, maxDate) {
+      createWrapper(width, height) {
+          const header = createSvgElement("svg", [TsGanttConst.CHART_HEADER_CLASS], [
+              ["width", width + ""],
+              ["height", height + ""],
+          ]);
+          createSvgElement("rect", [TsGanttConst.CHART_HEADER_BACKGROUND_CLASS], [
+              ["width", width + ""],
+              ["height", height + ""],
+          ], header);
+          return header;
+      }
+      drawSvg(minDate, maxDate) {
           const scale = this._options.chartScale;
           const dayWidth = this._options.chartDayWidthPx[scale];
           const height = this._options.headerHeightPx;
           const dates = getAllDatesBetweenTwoDates(minDate, maxDate);
           const width = dates.length * dayWidth;
-          const header = this.createHeaderWrapper(width, height);
+          const header = this.createWrapper(width, height);
           const locale = this._options.locale;
           const months = this._options.localeDateMonths[locale];
           const daysShort = this._options.localeDateDaysShort[locale];
@@ -1289,18 +1492,7 @@
           this._height = height;
           this._xCoords = xCoords;
       }
-      createHeaderWrapper(width, height) {
-          const header = createSvgElement("svg", [TsGanttConst.CHART_HEADER_CLASS], [
-              ["width", width + ""],
-              ["height", height + ""],
-          ]);
-          createSvgElement("rect", [TsGanttConst.CHART_HEADER_BACKGROUND_CLASS], [
-              ["width", width + ""],
-              ["height", height + ""],
-          ], header);
-          return header;
-      }
-      createAndDrawHeaderElementWrapper(parent, left, top, width, height) {
+      drawHeaderElementWrapper(parent, left, top, width, height) {
           return createSvgElement("svg", [], [
               ["x", left + ""],
               ["y", top + ""],
@@ -1334,7 +1526,7 @@
       }
       drawYear(header, date, nextDayOffset, yearStartOffset, top, rowHeight) {
           const yearWidth = nextDayOffset - yearStartOffset;
-          const yearSvg = this.createAndDrawHeaderElementWrapper(header, yearStartOffset, top, yearWidth, rowHeight);
+          const yearSvg = this.drawHeaderElementWrapper(header, yearStartOffset, top, yearWidth, rowHeight);
           if (yearWidth >= 60) {
               this.drawText(yearSvg, date.year() + "");
           }
@@ -1342,7 +1534,7 @@
       }
       drawMonth(header, months, date, nextDayOffset, monthStartOffset, top, rowHeight) {
           const monthWidth = nextDayOffset - monthStartOffset;
-          const monthSvg = this.createAndDrawHeaderElementWrapper(header, monthStartOffset, top, monthWidth, rowHeight);
+          const monthSvg = this.drawHeaderElementWrapper(header, monthStartOffset, top, monthWidth, rowHeight);
           if (monthWidth >= 60) {
               const monthName = months[date.month()];
               this.drawText(monthSvg, monthName);
@@ -1350,7 +1542,7 @@
           this.drawVerticalBorder(header, nextDayOffset, top, rowHeight);
       }
       drawDay(header, daysShort, date, currentDayOffset, nextDayOffset, dayWidth, top, rowHeight) {
-          const daySvg = this.createAndDrawHeaderElementWrapper(header, currentDayOffset, top, dayWidth, rowHeight);
+          const daySvg = this.drawHeaderElementWrapper(header, currentDayOffset, top, dayWidth, rowHeight);
           const dayName = dayWidth < 30
               ? date.date() + ""
               : daysShort[date.day()] + " " + date.date();
@@ -1428,7 +1620,7 @@
   class TsGanttChartBody {
       constructor(options, barGroups, xCoords, minDate, top, width) {
           this._options = options;
-          this.createAndDrawSvg(barGroups, xCoords, minDate, top, width);
+          this.drawSvg(barGroups, xCoords, minDate, top, width);
       }
       destroy() {
           this._svg.remove();
@@ -1459,44 +1651,44 @@
               }
           }
       }
-      getBarOffsetByTaskUuid(uuid) {
-          return this._chartOffsetsX.get(uuid);
+      createWrapper(y0, width, height) {
+          const body = createSvgElement("svg", [TsGanttConst.CHART_BODY_CLASS], [
+              ["y", y0 + ""],
+              ["width", width + ""],
+              ["height", height + ""],
+          ]);
+          createSvgElement("rect", [TsGanttConst.CHART_BODY_BACKGROUND_CLASS], [
+              ["width", width + ""],
+              ["height", height + ""],
+          ], body);
+          return body;
       }
-      createAndDrawSvg(barGroups, xCoords, minDate, top, width) {
-          const scale = this._options.chartScale;
-          const dayWidth = this._options.chartDayWidthPx[scale];
-          const rowHeight = this._options.rowHeightPx;
-          const border = this._options.borderWidthPx;
-          const todayLineEnabled = this._options.drawTodayLine;
-          const mode = this._options.chartDisplayMode;
-          const height = rowHeight * barGroups.length;
-          const body = this.createChartBody(top, width, height);
-          const rowBgs = this.createRowBackgrounds(body, barGroups, rowHeight, width);
-          this.createChartGridLines(body, barGroups, rowHeight, width, height, border, xCoords);
+      drawSvg(barGroups, xCoords, minDate, top, width) {
+          const { dayWidthPx, rowHeightPx, borderWidthPx, drawTodayLine, chartDisplayMode } = this._options;
+          const heightPx = rowHeightPx * barGroups.length;
+          const body = this.createWrapper(top, width, heightPx);
+          const rowBgs = this.drawRowBackgrounds(body, barGroups, rowHeightPx, width);
+          this.drawChartGridLines(body, barGroups, rowHeightPx, width, heightPx, borderWidthPx, xCoords);
           const rowFgs = new Map();
-          const offsetsX = new Map();
-          barGroups.forEach((x, i) => {
-              const task = x.task;
-              const offsetY = i * rowHeight;
-              const row = this.createRow(body, task, offsetY, width, rowHeight);
+          barGroups.forEach((barGroup, i) => {
+              const task = barGroup.task;
+              const offsetY = i * rowHeightPx;
+              const row = this.drawRow(body, task, offsetY, width, rowHeightPx);
               rowFgs.set(task.uuid, row);
-              if (x.svg) {
-                  const { minDate: taskMinDate } = task.getMinMaxDates(mode);
-                  const offsetX = taskMinDate.diff(minDate, "day") * dayWidth;
-                  offsetsX.set(task.uuid, offsetX);
-                  x.svg.setAttribute("x", offsetX + "");
-                  row.append(x.svg);
+              if (barGroup.svg) {
+                  const offsetX = task.getHorizontalOffsetPx(chartDisplayMode, minDate, dayWidthPx);
+                  barGroup.svg.setAttribute("x", offsetX + "");
+                  row.append(barGroup.svg);
               }
           });
-          if (todayLineEnabled) {
-              this.createTodayLine(body, minDate, dayWidth, height);
+          if (drawTodayLine) {
+              this.drawTodayLine(body, minDate, dayWidthPx, heightPx);
           }
           this._svg = body;
           this._chartRowBgs = rowBgs;
           this._chartRowFgs = rowFgs;
-          this._chartOffsetsX = offsetsX;
       }
-      createRow(parent, task, offsetY, width, height) {
+      drawRow(parent, task, offsetY, width, height) {
           const rowWrapper = createSvgElement("svg", [TsGanttConst.CHART_ROW_WRAPPER_CLASS], [
               ["y", offsetY + ""],
               ["width", width + ""],
@@ -1523,53 +1715,31 @@
           ], rowWrapper);
           return rowWrapper;
       }
-      createChartBody(y0, width, height) {
-          const body = createSvgElement("svg", [TsGanttConst.CHART_BODY_CLASS], [
-              ["y", y0 + ""],
-              ["width", width + ""],
-              ["height", height + ""],
-          ]);
-          createSvgElement("rect", [TsGanttConst.CHART_BODY_BACKGROUND_CLASS], [
-              ["width", width + ""],
-              ["height", height + ""],
-          ], body);
-          return body;
-      }
-      createRowBackground(barGroupIndex, rowHeight, width, body) {
+      drawRowBackground(parent, barGroupIndex, rowHeight, width) {
           const rowBg = createSvgElement("rect", [TsGanttConst.CHART_ROW_BACKGROUND_CLASS], [
               ["y", (barGroupIndex * rowHeight) + ""],
               ["width", width + ""],
               ["height", rowHeight + ""],
-          ], body);
+          ], parent);
           return rowBg;
       }
-      createRowBackgrounds(parent, barGroups, rowHeight, width) {
+      drawRowBackgrounds(parent, barGroups, rowHeight, width) {
           const rowBgs = new Map();
           barGroups.forEach((x, i) => {
-              rowBgs.set(x.task.uuid, this.createRowBackground(i, rowHeight, width, parent));
+              rowBgs.set(x.task.uuid, this.drawRowBackground(parent, i, rowHeight, width));
           });
           return rowBgs;
       }
-      createChartGridLines(parent, barGroups, rowHeight, width, height, border, xCoords) {
+      drawChartGridLines(parent, barGroups, rowHeight, width, height, border, xCoords) {
           for (let i = 0; i < barGroups.length;) {
               const lineY = ++i * rowHeight - border / 2;
-              createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
-                  ["x1", 0 + ""],
-                  ["y1", lineY + ""],
-                  ["x2", width + ""],
-                  ["y2", lineY + ""],
-              ], parent);
+              this.drawHorizontalLine(parent, lineY, width);
           }
           xCoords.forEach(x => {
-              createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
-                  ["x1", x + ""],
-                  ["y1", 0 + ""],
-                  ["x2", x + ""],
-                  ["y2", height + ""],
-              ], parent);
+              this.drawVerticalLine(parent, x, height);
           });
       }
-      createTodayLine(parent, minDate, dayWidth, height) {
+      drawTodayLine(parent, minDate, dayWidth, height) {
           const todayX = dayjs().startOf("day").diff(minDate, "day") * dayWidth;
           createSvgElement("line", [TsGanttConst.CHART_BODY_TODAY_LINE_CLASS], [
               ["x1", todayX + ""],
@@ -1578,13 +1748,29 @@
               ["y2", height + ""],
           ], parent);
       }
+      drawHorizontalLine(parent, top, width) {
+          createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
+              ["x1", 0 + ""],
+              ["y1", top + ""],
+              ["x2", width + ""],
+              ["y2", top + ""],
+          ], parent);
+      }
+      drawVerticalLine(parent, left, height) {
+          createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
+              ["x1", left + ""],
+              ["y1", 0 + ""],
+              ["x2", left + ""],
+              ["y2", height + ""],
+          ], parent);
+      }
   }
 
   class TsGanttChart {
-      constructor(options) {
-          this._chartBarGroups = new Map();
+      constructor(data) {
           this._activeUuids = [];
-          this._options = options;
+          this._chartBarGroups = new Map();
+          this._data = data;
           this._html = this.createChartDiv();
       }
       destroy() {
@@ -1593,76 +1779,32 @@
       appendTo(parent) {
           parent.append(this._html);
       }
-      update(forceRedraw, data, uuids = null) {
-          const datesCheckResult = data
-              ? this.updateMinMaxDates(data.all)
-              : true;
-          if (!datesCheckResult || forceRedraw) {
-              this._header = new TsGanttChartHeader(this._options, this._dateMinOffset, this._dateMaxOffset);
+      update(forceRedraw, data, uuids) {
+          const { options, dateMinOffset, dateMaxOffset } = this._data;
+          if ((data === null || data === void 0 ? void 0 : data.datesChanged) || forceRedraw) {
+              this._header = new TsGanttChartHeader(options, dateMinOffset, dateMaxOffset);
           }
           if (data) {
-              this.refreshBarGroups(data);
+              this.updateBarGroups(data);
           }
           if (uuids) {
               this._activeUuids = uuids;
           }
           const barGroups = this._activeUuids.map(x => this._chartBarGroups.get(x));
-          this._body = new TsGanttChartBody(this._options, barGroups, this._header.xCoords, this._dateMinOffset, this._header.height, this._header.width);
+          this._body = new TsGanttChartBody(this._data.options, barGroups, this._header.xCoords, dateMinOffset, this._header.height, this._header.width);
           this.redraw();
       }
       applySelection(selectionResult) {
           var _a;
           (_a = this._body) === null || _a === void 0 ? void 0 : _a.applySelection(selectionResult);
       }
-      getBarOffsetByTaskUuid(uuid) {
-          var _a;
-          return (_a = this._body) === null || _a === void 0 ? void 0 : _a.getBarOffsetByTaskUuid(uuid);
-      }
       createChartDiv() {
           const svg = document.createElement("div");
           svg.classList.add(TsGanttConst.CHART_CLASS);
           return svg;
       }
-      updateMinMaxDates(tasks) {
-          const currentDateMin = this._dateMinOffset;
-          const currentDateMax = this._dateMaxOffset;
-          const chartScale = this._options.chartScale;
-          const dateOffsetMin = this._options.chartDateOffsetDaysMin[chartScale];
-          const dateOffset = this._options.chartDateOffsetDays[chartScale];
-          let dateMin = dayjs();
-          let dateMax = dayjs();
-          for (const task of tasks) {
-              const plannedStart = dayjs(task.datePlannedStart);
-              const plannedEnd = dayjs(task.datePlannedEnd);
-              const actualStart = task.dateActualStart ? dayjs(task.dateActualStart) : null;
-              const actualEnd = task.dateActualEnd ? dayjs(task.dateActualEnd) : null;
-              if (plannedStart.isBefore(dateMin)) {
-                  dateMin = plannedStart;
-              }
-              if (plannedEnd.isAfter(dateMax)) {
-                  dateMax = plannedEnd;
-              }
-              if (actualStart && actualStart.isBefore(dateMin)) {
-                  dateMin = actualStart;
-              }
-              if (actualEnd && actualEnd.isAfter(dateMax)) {
-                  dateMax = actualEnd;
-              }
-          }
-          if (!currentDateMin
-              || currentDateMin.isAfter(dateMin)
-              || dateMin.diff(currentDateMin, "day") < dateOffsetMin) {
-              this._dateMinOffset = dateMin.subtract(dateOffset, "day");
-          }
-          if (!currentDateMax
-              || currentDateMax.isBefore(dateMax)
-              || currentDateMax.diff(dateMax, "day") < dateOffsetMin) {
-              this._dateMaxOffset = dateMax.add(dateOffset, "day");
-          }
-          return this._dateMinOffset === currentDateMin && this._dateMaxOffset === currentDateMax;
-      }
-      refreshBarGroups(data) {
-          const barGroupOptions = TsGanttChartBarGroupOptions.getFromGanttOptions(this._options);
+      updateBarGroups(data) {
+          const barGroupOptions = TsGanttChartBarGroupOptions.getFromGanttOptions(this._data.options);
           data.deleted.forEach(x => this._chartBarGroups.delete(x.uuid));
           data.changed.forEach(x => this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions)));
           data.added.forEach(x => this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions)));
@@ -1683,9 +1825,6 @@
           this._separatorDragActive = false;
           this._ignoreNextScrollEvent = false;
           this._baseComponents = [];
-          this._tasks = [];
-          this._tasksByParentUuid = new Map();
-          this._selectedTasks = [];
           this.onResize = (e) => {
               const wrapperWidth = this._htmlWrapper.getBoundingClientRect().width;
               const tableWrapperWidth = this._htmlTableWrapper.getBoundingClientRect().width;
@@ -1745,7 +1884,7 @@
               }
               const { task, event } = detail;
               if (event.detail === 1) {
-                  this.changeSelection(task, event.ctrlKey);
+                  this.toggleTaskSelection(task, event.ctrlKey);
                   if (this.onRowClickCb) {
                       this.onRowClickCb(task.toModel(), event);
                   }
@@ -1769,9 +1908,10 @@
           this.onRowExpanderClick = ((e) => {
               this.toggleTaskExpanded(e.detail.task);
           });
-          this._options = options instanceof TsGanttOptions
+          options = options instanceof TsGanttOptions
               ? options
               : new TsGanttOptions(options);
+          this._data = new TsGanttData(options);
           this.setCssVariables(this._options);
           this._htmlContainer = document.querySelector(containerSelector);
           if (!this._htmlContainer) {
@@ -1779,19 +1919,21 @@
           }
           this.createLayout();
       }
+      get _options() {
+          var _a;
+          return (_a = this._data) === null || _a === void 0 ? void 0 : _a.options;
+      }
       get tasks() {
-          return this._tasks.map(x => x.toModel());
+          return this._data.models;
       }
       set tasks(models) {
           this.updateTasks(models);
       }
       get selectedTasks() {
-          return this._selectedTasks.map(x => x.toModel());
+          return this._data.selectedModels;
       }
       set selectedTasks(models) {
-          const ids = models.map(x => x.id);
-          const targetTasks = this._tasks.filter(x => ids.includes(x.externalId));
-          this.selectTasks(targetTasks);
+          this.updateSelection(models);
       }
       set locale(value) {
           if (value !== this._options.locale) {
@@ -1818,12 +1960,7 @@
           this._htmlWrapper.remove();
       }
       expandAll(state) {
-          for (const task of this._tasks) {
-              task.expanded = state;
-              if (task.parentUuid) {
-                  task.shown = state;
-              }
-          }
+          this._data.expandAllTasks(state);
           this.update(null);
       }
       setCssVariables(options) {
@@ -1842,8 +1979,8 @@
           chartWrapper.classList.add(TsGanttConst.CHART_WRAPPER_CLASS);
           const separator = document.createElement("div");
           separator.classList.add(TsGanttConst.SEPARATOR_CLASS);
-          this._table = new TsGanttTable(this._options);
-          this._chart = new TsGanttChart(this._options);
+          this._table = new TsGanttTable(this._data);
+          this._chart = new TsGanttChart(this._data);
           this._baseComponents.push(this._table, this._chart);
           wrapper.append(tableWrapper);
           wrapper.append(separator);
@@ -1878,133 +2015,68 @@
           document.removeEventListener(TsGanttConst.ROW_CONTEXT_MENU_EVENT, this.onRowContextMenu);
           document.removeEventListener(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, this.onRowExpanderClick);
       }
-      updateTasks(taskModels) {
-          const oldTasks = this._tasks;
-          const oldTasksIdMap = TsGanttTask.createTasksIdMap(oldTasks);
-          const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldTasksIdMap);
-          const changes = TsGanttTask.detectTaskChanges({ oldTasks, newTasks });
-          this._tasks = changes.all;
-          this.groupAndSortTasks();
-          this.update(changes);
+      toggleTaskSelection(task, ctrl) {
+          const selectionResult = this._data.toggleTaskSelection(task, ctrl);
+          this.applySelectionResult(selectionResult);
+      }
+      refreshSelection() {
+          const selectionResult = this._data.refreshSelectedTasks();
+          this.applySelectionResult(selectionResult);
+      }
+      updateSelection(tasks) {
+          const selectionResult = this._data.updateSelectedTasks(tasks);
+          this.applySelectionResult(selectionResult);
+      }
+      applySelectionResult(selectionResult) {
+          var _a;
+          if (!selectionResult) {
+              return;
+          }
+          this._table.applySelection(selectionResult);
+          this._chart.applySelection(selectionResult);
+          if ((_a = selectionResult.selectedTasks) === null || _a === void 0 ? void 0 : _a.length) {
+              this.scrollChartToTasks(selectionResult.selectedTasks);
+          }
+          if (this.onSelectionChangeCb) {
+              this.onSelectionChangeCb(selectionResult.selectedTasks.map(x => x.toModel()));
+          }
       }
       update(data) {
-          const uuids = this.getShownUuidsRecursively();
+          const uuids = this._data.getShownTaskUuidsRecursively();
           this._table.update(false, data, uuids);
           this._chart.update(false, data, uuids);
           this.refreshSelection();
       }
-      toggleTaskExpanded(task) {
-          task.expanded = !task.expanded;
-          this.update(null);
-      }
-      changeSelection(task, ctrl) {
-          if (!task) {
-              return;
-          }
-          const selectedTasks = [];
-          const taskInCurrentSelected = this._selectedTasks.includes(task);
-          if (this._options.multilineSelection
-              && (!this._options.useCtrlKeyForMultilineSelection
-                  || (this._options.useCtrlKeyForMultilineSelection && ctrl))) {
-              selectedTasks.push(...this._selectedTasks);
-              if (!taskInCurrentSelected) {
-                  selectedTasks.push(task);
-              }
-              else {
-                  selectedTasks.splice(selectedTasks.findIndex(x => x === task), 1);
-              }
-          }
-          else {
-              selectedTasks.push(task);
-          }
-          this.selectTasks(selectedTasks);
-      }
-      refreshSelection() {
-          const tasks = this._selectedTasks.filter(x => !TsGanttTask
-              .checkForCollapsedParent(this._tasks, x));
-          this.selectTasks(tasks);
-      }
-      selectTasks(newSelectedTasks) {
-          const oldSelectedTasks = this._selectedTasks;
-          const selectionEmpty = oldSelectedTasks.length === 0 && newSelectedTasks.length === 0;
-          if (selectionEmpty) {
-              return;
-          }
-          const oldUuids = oldSelectedTasks.map(x => x.uuid);
-          const newUuids = newSelectedTasks.map(x => x.uuid);
-          const selectionNotChanged = compareTwoStringSets(new Set(oldUuids), new Set(newUuids));
-          if (selectionNotChanged) {
-              return;
-          }
-          const selected = newUuids;
-          const deselected = oldUuids.filter(x => !newUuids.includes(x));
-          this._selectedTasks = newSelectedTasks;
-          const result = { selected, deselected };
-          this._table.applySelection(result);
-          this._chart.applySelection(result);
-          if (newSelectedTasks) {
-              this.scrollChartToTasks(newUuids);
-          }
-          if (this.onSelectionChangeCb) {
-              this.onSelectionChangeCb(newSelectedTasks.map(x => x.toModel()));
-          }
-      }
-      scrollChartToTasks(uuids) {
-          const offset = Math.min(...uuids.map(x => this._chart.getBarOffsetByTaskUuid(x)));
-          if (offset) {
-              this._htmlChartWrapper.scrollLeft = offset - 20;
-          }
+      updateTasks(taskModels) {
+          const changes = this._data.updateTasks(taskModels);
+          this.update(changes);
       }
       updateLocale() {
-          const data = {
-              deleted: [],
-              added: [],
-              changed: this._tasks,
-              all: this._tasks,
-          };
-          this._table.update(true, data);
-          this._chart.update(true, data);
+          const data = this._data.getAllTasksAsChanged();
+          this._table.update(true, data, null);
+          this._chart.update(true, data, null);
       }
       updateChartScale() {
-          this._chart.update(true, {
-              deleted: [],
-              added: [],
-              changed: this._tasks,
-              all: this._tasks,
-          });
+          const data = this._data.getAllTasksAsChanged();
+          this._chart.update(true, data, null);
           this.refreshSelection();
       }
       updateChartDisplayMode() {
-          this._chart.update(false, {
-              deleted: [],
-              added: [],
-              changed: this._tasks,
-              all: this._tasks,
-          });
+          const data = this._data.getAllTasksAsChanged();
+          this._chart.update(false, data, null);
           this.refreshSelection();
       }
-      groupAndSortTasks() {
-          this._tasksByParentUuid.clear();
-          for (const task of this._tasks) {
-              if (this._tasksByParentUuid.has(task.parentUuid)) {
-                  this._tasksByParentUuid.get(task.parentUuid).push(task);
-              }
-              else {
-                  this._tasksByParentUuid.set(task.parentUuid, [task]);
-              }
-          }
-          this._tasksByParentUuid.forEach((v) => v.sort(this._options.taskComparer || TsGanttTask.defaultComparer));
+      toggleTaskExpanded(task) {
+          task.toggleExpanded();
+          this.update(null);
       }
-      getShownUuidsRecursively(parentUuid = null) {
-          const tasks = this._tasksByParentUuid.get(parentUuid) || [];
-          const uuids = [];
-          for (const task of tasks) {
-              uuids.push(task.uuid);
-              if (task.expanded) {
-                  uuids.push(...this.getShownUuidsRecursively(task.uuid));
-              }
+      scrollChartToTasks(tasks) {
+          const { dayWidthPx, chartDisplayMode } = this._options;
+          const offsets = tasks.map(task => task.getHorizontalOffsetPx(chartDisplayMode, this._data.dateMinOffset, dayWidthPx));
+          const minOffset = Math.min(...offsets);
+          if (minOffset) {
+              this._htmlChartWrapper.scrollLeft = minOffset - 20;
           }
-          return uuids;
       }
   }
 

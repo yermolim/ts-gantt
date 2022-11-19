@@ -2,17 +2,20 @@ import "./assets/styles.css"; // this import is here only for rollup
 import { styles } from "./assets/styles";
 
 import { TsGanttConst } from "./core/ts-gantt-const";
-import { compareTwoStringSets } from "./core/ts-gantt-common";
 import { TsGanttOptions } from "./core/ts-gantt-options";
-import { TsGanttTask, TsGanttTaskModel,
-  TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "./core/ts-gantt-task";
+import { TsGanttData } from "./core/ts-gantt-data";
+import { TsGanttTaskModel } from "./core/ts-gantt-task-model";
+import { TsGanttTask, TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult } from "./core/ts-gantt-task";
 
 import { TsGanttBaseComponent } from "./components/abstract/ts-gantt-base-component";
 import { TsGanttTable } from "./components/table/ts-gantt-table";
 import { TsGanttChart } from "./components/chart/ts-gantt-chart";
 
 class TsGantt {
-  private _options: TsGanttOptions;
+  private readonly _data: TsGanttData;
+  private get _options(): TsGanttOptions {
+    return this._data?.options;
+  }
 
   private _htmlContainer: HTMLElement;
   private _shadowRoot: ShadowRoot;
@@ -25,26 +28,21 @@ class TsGantt {
   private _ignoreNextScrollEvent = false;
 
   private _baseComponents: TsGanttBaseComponent[] = [];
-  private _table: TsGanttTable;
-  private _chart: TsGanttChart; 
+  private _table: TsGanttBaseComponent;
+  private _chart: TsGanttBaseComponent; 
 
-  private _tasks: TsGanttTask[] = [];
   get tasks(): TsGanttTaskModel[] {
-    return this._tasks.map(x => x.toModel());
+    return this._data.models;
   }
   set tasks(models: TsGanttTaskModel[]) {
     this.updateTasks(models);
   }
-  private _tasksByParentUuid: Map<string, TsGanttTask[]> = new Map<string, TsGanttTask[]>();
 
-  private _selectedTasks: TsGanttTask[] = [];
   get selectedTasks(): TsGanttTaskModel[] {
-    return this._selectedTasks.map(x => x.toModel());
-  }
+    return this._data.selectedModels;
+  }  
   set selectedTasks(models: TsGanttTaskModel[]) {
-    const ids = models.map(x => x.id);
-    const targetTasks = this._tasks.filter(x => ids.includes(x.externalId));
-    this.selectTasks(targetTasks);
+    this.updateSelection(models);
   }
 
   set locale(value: string) {
@@ -76,9 +74,12 @@ class TsGantt {
   constructor(containerSelector: string,
     options: TsGanttOptions = null) {
 
-    this._options = options instanceof TsGanttOptions
+    options = options instanceof TsGanttOptions
       ? options
-      : new TsGanttOptions(options);
+      : new TsGanttOptions(options);      
+
+    this._data = new TsGanttData(options);
+
     this.setCssVariables(this._options);
 
     this._htmlContainer = document.querySelector(containerSelector);
@@ -97,12 +98,7 @@ class TsGantt {
   }
 
   expandAll(state: boolean) {
-    for (const task of this._tasks) {
-      task.expanded = state;
-      if (task.parentUuid) {
-        task.shown = state;
-      }
-    }
+    this._data.expandAllTasks(state);
     this.update(null);
   }
 
@@ -126,8 +122,8 @@ class TsGantt {
     const separator = document.createElement("div");
     separator.classList.add(TsGanttConst.SEPARATOR_CLASS);  
     
-    this._table = new TsGanttTable(this._options);
-    this._chart = new TsGanttChart(this._options);
+    this._table = new TsGanttTable(this._data);
+    this._chart = new TsGanttChart(this._data);
     this._baseComponents.push(this._table, this._chart);
  
     wrapper.append(tableWrapper);
@@ -225,7 +221,7 @@ class TsGantt {
     const { task, event } = detail;
 
     if (event.detail === 1) {
-      this.changeSelection(task, event.ctrlKey);
+      this.toggleTaskSelection(task, event.ctrlKey);
       if (this.onRowClickCb) {
         this.onRowClickCb(task.toModel(), event);
       }
@@ -261,153 +257,89 @@ class TsGantt {
   }
   // #endregion
 
-  // #region task actions
-  private updateTasks(taskModels: TsGanttTaskModel[]) {
-    const oldTasks = this._tasks;
-    const oldTasksIdMap = TsGanttTask.createTasksIdMap(oldTasks);
-    const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldTasksIdMap);
+  // #region task selection
 
-    const changes = TsGanttTask.detectTaskChanges({oldTasks, newTasks});
-    this._tasks = changes.all;
-    this.groupAndSortTasks();
-    this.update(changes);
+  private toggleTaskSelection(task: TsGanttTask, ctrl: boolean) {
+    const selectionResult = this._data.toggleTaskSelection(task, ctrl);
+    this.applySelectionResult(selectionResult);  
   }
 
+  private refreshSelection() {
+    const selectionResult = this._data.refreshSelectedTasks();
+    this.applySelectionResult(selectionResult);   
+  }
+
+  private updateSelection(tasks: TsGanttTaskModel[] | TsGanttTask[]) {
+    const selectionResult = this._data.updateSelectedTasks(tasks);
+    this.applySelectionResult(selectionResult);
+  }
+
+  private applySelectionResult(selectionResult: TsGanttTaskSelectionChangeResult) {
+    if (!selectionResult) {
+      return;
+    }
+
+    this._table.applySelection(selectionResult);
+    this._chart.applySelection(selectionResult);
+
+    if (selectionResult.selectedTasks?.length) {
+      this.scrollChartToTasks(selectionResult.selectedTasks);
+    }
+
+    if (this.onSelectionChangeCb) {
+      this.onSelectionChangeCb(selectionResult.selectedTasks.map(x => x.toModel()));
+    }
+  }
+
+  // #endregion
+  
+  // #region global chart updates
+
   private update(data: TsGanttTaskChangeResult) {
-    const uuids = this.getShownUuidsRecursively();
+    const uuids = this._data.getShownTaskUuidsRecursively();
     this._table.update(false, data, uuids);
     this._chart.update(false, data, uuids);
     this.refreshSelection();
   }
 
-  private toggleTaskExpanded(task: TsGanttTask) {
-    task.expanded = !task.expanded;
-    this.update(null);
+  private updateTasks(taskModels: TsGanttTaskModel[]) {
+    const changes = this._data.updateTasks(taskModels);
+    this.update(changes);
   }
 
-  private changeSelection(task: TsGanttTask, ctrl: boolean) {
-    if (!task) {
-      return;
-    }
-    const selectedTasks = [];
-    const taskInCurrentSelected = this._selectedTasks.includes(task);
-    if (this._options.multilineSelection 
-      && (!this._options.useCtrlKeyForMultilineSelection 
-      || (this._options.useCtrlKeyForMultilineSelection && ctrl))) {
-      selectedTasks.push(...this._selectedTasks);
-      if (!taskInCurrentSelected) {
-        selectedTasks.push(task);
-      } else {          
-        selectedTasks.splice(selectedTasks.findIndex(x => x === task), 1);
-      }  
-    } else {
-      selectedTasks.push(task);
-    }    
-
-    this.selectTasks(selectedTasks);
-  }
-
-  private refreshSelection() {   
-    const tasks = this._selectedTasks.filter(x => !TsGanttTask
-      .checkForCollapsedParent(this._tasks, x));
-    this.selectTasks(tasks);   
-  }
-
-  private selectTasks(newSelectedTasks: TsGanttTask[]) {
-    const oldSelectedTasks = this._selectedTasks;
-    const selectionEmpty = oldSelectedTasks.length === 0 && newSelectedTasks.length === 0;
-    if (selectionEmpty) {
-      return;
-    }
-
-    const oldUuids = oldSelectedTasks.map(x => x.uuid);
-    const newUuids = newSelectedTasks.map(x => x.uuid);
-    const selectionNotChanged = compareTwoStringSets(new Set(oldUuids), new Set(newUuids));
-    if (selectionNotChanged) {
-      return;
-    } 
-
-    const selected = newUuids;
-    const deselected = oldUuids.filter(x => !newUuids.includes(x));
-    
-    this._selectedTasks = newSelectedTasks; 
-    const result = <TsGanttTaskSelectionChangeResult>{selected, deselected};    
-    this._table.applySelection(result);
-    this._chart.applySelection(result);
-
-    if (newSelectedTasks) {
-      this.scrollChartToTasks(newUuids);
-    }
-
-    if (this.onSelectionChangeCb) {
-      this.onSelectionChangeCb(newSelectedTasks.map(x => x.toModel()));
-    }
-  }
-
-  private scrollChartToTasks(uuids: string[]) {
-    const offset = Math.min(...uuids.map(x => this._chart.getBarOffsetByTaskUuid(x)));
-    if (offset) {
-      this._htmlChartWrapper.scrollLeft = offset - 20;
-    }
-  }
-
-  private updateLocale() {    
-    const data = <TsGanttTaskChangeResult>{
-      deleted: [],
-      added: [],
-      changed: this._tasks,
-      all: this._tasks,
-    };
-    this._table.update(true, data);
-    this._chart.update(true, data);
+  private updateLocale() {
+    const data = this._data.getAllTasksAsChanged();
+    this._table.update(true, data, null);
+    this._chart.update(true, data, null);
   }
 
   private updateChartScale() {
-    this._chart.update(true, <TsGanttTaskChangeResult>{
-      deleted: [],
-      added: [],
-      changed: this._tasks,
-      all: this._tasks,
-    });
+    const data = this._data.getAllTasksAsChanged();
+    this._chart.update(true, data, null);
     this.refreshSelection();
   }
 
   private updateChartDisplayMode() {
-    this._chart.update(false, <TsGanttTaskChangeResult>{
-      deleted: [],
-      added: [],
-      changed: this._tasks,
-      all: this._tasks,
-    });
+    const data = this._data.getAllTasksAsChanged();
+    this._chart.update(false, data, null);
     this.refreshSelection();
   }
 
-  private groupAndSortTasks() {
-    this._tasksByParentUuid.clear();
-    for (const task of this._tasks) {
-      if (this._tasksByParentUuid.has(task.parentUuid)) {
-        this._tasksByParentUuid.get(task.parentUuid).push(task);
-      } else {
-        this._tasksByParentUuid.set(task.parentUuid, [task]);
-      }      
-    }
-    this._tasksByParentUuid.forEach((v: TsGanttTask[]) => 
-      v.sort(this._options.taskComparer || TsGanttTask.defaultComparer));
+  //#endregion    
+
+  private toggleTaskExpanded(task: TsGanttTask) {
+    task.toggleExpanded();
+    this.update(null);
   }
 
-  private getShownUuidsRecursively(parentUuid: string = null): string[] {
-    const tasks = this._tasksByParentUuid.get(parentUuid) || [];
-    const uuids: string[] = [];
-    for (const task of tasks) {
-      uuids.push(task.uuid);
-      if (task.expanded) {
-        uuids.push(...this.getShownUuidsRecursively(task.uuid));
-      }
+  private scrollChartToTasks(tasks: TsGanttTask[]) {
+    const { dayWidthPx, chartDisplayMode } = this._options;
+    const offsets = tasks.map(task => task.getHorizontalOffsetPx(chartDisplayMode, this._data.dateMinOffset, dayWidthPx));
+    const minOffset = Math.min(...offsets);
+    if (minOffset) {
+      this._htmlChartWrapper.scrollLeft = minOffset - 20;
     }
-
-    return uuids;
   }
-  // #endregion
 }
 
 export { TsGantt, TsGanttOptions, TsGanttTaskModel, TsGanttTask };
