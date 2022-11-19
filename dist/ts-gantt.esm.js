@@ -963,15 +963,20 @@ class TsGanttData {
         const newUuids = newSelectedTasks.map(x => x.uuid);
         const selectionNotChanged = compareTwoStringSets(new Set(oldUuids), new Set(newUuids));
         if (selectionNotChanged) {
-            return null;
+            return {
+                selected: newUuids,
+                selectedTasks: newSelectedTasks,
+                deselected: [],
+                deselectedTasks: [],
+            };
         }
         this._selectedTasks = newSelectedTasks;
         const deselectedTasks = oldSelectedTasks.filter(x => !newUuids.includes(x.uuid));
         const deselectedUuids = deselectedTasks.map(x => x.uuid);
         return {
             selected: newUuids,
-            deselected: deselectedUuids,
             selectedTasks: newSelectedTasks,
+            deselected: deselectedUuids,
             deselectedTasks,
         };
     }

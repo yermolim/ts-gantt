@@ -266,7 +266,7 @@ class TsGantt {
 
   private refreshSelection() {
     const selectionResult = this._data.refreshSelectedTasks();
-    this.applySelectionResult(selectionResult);   
+    this.applySelectionResult(selectionResult);
   }
 
   private updateSelection(tasks: TsGanttTaskModel[] | TsGanttTask[]) {
@@ -325,7 +325,7 @@ class TsGantt {
     this.refreshSelection();
   }
 
-  //#endregion    
+  //#endregion
 
   private toggleTaskExpanded(task: TsGanttTask) {
     task.toggleExpanded();

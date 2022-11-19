@@ -114,7 +114,12 @@ export class TsGanttData {
 
     const selectionNotChanged = compareTwoStringSets(new Set(oldUuids), new Set(newUuids));
     if (selectionNotChanged) {
-      return null;
+      return <TsGanttTaskSelectionChangeResult>{ 
+        selected: newUuids, 
+        selectedTasks: newSelectedTasks,
+        deselected: [],
+        deselectedTasks: [],
+      }; 
     } 
 
     this._selectedTasks = newSelectedTasks;
@@ -124,14 +129,14 @@ export class TsGanttData {
 
     return <TsGanttTaskSelectionChangeResult>{ 
       selected: newUuids, 
-      deselected: deselectedUuids,
       selectedTasks: newSelectedTasks,
+      deselected: deselectedUuids,
       deselectedTasks,
     }; 
   }
   
-  refreshSelectedTasks(): TsGanttTaskSelectionChangeResult {    
-    const tasks = this._selectedTasks.filter(x => !TsGanttTask.checkForCollapsedParent(this._tasks, x));
+  refreshSelectedTasks(): TsGanttTaskSelectionChangeResult {
+    const tasks = this._selectedTasks.filter(x => !TsGanttTask.checkForCollapsedParent(this._tasks, x));  
     return this.updateSelectedTasks(tasks);
   }
 
