@@ -1,10 +1,10 @@
 import dayjs from "dayjs";
 
-function getRandomUuid(): string {
+export function getRandomUuid(): string {
   return crypto.getRandomValues(new Uint32Array(4)).join("-");
 }
 
-function compareTwoStringSets(setA: Set<string>, setB: Set<string>): boolean {
+export function compareTwoStringSets(setA: Set<string>, setB: Set<string>): boolean {
   if (setA.size !== setB.size) {
     return false;
   }
@@ -12,7 +12,7 @@ function compareTwoStringSets(setA: Set<string>, setB: Set<string>): boolean {
   return setA.size === commonSet.size;
 }
 
-function createSvgElement(elementTag: string, 
+export function createSvgElement(elementTag: string, 
   classList: string[] = [],
   attributes: [string, string][] = [], 
   parent: Element = null,
@@ -33,7 +33,7 @@ function createSvgElement(elementTag: string,
   return element;
 }
 
-function getAllDatesBetweenTwoDates(start: dayjs.Dayjs, end: dayjs.Dayjs): dayjs.Dayjs[] {
+export function getAllDatesBetweenTwoDates(start: dayjs.Dayjs, end: dayjs.Dayjs): dayjs.Dayjs[] {
   const dateStart = start.startOf("day");
   const dateEnd = end.startOf("day");  
   if (!dateStart || !dateEnd || dateEnd.diff(dateStart) < 0) {
@@ -52,14 +52,11 @@ function getAllDatesBetweenTwoDates(start: dayjs.Dayjs, end: dayjs.Dayjs): dayjs
   return dates;
 }
 
-interface TsGanttRowSymbols {
+export interface TsGanttRowSymbols {
   expanded: string;
   collapsed: string;
   childless: string;
 }
 
-type ChartBarMode = "planned" | "actual" | "both";
-
-export { getRandomUuid, createSvgElement, 
-  getAllDatesBetweenTwoDates, compareTwoStringSets,
-  TsGanttRowSymbols, ChartBarMode };
+export type ChartBarType = "planned" | "actual";
+export type ChartBarMode = ChartBarType | "both";

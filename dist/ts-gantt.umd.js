@@ -1351,38 +1351,150 @@
       }
   }
 
+  class TsGanttChartBar {
+      constructor(options) {
+          this._options = options;
+          this.draw();
+      }
+      destroy() {
+          this._svg.remove();
+      }
+      appendTo(parent) {
+          parent.append(this._svg);
+      }
+      draw() {
+          const drawTaskBarOptions = this.createWrapper();
+          this.drawTaskBar(drawTaskBarOptions);
+          if (this._options.showProgress) {
+              this.drawProgressBars(drawTaskBarOptions);
+          }
+          this._svg = drawTaskBarOptions.wrapper;
+      }
+      drawTaskBar(options) {
+          const { barType, cornerRadius } = this._options;
+          const { wrapper, width, height, margin } = options;
+          const barClassList = barType === "planned"
+              ? [TsGanttConst.CHART_BAR_PLANNED_CLASS]
+              : [TsGanttConst.CHART_BAR_ACTUAL_CLASS];
+          createSvgElement("rect", barClassList, [
+              ["x", margin + ""],
+              ["y", margin + ""],
+              ["width", width + ""],
+              ["height", height + ""],
+              ["rx", cornerRadius + ""],
+              ["ry", cornerRadius + ""],
+          ], wrapper);
+      }
+      drawProgressBars(options) {
+          const { barType, minWrapperWidth, borderWidth, cornerRadius, progress } = this._options;
+          const { wrapper, width, height, margin } = options;
+          const calculatedProgressWidth = width * progress / 100;
+          const progressWidth = calculatedProgressWidth < minWrapperWidth - borderWidth
+              ? 0
+              : calculatedProgressWidth;
+          const progressBarClassList = barType === "planned"
+              ? [TsGanttConst.CHART_BAR_PLANNED_PROGRESS_CLASS]
+              : [TsGanttConst.CHART_BAR_ACTUAL_PROGRESS_CLASS];
+          createSvgElement("rect", progressBarClassList, [
+              ["x", margin + ""],
+              ["y", margin + ""],
+              ["width", progressWidth + ""],
+              ["height", height + ""],
+              ["rx", cornerRadius + ""],
+              ["ry", cornerRadius + ""],
+          ], wrapper);
+      }
+      createWrapper() {
+          const { minDate, startDate, endDate, dayWidth, minWrapperWidth, wrapperHeight, borderWidth, topPosition } = this._options;
+          const offsetX = (startDate.diff(minDate, "day")) * dayWidth;
+          const widthDays = endDate.diff(startDate, "day") + 1;
+          const wrapperWidth = Math.max(widthDays * dayWidth, minWrapperWidth);
+          const wrapper = createSvgElement("svg", [TsGanttConst.CHART_BAR_WRAPPER_CLASS], [
+              ["x", offsetX + ""],
+              ["y", topPosition + ""],
+              ["width", wrapperWidth + ""],
+              ["height", wrapperHeight + ""],
+          ]);
+          const margin = borderWidth / 2;
+          const width = wrapperWidth - borderWidth;
+          const height = wrapperHeight - borderWidth;
+          return { wrapper, width, height, margin };
+      }
+  }
+
   class TsGanttChartBarGroup {
       constructor(task, options) {
-          this.svg = this.createSvg(options, task);
           this.task = task;
+          this.draw(options, task);
       }
-      createSvg(options, task) {
+      appendTo(parent) {
+          if (!this._svg) {
+              return;
+          }
+          parent.append(this._svg);
+      }
+      appendToWithOffset(parent, offsetX) {
+          if (!this._svg || !offsetX) {
+              return;
+          }
+          this._svg.setAttribute("x", offsetX + "");
+          parent.append(this._svg);
+      }
+      draw(options, task) {
           const { mode, showProgress, dayWidth, rowHeight, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
           const { minDate, maxDate } = task.getMinMaxDates(mode);
+          if (!minDate || !maxDate) {
+              return;
+          }
           const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = task;
           const plannedDatesSet = datePlannedStart && datePlannedEnd;
           const actualDatesSet = dateActualStart && dateActualEnd;
-          let barSvg;
+          const commonBarOptionsPartial = {
+              minDate,
+              showProgress,
+              dayWidth,
+              minWrapperWidth: barMinWidth,
+              wrapperHeight: barHeight,
+              borderWidth: barBorder,
+              cornerRadius: barCornerR,
+              progress: task.progress,
+          };
+          const plannedBarOptionsPartial = {
+              barType: "planned",
+              startDate: datePlannedStart,
+              endDate: datePlannedEnd,
+          };
+          const actualBarOptionsPartial = {
+              barType: "actual",
+              startDate: dateActualStart,
+              endDate: dateActualEnd,
+          };
+          const barGroupSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
           if (mode === "both") {
               if (actualDatesSet || plannedDatesSet) {
-                  barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
                   if (plannedDatesSet) {
-                      this.drawBar(barSvg, minDate, datePlannedStart, datePlannedEnd, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "planned", task.progress, showProgress);
+                      new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, plannedBarOptionsPartial, {
+                          topPosition: y0,
+                      })).appendTo(barGroupSvg);
                   }
                   if (actualDatesSet) {
-                      this.drawBar(barSvg, minDate, dateActualStart, dateActualEnd, dayWidth, barMinWidth, barHeight, y1, barBorder, barCornerR, "actual", task.progress, showProgress);
+                      new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, actualBarOptionsPartial, {
+                          topPosition: y1,
+                      })).appendTo(barGroupSvg);
                   }
               }
           }
           else if (mode === "planned" && plannedDatesSet) {
-              barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
-              this.drawBar(barSvg, minDate, minDate, maxDate, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "planned", task.progress, showProgress);
+              new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, plannedBarOptionsPartial, {
+                  topPosition: y0,
+              })).appendTo(barGroupSvg);
           }
           else if (mode === "actual" && actualDatesSet) {
-              barSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
-              this.drawBar(barSvg, minDate, minDate, maxDate, dayWidth, barMinWidth, barHeight, y0, barBorder, barCornerR, "actual", task.progress, showProgress);
+              new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, actualBarOptionsPartial, {
+                  topPosition: y0,
+              })).appendTo(barGroupSvg);
           }
-          return barSvg;
+          this._svg = barGroupSvg;
       }
       createBarGroupWrapper(minDate, maxDate, dayWidth, minWidth, rowHeight) {
           const widthDays = maxDate.diff(minDate, "day") + 1;
@@ -1392,48 +1504,6 @@
               ["height", rowHeight + ""],
           ]);
           return barSvg;
-      }
-      drawBar(parent, minDate, start, end, dayWidth, minWrapperWidth, wrapperHeight, y, borderWidth, cornerRadius, barType, progress, showProgress) {
-          const barClassList = barType === "planned"
-              ? [TsGanttConst.CHART_BAR_PLANNED_CLASS]
-              : [TsGanttConst.CHART_BAR_ACTUAL_CLASS];
-          const progressBarClassList = barType === "planned"
-              ? [TsGanttConst.CHART_BAR_PLANNED_PROGRESS_CLASS]
-              : [TsGanttConst.CHART_BAR_ACTUAL_PROGRESS_CLASS];
-          const offsetX = (start.diff(minDate, "day")) * dayWidth;
-          const widthDays = end.diff(start, "day") + 1;
-          const wrapperWidth = Math.max(widthDays * dayWidth, minWrapperWidth);
-          const wrapper = createSvgElement("svg", [TsGanttConst.CHART_BAR_WRAPPER_CLASS], [
-              ["x", offsetX + ""],
-              ["y", y + ""],
-              ["width", wrapperWidth + ""],
-              ["height", wrapperHeight + ""],
-          ], parent);
-          const margin = borderWidth / 2;
-          const width = wrapperWidth - borderWidth;
-          const height = wrapperHeight - borderWidth;
-          createSvgElement("rect", barClassList, [
-              ["x", margin + ""],
-              ["y", margin + ""],
-              ["width", width + ""],
-              ["height", height + ""],
-              ["rx", cornerRadius + ""],
-              ["ry", cornerRadius + ""],
-          ], wrapper);
-          if (showProgress) {
-              const calculatedProgressWidth = width * progress / 100;
-              const progressWidth = calculatedProgressWidth < minWrapperWidth - borderWidth
-                  ? 0
-                  : calculatedProgressWidth;
-              createSvgElement("rect", progressBarClassList, [
-                  ["x", margin + ""],
-                  ["y", margin + ""],
-                  ["width", progressWidth + ""],
-                  ["height", height + ""],
-                  ["rx", cornerRadius + ""],
-                  ["ry", cornerRadius + ""],
-              ], wrapper);
-          }
       }
   }
 
@@ -1673,16 +1743,11 @@
           const rowFgs = new Map();
           barGroups.forEach((barGroup, i) => {
               const task = barGroup.task;
+              const offsetX = task.getHorizontalOffsetPx(chartDisplayMode, minDate, dayWidthPx);
               const offsetY = i * rowHeightPx;
               const row = this.drawRow(body, task, offsetY, width, rowHeightPx);
               rowFgs.set(task.uuid, row);
-              if (barGroup.svg) {
-                  const offsetX = task.getHorizontalOffsetPx(chartDisplayMode, minDate, dayWidthPx);
-                  if (offsetX) {
-                      barGroup.svg.setAttribute("x", offsetX + "");
-                      row.append(barGroup.svg);
-                  }
-              }
+              barGroup.appendToWithOffset(row, offsetX);
           });
           if (drawTodayLine) {
               this.drawTodayLine(body, minDate, dayWidthPx, heightPx);

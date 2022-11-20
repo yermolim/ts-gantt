@@ -7,7 +7,8 @@ export interface TsGanttRowSymbols {
 	collapsed: string;
 	childless: string;
 }
-export declare type ChartBarMode = "planned" | "actual" | "both";
+export declare type ChartBarType = "planned" | "actual";
+export declare type ChartBarMode = ChartBarType | "both";
 export interface TsGanttTaskModel {
 	id: string;
 	parentId: string;

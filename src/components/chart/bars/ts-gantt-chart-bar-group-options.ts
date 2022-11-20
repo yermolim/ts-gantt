@@ -1,5 +1,5 @@
-import { ChartBarMode } from "../../core/ts-gantt-common";
-import { TsGanttOptions } from "../../ts-gantt";
+import { ChartBarMode } from "../../../core/ts-gantt-common";
+import { TsGanttOptions } from "../../../core/ts-gantt-options";
 
 class TsGanttChartBarGroupOptions {
   readonly mode: ChartBarMode;

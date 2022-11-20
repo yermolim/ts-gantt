@@ -5,7 +5,7 @@ import { createSvgElement } from "../../core/ts-gantt-common";
 import { TsGanttOptions } from "../../core/ts-gantt-options";
 import { TsGanttTask, TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
 
-import { TsGanttChartBarGroup } from "./ts-gantt-chart-bar-group";
+import { TsGanttChartBarGroup } from "./bars/ts-gantt-chart-bar-group";
 
 class TsGanttChartBody {
   private readonly _options: TsGanttOptions;
@@ -82,17 +82,13 @@ class TsGanttChartBody {
     barGroups.forEach((barGroup, i) => {
       const task = barGroup.task;
 
+      const offsetX = task.getHorizontalOffsetPx(chartDisplayMode, minDate, dayWidthPx);
       const offsetY = i * rowHeightPx;
+
       const row = this.drawRow(body, task, offsetY, width, rowHeightPx);
       rowFgs.set(task.uuid, row);
 
-      if (barGroup.svg) {
-        const offsetX = task.getHorizontalOffsetPx(chartDisplayMode, minDate, dayWidthPx);
-        if (offsetX) {
-          barGroup.svg.setAttribute("x", offsetX + "");
-          row.append(barGroup.svg);
-        }
-      }
+      barGroup.appendToWithOffset(row, offsetX);
     });
 
     if (drawTodayLine) {

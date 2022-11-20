@@ -4,8 +4,8 @@ import { TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
 
 import { TsGanttBaseComponent } from "../abstract/ts-gantt-base-component";
 
-import { TsGanttChartBarGroupOptions } from "./ts-gantt-chart-bar-options";
-import { TsGanttChartBarGroup } from "./ts-gantt-chart-bar-group";
+import { TsGanttChartBarGroupOptions } from "./bars/ts-gantt-chart-bar-group-options";
+import { TsGanttChartBarGroup } from "./bars/ts-gantt-chart-bar-group";
 import { TsGanttChartHeader } from "./ts-gantt-chart-header";
 import { TsGanttChartBody } from "./ts-gantt-chart-body";
 
