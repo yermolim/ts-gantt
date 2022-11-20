@@ -8,9 +8,9 @@ export interface TsGanttChartBarOptions {
   endDate: dayjs.Dayjs;
   barType: ChartBarType;
   showProgress: boolean;
-  dayWidth: number; 
-  minWrapperWidth: number; 
-  wrapperHeight: number; 
+  dayWidth: number;
+  minWrapperWidth: number;
+  wrapperHeight: number;
   borderWidth: number;
   cornerRadius: number;
   topPosition: number;

@@ -1326,7 +1326,7 @@
       static getFromGanttOptions(options) {
           const mode = options.chartDisplayMode;
           const showProgress = options.chartShowProgress;
-          const dayWidth = options.chartDayWidthPx[options.chartScale];
+          const dayWidth = options.dayWidthPx;
           const rowHeight = options.rowHeightPx;
           const border = options.borderWidthPx;
           const barMargin = options.barMarginPx;
@@ -1362,13 +1362,21 @@
       appendTo(parent) {
           parent.append(this._svg);
       }
-      draw() {
-          const drawTaskBarOptions = this.createWrapper();
-          this.drawTaskBar(drawTaskBarOptions);
-          if (this._options.showProgress) {
-              this.drawProgressBars(drawTaskBarOptions);
+      appendToWithOffset(parent, offsetX) {
+          if (!this._svg || !offsetX) {
+              return;
           }
-          this._svg = drawTaskBarOptions.wrapper;
+          const currentOffsetX = +this._svg.getAttribute("x");
+          this._svg.setAttribute("x", currentOffsetX + offsetX + "");
+          parent.append(this._svg);
+      }
+      draw() {
+          const drawTaskBarWrapperResult = this.createWrapper();
+          this.drawTaskBar(drawTaskBarWrapperResult);
+          if (this._options.showProgress) {
+              this.drawProgressBars(drawTaskBarWrapperResult);
+          }
+          this._svg = drawTaskBarWrapperResult.wrapper;
       }
       drawTaskBar(options) {
           const { barType, cornerRadius } = this._options;
@@ -1425,23 +1433,34 @@
   class TsGanttChartBarGroup {
       constructor(task, options) {
           this.task = task;
-          this.draw(options, task);
+          this.draw(task, options);
+      }
+      destroy() {
+          var _a;
+          (_a = this._bars) === null || _a === void 0 ? void 0 : _a.forEach(bar => {
+              bar.destroy();
+          });
       }
       appendTo(parent) {
-          if (!this._svg) {
+          var _a;
+          if (!((_a = this._bars) === null || _a === void 0 ? void 0 : _a.length)) {
               return;
           }
-          parent.append(this._svg);
+          this._bars.forEach(bar => {
+              bar.appendTo(parent);
+          });
       }
       appendToWithOffset(parent, offsetX) {
-          if (!this._svg || !offsetX) {
+          var _a;
+          if (!((_a = this._bars) === null || _a === void 0 ? void 0 : _a.length) || !offsetX) {
               return;
           }
-          this._svg.setAttribute("x", offsetX + "");
-          parent.append(this._svg);
+          this._bars.forEach(bar => {
+              bar.appendToWithOffset(parent, offsetX);
+          });
       }
-      draw(options, task) {
-          const { mode, showProgress, dayWidth, rowHeight, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
+      draw(task, options) {
+          const { mode, showProgress, dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
           const { minDate, maxDate } = task.getMinMaxDates(mode);
           if (!minDate || !maxDate) {
               return;
@@ -1469,41 +1488,32 @@
               startDate: dateActualStart,
               endDate: dateActualEnd,
           };
-          const barGroupSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
+          const bars = [];
           if (mode === "both") {
               if (actualDatesSet || plannedDatesSet) {
                   if (plannedDatesSet) {
-                      new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, plannedBarOptionsPartial, {
+                      bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, plannedBarOptionsPartial, {
                           topPosition: y0,
-                      })).appendTo(barGroupSvg);
+                      })));
                   }
                   if (actualDatesSet) {
-                      new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, actualBarOptionsPartial, {
+                      bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, actualBarOptionsPartial, {
                           topPosition: y1,
-                      })).appendTo(barGroupSvg);
+                      })));
                   }
               }
           }
           else if (mode === "planned" && plannedDatesSet) {
-              new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, plannedBarOptionsPartial, {
+              bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, plannedBarOptionsPartial, {
                   topPosition: y0,
-              })).appendTo(barGroupSvg);
+              })));
           }
           else if (mode === "actual" && actualDatesSet) {
-              new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, actualBarOptionsPartial, {
+              bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, actualBarOptionsPartial, {
                   topPosition: y0,
-              })).appendTo(barGroupSvg);
+              })));
           }
-          this._svg = barGroupSvg;
-      }
-      createBarGroupWrapper(minDate, maxDate, dayWidth, minWidth, rowHeight) {
-          const widthDays = maxDate.diff(minDate, "day") + 1;
-          const width = Math.max(widthDays * dayWidth + minWidth, minWidth);
-          const barSvg = createSvgElement("svg", [TsGanttConst.CHART_BAR_GROUP_CLASS], [
-              ["width", width + ""],
-              ["height", rowHeight + ""],
-          ]);
-          return barSvg;
+          this._bars = bars;
       }
   }
 

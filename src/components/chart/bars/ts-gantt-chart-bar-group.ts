@@ -1,40 +1,44 @@
-import dayjs from "dayjs";
-
-import { TsGanttConst } from "../../../core/ts-gantt-const";
-import { ChartBarType, createSvgElement } from "../../../core/ts-gantt-common";
+import { ChartBarType } from "../../../core/ts-gantt-common";
 import { TsGanttTask } from "../../../core/ts-gantt-task";
 
-import { TsGanttChartBarOptions } from "./ts-gantt-chart-bar-options";
 import { TsGanttChartBarGroupOptions } from "./ts-gantt-chart-bar-group-options";
 import { TsGanttChartBar } from "./ts-gantt-chart-bar";
 
 export class TsGanttChartBarGroup {
   readonly task: TsGanttTask;
-  
-  private _svg: SVGElement;
+  private _bars: TsGanttChartBar[];
 
   constructor(task: TsGanttTask, options: TsGanttChartBarGroupOptions) {
     this.task = task;
-    this.draw(options, task);
+    this.draw(task, options);
+  }
+
+  destroy() {
+    this._bars?.forEach(bar => {
+      bar.destroy();
+    });
   }
 
   appendTo(parent: SVGElement) {
-    if (!this._svg) {
+    if (!this._bars?.length) {
       return;
     }
-    parent.append(this._svg);
+    this._bars.forEach(bar => {
+      bar.appendTo(parent);
+    });
   }
 
   appendToWithOffset(parent: SVGElement, offsetX: number) {    
-    if (!this._svg || !offsetX) {
+    if (!this._bars?.length || !offsetX) {
       return;
     }
-    this._svg.setAttribute("x", offsetX + "");
-    parent.append(this._svg);
+    this._bars.forEach(bar => {
+      bar.appendToWithOffset(parent, offsetX);
+    });
   }
 
-  private draw(options: TsGanttChartBarGroupOptions, task: TsGanttTask) {
-    const { mode, showProgress, dayWidth, rowHeight, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
+  private draw(task: TsGanttTask, options: TsGanttChartBarGroupOptions) {
+    const { mode, showProgress, dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
 
     const { minDate, maxDate } = task.getMinMaxDates(mode);
     if (!minDate || !maxDate) {
@@ -68,43 +72,47 @@ export class TsGanttChartBarGroup {
       endDate: dateActualEnd,
     };
 
-    const barGroupSvg = this.createBarGroupWrapper(minDate, maxDate, dayWidth, barMinWidth, rowHeight);
+    const bars: TsGanttChartBar[] = [];
 
     if (mode === "both") {
       if (actualDatesSet || plannedDatesSet) {
         if (plannedDatesSet) {
-          new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, plannedBarOptionsPartial, {
-            topPosition: y0,
-          })).appendTo(barGroupSvg);
+          bars.push(new TsGanttChartBar(Object.assign({}, 
+            commonBarOptionsPartial, 
+            plannedBarOptionsPartial, 
+            {
+              topPosition: y0,
+            },
+          )));
         }
         if (actualDatesSet) {
-          new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, actualBarOptionsPartial, {
-            topPosition: y1,
-          })).appendTo(barGroupSvg);
+          bars.push(new TsGanttChartBar(Object.assign({}, 
+            commonBarOptionsPartial, 
+            actualBarOptionsPartial, 
+            {
+              topPosition: y1,
+            },
+          )));
         }
       }
     } else if (mode === "planned" && plannedDatesSet) {
-      new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, plannedBarOptionsPartial, {
-        topPosition: y0,
-      })).appendTo(barGroupSvg);
+      bars.push(new TsGanttChartBar(Object.assign({}, 
+        commonBarOptionsPartial, 
+        plannedBarOptionsPartial, 
+        {
+          topPosition: y0,
+        },
+      )));
     } else if (mode === "actual" && actualDatesSet) {
-      new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, actualBarOptionsPartial, {
-        topPosition: y0,
-      })).appendTo(barGroupSvg);
+      bars.push(new TsGanttChartBar(Object.assign({}, 
+        commonBarOptionsPartial, 
+        actualBarOptionsPartial, 
+        {
+          topPosition: y0,
+        },
+      )));
     }
 
-    this._svg = barGroupSvg;
-  }
-
-  private createBarGroupWrapper(minDate: dayjs.Dayjs, maxDate: dayjs.Dayjs,
-    dayWidth: number, minWidth: number, rowHeight: number): SVGElement {
-
-    const widthDays = maxDate.diff(minDate, "day") + 1;
-    const width = Math.max(widthDays * dayWidth + minWidth, minWidth);
-    const barSvg = createSvgElement("svg", [TsGanttConst.CHART_BAR_GROUP_CLASS], [
-      ["width", width + ""],
-      ["height", rowHeight + ""],
-    ]); 
-    return barSvg;
+    this._bars = bars;
   }
 }

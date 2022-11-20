@@ -195,7 +195,7 @@ class TsGanttOptions {
     },
   ];
 
-  get dayWidthPx(): number {    
+  get dayWidthPx(): number {
     return this.chartDayWidthPx[this.chartScale];
   }
 

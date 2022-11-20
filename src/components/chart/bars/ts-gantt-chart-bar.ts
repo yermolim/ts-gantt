@@ -1,5 +1,4 @@
-import dayjs from "dayjs";
-import { ChartBarType, createSvgElement } from "../../../core/ts-gantt-common";
+import { createSvgElement } from "../../../core/ts-gantt-common";
 import { TsGanttConst } from "../../../core/ts-gantt-const";
 
 import { TsGanttChartBarOptions } from "./ts-gantt-chart-bar-options";
@@ -21,20 +20,29 @@ export class TsGanttChartBar {
   appendTo(parent: SVGElement) {
     parent.append(this._svg);
   }
-
-  private draw() {
-    const drawTaskBarOptions = this.createWrapper();
-
-    this.drawTaskBar(drawTaskBarOptions);
-
-    if (this._options.showProgress) {
-      this.drawProgressBars(drawTaskBarOptions);
+  
+  appendToWithOffset(parent: SVGElement, offsetX: number) {    
+    if (!this._svg || !offsetX) {
+      return;
     }
-
-    this._svg = drawTaskBarOptions.wrapper;
+    const currentOffsetX = +this._svg.getAttribute("x");
+    this._svg.setAttribute("x", currentOffsetX + offsetX + "");
+    parent.append(this._svg);
   }
 
-  private drawTaskBar(options: DrawTaskBarOptions) {
+  private draw() {
+    const drawTaskBarWrapperResult = this.createWrapper();
+
+    this.drawTaskBar(drawTaskBarWrapperResult);
+
+    if (this._options.showProgress) {
+      this.drawProgressBars(drawTaskBarWrapperResult);
+    }
+
+    this._svg = drawTaskBarWrapperResult.wrapper;
+  }
+
+  private drawTaskBar(options: DrawTaskBarWrapperResult) {
     const { barType, cornerRadius } = this._options;
     const { wrapper, width, height, margin } = options;
 
@@ -51,7 +59,7 @@ export class TsGanttChartBar {
     ], wrapper);
   }
 
-  private drawProgressBars(options: DrawTaskBarOptions) {
+  private drawProgressBars(options: DrawTaskBarWrapperResult) {
     const { barType, minWrapperWidth, borderWidth, cornerRadius, progress } = this._options;
     const { wrapper, width, height, margin } = options;
 
@@ -72,7 +80,7 @@ export class TsGanttChartBar {
     ], wrapper);
   }
 
-  private createWrapper(): DrawTaskBarOptions {
+  private createWrapper(): DrawTaskBarWrapperResult {
     const {
       minDate, startDate, endDate,
       dayWidth, minWrapperWidth, wrapperHeight,
@@ -96,7 +104,7 @@ export class TsGanttChartBar {
   }
 }
 
-interface DrawTaskBarOptions {
+interface DrawTaskBarWrapperResult {
   wrapper: SVGElement; 
   width: number; 
   height: number; 

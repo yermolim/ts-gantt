@@ -16,7 +16,7 @@ class TsGanttChartBarGroupOptions {
   static getFromGanttOptions(options: TsGanttOptions): TsGanttChartBarGroupOptions {
     const mode = options.chartDisplayMode;
     const showProgress = options.chartShowProgress;
-    const dayWidth = options.chartDayWidthPx[options.chartScale];
+    const dayWidth = options.dayWidthPx;
     const rowHeight = options.rowHeightPx;
     const border = options.borderWidthPx;
     const barMargin = options.barMarginPx;
