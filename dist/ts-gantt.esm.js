@@ -316,54 +316,63 @@ const styles = `
 </style>
 `;
 
-class TsGanttConst {
-}
-TsGanttConst.CSS_VAR_SEPARATOR_WIDTH = "--tsg-separator-width";
-TsGanttConst.CSS_VAR_HEADER_HEIGHT = "--tsg-header-height";
-TsGanttConst.CSS_VAR_ROW_HEIGHT = "--tsg-row-height";
-TsGanttConst.CSS_VAR_GRIDLINES_WIDTH = "--tsg-gridlines-width";
-TsGanttConst.CSS_VAR_BAR_STROKE_WIDTH = "--tsg-bar-stroke-width";
-TsGanttConst.TEXT_SELECTION_DISABLED = "tsg-no-text-selection";
-TsGanttConst.WRAPPER_CLASS = "tsg-wrapper";
-TsGanttConst.FOOTER_CLASS = "tsg-footer";
-TsGanttConst.SEPARATOR_CLASS = "tsg-separator";
-TsGanttConst.ROW_SELECTED_CLASS = "selected";
-TsGanttConst.ROW_OVERDUE_CLASS = "overdue";
-TsGanttConst.ROW_CLICK_EVENT = "tsgrowclick";
-TsGanttConst.ROW_CONTEXT_MENU_EVENT = "tsgrowcontextmenu";
-TsGanttConst.TABLE_WRAPPER_CLASS = "tsg-table-wrapper";
-TsGanttConst.TABLE_CLASS = "tsg-table";
-TsGanttConst.TABLE_COLUMN_RESIZER_CLASS = "tsg-table-col-resizer";
-TsGanttConst.TABLE_COLUMN_DATA_ORDER = "tsgColOrder";
-TsGanttConst.TABLE_COLUMN_REORDER_DATA = "application/tsg-col-order";
-TsGanttConst.TABLE_COLUMN_REORDER_EVENT = "tsgtablecolreorder";
-TsGanttConst.TABLE_HEADER_CLASS = "tsg-table-header";
-TsGanttConst.TABLE_BODY_ROW_CLASS = "tsg-table-body-row";
-TsGanttConst.TABLE_BODY_CELL_CLASS = "tsg-table-body-cell";
-TsGanttConst.TABLE_BODY_CELL_TEXT_WRAPPER_CLASS = "tsg-table-body-cell-text-wrapper";
-TsGanttConst.TABLE_BODY_CELL_TEXT_CLASS = "tsg-table-body-cell-text";
-TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS = "tsg-table-body-cell-text-expander";
-TsGanttConst.TABLE_BODY_CELL_EXPANDER_NESTING_PREFIX = "nesting-";
-TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT = "tsgexpanderclick";
-TsGanttConst.CHART_WRAPPER_CLASS = "tsg-chart-wrapper";
-TsGanttConst.CHART_CLASS = "tsg-chart";
-TsGanttConst.CHART_HEADER_CLASS = "tsg-chart-header";
-TsGanttConst.CHART_HEADER_BACKGROUND_CLASS = "tsg-chart-header-bg";
-TsGanttConst.CHART_HEADER_GRIDLINES_CLASS = "tsg-chart-header-gl";
-TsGanttConst.CHART_HEADER_TEXT_CLASS = "tsg-chart-header-text";
-TsGanttConst.CHART_BODY_CLASS = "tsg-chart-body";
-TsGanttConst.CHART_BODY_BACKGROUND_CLASS = "tsg-chart-body-bg";
-TsGanttConst.CHART_BODY_GRIDLINES_CLASS = "tsg-chart-body-gl";
-TsGanttConst.CHART_BODY_TODAY_LINE_CLASS = "tsg-chart-body-gl-today";
-TsGanttConst.CHART_ROW_WRAPPER_CLASS = "tsg-chart-row-wrapper";
-TsGanttConst.CHART_ROW_CLASS = "tsg-chart-row";
-TsGanttConst.CHART_ROW_BACKGROUND_CLASS = "tsg-chart-row-bg";
-TsGanttConst.CHART_BAR_GROUP_CLASS = "tsg-chart-bar-group";
-TsGanttConst.CHART_BAR_WRAPPER_CLASS = "tsg-chart-bar-wrapper";
-TsGanttConst.CHART_BAR_PLANNED_CLASS = "tsg-chart-bar-planned";
-TsGanttConst.CHART_BAR_PLANNED_PROGRESS_CLASS = "tsg-chart-bar-planned-progress";
-TsGanttConst.CHART_BAR_ACTUAL_CLASS = "tsg-chart-bar-actual";
-TsGanttConst.CHART_BAR_ACTUAL_PROGRESS_CLASS = "tsg-chart-bar-actual-progress";
+const TsGanttConst = {
+    CSS_VAR_SEPARATOR_WIDTH: "--tsg-separator-width",
+    CSS_VAR_HEADER_HEIGHT: "--tsg-header-height",
+    CSS_VAR_ROW_HEIGHT: "--tsg-row-height",
+    CSS_VAR_GRIDLINES_WIDTH: "--tsg-gridlines-width",
+    CSS_VAR_BAR_STROKE_WIDTH: "--tsg-bar-stroke-width",
+    EVENTS: {
+        ROW_CLICK: "tsgrowclick",
+        ROW_CONTEXT_MENU: "tsgrowcontextmenu",
+        TABLE_COLUMN_REORDER: "tsgtablecolreorder",
+        TABLE_BODY_CELL_EXPANDER_CLICK: "tsgexpanderclick",
+    },
+    CLASSES: {
+        ROOT: {
+            TEXT_SELECTION_DISABLED: "tsg-no-text-selection",
+            MAIN_ELEMENT: "tsg-wrapper",
+            CHART_WRAPPER: "tsg-chart-wrapper",
+            TABLE_WRAPPER: "tsg-table-wrapper",
+            FOOTER: "tsg-footer",
+            SEPARATOR: "tsg-separator",
+            ROW_SELECTED: "selected",
+        },
+        CHART: {
+            MAIN_ELEMENT: "tsg-chart",
+            HEADER: "tsg-chart-header",
+            HEADER_BACKGROUND: "tsg-chart-header-bg",
+            HEADER_GRIDLINES: "tsg-chart-header-gl",
+            HEADER_TEXT: "tsg-chart-header-text",
+            BODY: "tsg-chart-body",
+            BODY_BACKGROUND: "tsg-chart-body-bg",
+            BODY_GRIDLINES: "tsg-chart-body-gl",
+            BODY_TODAY_LINE: "tsg-chart-body-gl-today",
+            ROW_WRAPPER: "tsg-chart-row-wrapper",
+            ROW: "tsg-chart-row",
+            ROW_BACKGROUND: "tsg-chart-row-bg",
+            BAR_GROUP: "tsg-chart-bar-group",
+            BAR_WRAPPER: "tsg-chart-bar-wrapper",
+            BAR_PLANNED: "tsg-chart-bar-planned",
+            BAR_PLANNED_PROGRESS: "tsg-chart-bar-planned-progress",
+            BAR_ACTUAL: "tsg-chart-bar-actual",
+            BAR_ACTUAL_PROGRESS: "tsg-chart-bar-actual-progress",
+            BAR_HANDLE_WRAPPER: "tsg-chart-bar-handle-wrapper",
+            BAR_HANDLE: "tsg-chart-bar-handle",
+        },
+        TABLE: {
+            MAIN_ELEMENT: "tsg-table",
+            COLUMN_RESIZER: "tsg-table-col-resizer",
+            HEADER: "tsg-table-header",
+            BODY_ROW: "tsg-table-body-row",
+            BODY_CELL: "tsg-table-body-cell",
+            BODY_CELL_TEXT_WRAPPER: "tsg-table-body-cell-text-wrapper",
+            BODY_CELL_TEXT: "tsg-table-body-cell-text",
+            BODY_CELL_EXPANDER: "tsg-table-body-cell-text-expander",
+            BODY_CELL_EXPANDER_NESTING_PREFIX: "nesting-",
+        },
+    }
+};
 
 class TsGanttOptions {
     constructor(item = null) {
@@ -1057,6 +1066,8 @@ class TsGanttTableColumnOrder {
     }
 }
 
+const TABLE_COLUMN_DATA_ORDER = "tsgColOrder";
+const TABLE_COLUMN_REORDER_DATA = "application/tsg-col-order";
 class TsGanttTableColumn {
     constructor(minWidth, order, header, textAlign, valueGetter) {
         this._dragActive = false;
@@ -1098,14 +1109,14 @@ class TsGanttTableColumn {
     }
     createHeaderCell() {
         const headerCell = document.createElement("th");
-        headerCell.classList.add(TsGanttConst.TABLE_HEADER_CLASS);
-        headerCell.dataset[TsGanttConst.TABLE_COLUMN_DATA_ORDER] = this.order + "";
+        headerCell.classList.add(TsGanttConst.CLASSES.TABLE.HEADER);
+        headerCell.dataset[TABLE_COLUMN_DATA_ORDER] = this.order + "";
         headerCell.style.minWidth = this.minWidth + "px";
         headerCell.style.width = this.minWidth + "px";
         headerCell.draggable = true;
         headerCell.innerHTML = this.header;
         headerCell.addEventListener("dragstart", (e) => {
-            e.dataTransfer.setData(TsGanttConst.TABLE_COLUMN_REORDER_DATA, this.order + "");
+            e.dataTransfer.setData(TABLE_COLUMN_REORDER_DATA, this.order + "");
         });
         headerCell.addEventListener("dragover", (e) => {
             e.preventDefault();
@@ -1113,11 +1124,11 @@ class TsGanttTableColumn {
         });
         headerCell.addEventListener("drop", (e) => {
             e.preventDefault();
-            const orderFrom = e.dataTransfer.getData(TsGanttConst.TABLE_COLUMN_REORDER_DATA);
+            const orderFrom = e.dataTransfer.getData(TABLE_COLUMN_REORDER_DATA);
             if (!orderFrom && orderFrom !== "0") {
                 return;
             }
-            headerCell.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_COLUMN_REORDER_EVENT, {
+            headerCell.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, {
                 bubbles: true,
                 composed: true,
                 detail: { orderFrom: +orderFrom, orderTo: this.order, event: e },
@@ -1127,7 +1138,7 @@ class TsGanttTableColumn {
     }
     createResizer() {
         const resizer = document.createElement("div");
-        resizer.classList.add(TsGanttConst.TABLE_COLUMN_RESIZER_CLASS);
+        resizer.classList.add(TsGanttConst.CLASSES.TABLE.COLUMN_RESIZER);
         return resizer;
     }
 }
@@ -1140,11 +1151,11 @@ class TsGanttTableRow {
     }
     createRow(columns, addStateClass) {
         const row = document.createElement("tr");
-        row.classList.add(TsGanttConst.TABLE_BODY_ROW_CLASS);
+        row.classList.add(TsGanttConst.CLASSES.TABLE.BODY_ROW);
         row.addEventListener("click", (e) => {
             const target = e.target;
-            if (!target.classList.contains(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS)) {
-                row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK_EVENT, {
+            if (!target.classList.contains(TsGanttConst.CLASSES.TABLE.BODY_CELL_EXPANDER)) {
+                row.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CLICK, {
                     bubbles: true,
                     composed: true,
                     detail: { task: this.task, event: e },
@@ -1153,8 +1164,8 @@ class TsGanttTableRow {
         });
         row.addEventListener("contextmenu", (e) => {
             const target = e.target;
-            if (!target.classList.contains(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS)) {
-                row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU_EVENT, {
+            if (!target.classList.contains(TsGanttConst.CLASSES.TABLE.BODY_CELL_EXPANDER)) {
+                row.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, {
                     bubbles: true,
                     composed: true,
                     detail: { task: this.task, event: e },
@@ -1166,14 +1177,14 @@ class TsGanttTableRow {
         }
         columns.forEach((x, i) => {
             const cell = document.createElement("td");
-            cell.classList.add(TsGanttConst.TABLE_BODY_CELL_CLASS);
+            cell.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL);
             const cellInnerDiv = document.createElement("div");
-            cellInnerDiv.classList.add(TsGanttConst.TABLE_BODY_CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
+            cellInnerDiv.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_TEXT_WRAPPER, x.contentAlign);
             if (i === 0) {
                 cellInnerDiv.append(this.expander);
             }
             const cellText = document.createElement("p");
-            cellText.classList.add(TsGanttConst.TABLE_BODY_CELL_TEXT_CLASS);
+            cellText.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_TEXT);
             cellText.innerHTML = x.valueGetter(this.task);
             cellInnerDiv.append(cellText);
             cell.append(cellInnerDiv);
@@ -1183,15 +1194,15 @@ class TsGanttTableRow {
     }
     createExpander() {
         const expander = document.createElement("p");
-        expander.classList.add(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS);
+        expander.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_EXPANDER);
         const lvl = this.task.nestingLvl;
         if (lvl) {
-            expander.classList.add(TsGanttConst.TABLE_BODY_CELL_EXPANDER_NESTING_PREFIX +
+            expander.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_EXPANDER_NESTING_PREFIX +
                 (lvl < 10 ? lvl : 10));
         }
         if (this.task.hasChildren) {
             expander.addEventListener("click", (e) => {
-                expander.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, {
+                expander.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.TABLE_BODY_CELL_EXPANDER_CLICK, {
                     bubbles: true,
                     composed: true,
                     detail: { task: this.task, event: e },
@@ -1216,11 +1227,11 @@ class TsGanttTable {
         this._data = data;
         this.initBaseHtml();
         this.initColumns();
-        document.addEventListener(TsGanttConst.TABLE_COLUMN_REORDER_EVENT, this.onColumnReorder);
+        document.addEventListener(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, this.onColumnReorder);
     }
     destroy() {
         this._html.remove();
-        document.removeEventListener(TsGanttConst.TABLE_COLUMN_REORDER_EVENT, this.onColumnReorder);
+        document.removeEventListener(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, this.onColumnReorder);
     }
     appendTo(parent) {
         parent.append(this._html);
@@ -1242,19 +1253,19 @@ class TsGanttTable {
         for (const uuid of deselected) {
             const row = this._tableRows.get(uuid);
             if (row) {
-                row.html.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
+                row.html.classList.remove(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
             }
         }
         for (const uuid of selected) {
             const row = this._tableRows.get(uuid);
             if (row) {
-                row.html.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
+                row.html.classList.add(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
             }
         }
     }
     initBaseHtml() {
         const table = document.createElement("table");
-        table.classList.add(TsGanttConst.TABLE_CLASS);
+        table.classList.add(TsGanttConst.CLASSES.TABLE.MAIN_ELEMENT);
         const tableHead = table.createTHead();
         const tableBody = table.createTBody();
         this._htmlHead = tableHead;
@@ -1345,11 +1356,7 @@ class TsGanttChartBarGroupOptions {
     }
 }
 
-class TsGanttChartBar {
-    constructor(options) {
-        this._options = options;
-        this.draw();
-    }
+class TsGanttSvgComponentBase {
     destroy() {
         this._svg.remove();
     }
@@ -1364,6 +1371,14 @@ class TsGanttChartBar {
         this._svg.setAttribute("x", currentOffsetX + offsetX + "");
         parent.append(this._svg);
     }
+}
+
+class TsGanttChartBar extends TsGanttSvgComponentBase {
+    constructor(options) {
+        super();
+        this._options = options;
+        this.draw();
+    }
     draw() {
         const drawTaskBarWrapperResult = this.createWrapper();
         this.drawTaskBar(drawTaskBarWrapperResult);
@@ -1376,8 +1391,8 @@ class TsGanttChartBar {
         const { barType, cornerRadius } = this._options;
         const { wrapper, width, height, margin } = options;
         const barClassList = barType === "planned"
-            ? [TsGanttConst.CHART_BAR_PLANNED_CLASS]
-            : [TsGanttConst.CHART_BAR_ACTUAL_CLASS];
+            ? [TsGanttConst.CLASSES.CHART.BAR_PLANNED]
+            : [TsGanttConst.CLASSES.CHART.BAR_ACTUAL];
         createSvgElement("rect", barClassList, [
             ["x", margin + ""],
             ["y", margin + ""],
@@ -1395,8 +1410,8 @@ class TsGanttChartBar {
             ? 0
             : calculatedProgressWidth;
         const progressBarClassList = barType === "planned"
-            ? [TsGanttConst.CHART_BAR_PLANNED_PROGRESS_CLASS]
-            : [TsGanttConst.CHART_BAR_ACTUAL_PROGRESS_CLASS];
+            ? [TsGanttConst.CLASSES.CHART.BAR_PLANNED_PROGRESS]
+            : [TsGanttConst.CLASSES.CHART.BAR_ACTUAL_PROGRESS];
         createSvgElement("rect", progressBarClassList, [
             ["x", margin + ""],
             ["y", margin + ""],
@@ -1411,7 +1426,7 @@ class TsGanttChartBar {
         const offsetX = (startDate.diff(minDate, "day")) * dayWidth;
         const widthDays = endDate.diff(startDate, "day") + 1;
         const wrapperWidth = Math.max(widthDays * dayWidth, minWrapperWidth);
-        const wrapper = createSvgElement("svg", [TsGanttConst.CHART_BAR_WRAPPER_CLASS], [
+        const wrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BAR_WRAPPER], [
             ["x", offsetX + ""],
             ["y", topPosition + ""],
             ["width", wrapperWidth + ""],
@@ -1532,11 +1547,11 @@ class TsGanttChartHeader {
         parent.append(this._svg);
     }
     createWrapper(width, height) {
-        const header = createSvgElement("svg", [TsGanttConst.CHART_HEADER_CLASS], [
+        const header = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.HEADER], [
             ["width", width + ""],
             ["height", height + ""],
         ]);
-        createSvgElement("rect", [TsGanttConst.CHART_HEADER_BACKGROUND_CLASS], [
+        createSvgElement("rect", [TsGanttConst.CLASSES.CHART.HEADER_BACKGROUND], [
             ["width", width + ""],
             ["height", height + ""],
         ], header);
@@ -1576,7 +1591,7 @@ class TsGanttChartHeader {
         ], parent);
     }
     drawHorizontalBorder(header, top, width) {
-        createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+        createSvgElement("line", [TsGanttConst.CLASSES.CHART.HEADER_GRIDLINES], [
             ["x1", 0 + ""],
             ["y1", top + ""],
             ["x2", width + ""],
@@ -1584,7 +1599,7 @@ class TsGanttChartHeader {
         ], header);
     }
     drawVerticalBorder(header, left, top, height) {
-        createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+        createSvgElement("line", [TsGanttConst.CLASSES.CHART.HEADER_GRIDLINES], [
             ["x1", left + ""],
             ["y1", top + ""],
             ["x2", left + ""],
@@ -1592,7 +1607,7 @@ class TsGanttChartHeader {
         ], header);
     }
     drawText(parent, text) {
-        createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+        createSvgElement("text", [TsGanttConst.CLASSES.CHART.HEADER_TEXT], [
             ["x", "50%"],
             ["y", "50%"],
             ["dominant-baseline", "middle"],
@@ -1708,31 +1723,31 @@ class TsGanttChartBody {
         for (const uuid of deselected) {
             const rowBg = this._chartRowBgs.get(uuid);
             if (rowBg) {
-                rowBg.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
+                rowBg.classList.remove(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
             }
             const rowWrapper = this._chartRowFgs.get(uuid);
             if (rowWrapper) {
-                rowWrapper.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
+                rowWrapper.classList.remove(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
             }
         }
         for (const uuid of selected) {
             const rowBg = this._chartRowBgs.get(uuid);
             if (rowBg) {
-                rowBg.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
+                rowBg.classList.add(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
             }
             const rowWrapper = this._chartRowFgs.get(uuid);
             if (rowWrapper) {
-                rowWrapper.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
+                rowWrapper.classList.add(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
             }
         }
     }
     createWrapper(y0, width, height) {
-        const body = createSvgElement("svg", [TsGanttConst.CHART_BODY_CLASS], [
+        const body = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BODY], [
             ["y", y0 + ""],
             ["width", width + ""],
             ["height", height + ""],
         ]);
-        createSvgElement("rect", [TsGanttConst.CHART_BODY_BACKGROUND_CLASS], [
+        createSvgElement("rect", [TsGanttConst.CLASSES.CHART.BODY_BACKGROUND], [
             ["width", width + ""],
             ["height", height + ""],
         ], body);
@@ -1761,34 +1776,34 @@ class TsGanttChartBody {
         this._chartRowFgs = rowFgs;
     }
     drawRow(parent, task, offsetY, width, height) {
-        const rowWrapper = createSvgElement("svg", [TsGanttConst.CHART_ROW_WRAPPER_CLASS], [
+        const rowWrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.ROW_WRAPPER], [
             ["y", offsetY + ""],
             ["width", width + ""],
             ["height", height + ""],
             ["data-tsg-row-uuid", task.uuid],
         ], parent);
         rowWrapper.addEventListener("click", (e) => {
-            rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK_EVENT, {
+            rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CLICK, {
                 bubbles: true,
                 composed: true,
                 detail: { task, event: e },
             }));
         });
         rowWrapper.addEventListener("contextmenu", (e) => {
-            rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU_EVENT, {
+            rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, {
                 bubbles: true,
                 composed: true,
                 detail: { task, event: e },
             }));
         });
-        createSvgElement("rect", [TsGanttConst.CHART_ROW_CLASS], [
+        createSvgElement("rect", [TsGanttConst.CLASSES.CHART.ROW], [
             ["width", width + ""],
             ["height", height + ""],
         ], rowWrapper);
         return rowWrapper;
     }
     drawRowBackground(parent, barGroupIndex, rowHeight, width) {
-        const rowBg = createSvgElement("rect", [TsGanttConst.CHART_ROW_BACKGROUND_CLASS], [
+        const rowBg = createSvgElement("rect", [TsGanttConst.CLASSES.CHART.ROW_BACKGROUND], [
             ["y", (barGroupIndex * rowHeight) + ""],
             ["width", width + ""],
             ["height", rowHeight + ""],
@@ -1813,7 +1828,7 @@ class TsGanttChartBody {
     }
     drawTodayLine(parent, minDate, dayWidth, height) {
         const todayX = dayjs().startOf("day").diff(minDate, "day") * dayWidth;
-        createSvgElement("line", [TsGanttConst.CHART_BODY_TODAY_LINE_CLASS], [
+        createSvgElement("line", [TsGanttConst.CLASSES.CHART.BODY_TODAY_LINE], [
             ["x1", todayX + ""],
             ["y1", 0 + ""],
             ["x2", todayX + ""],
@@ -1821,7 +1836,7 @@ class TsGanttChartBody {
         ], parent);
     }
     drawHorizontalLine(parent, top, width) {
-        createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
+        createSvgElement("line", [TsGanttConst.CLASSES.CHART.BODY_GRIDLINES], [
             ["x1", 0 + ""],
             ["y1", top + ""],
             ["x2", width + ""],
@@ -1829,7 +1844,7 @@ class TsGanttChartBody {
         ], parent);
     }
     drawVerticalLine(parent, left, height) {
-        createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
+        createSvgElement("line", [TsGanttConst.CLASSES.CHART.BODY_GRIDLINES], [
             ["x1", left + ""],
             ["y1", 0 + ""],
             ["x2", left + ""],
@@ -1872,7 +1887,7 @@ class TsGanttChart {
     }
     createChartDiv() {
         const svg = document.createElement("div");
-        svg.classList.add(TsGanttConst.CHART_CLASS);
+        svg.classList.add(TsGanttConst.CLASSES.CHART.MAIN_ELEMENT);
         return svg;
     }
     updateBarGroups(data) {
@@ -1883,8 +1898,7 @@ class TsGanttChart {
     }
     redraw() {
         const oldHtml = this._html;
-        const newHtml = document.createElement("div");
-        newHtml.classList.add(TsGanttConst.CHART_CLASS);
+        const newHtml = this.createChartDiv();
         this._header.appendTo(newHtml);
         this._body.appendTo(newHtml);
         oldHtml.replaceWith(newHtml);
@@ -2044,13 +2058,13 @@ class TsGantt {
     }
     createLayout() {
         const wrapper = document.createElement("div");
-        wrapper.classList.add(TsGanttConst.WRAPPER_CLASS, TsGanttConst.TEXT_SELECTION_DISABLED);
+        wrapper.classList.add(TsGanttConst.CLASSES.ROOT.MAIN_ELEMENT, TsGanttConst.CLASSES.ROOT.TEXT_SELECTION_DISABLED);
         const tableWrapper = document.createElement("div");
-        tableWrapper.classList.add(TsGanttConst.TABLE_WRAPPER_CLASS);
+        tableWrapper.classList.add(TsGanttConst.CLASSES.ROOT.TABLE_WRAPPER);
         const chartWrapper = document.createElement("div");
-        chartWrapper.classList.add(TsGanttConst.CHART_WRAPPER_CLASS);
+        chartWrapper.classList.add(TsGanttConst.CLASSES.ROOT.CHART_WRAPPER);
         const separator = document.createElement("div");
-        separator.classList.add(TsGanttConst.SEPARATOR_CLASS);
+        separator.classList.add(TsGanttConst.CLASSES.ROOT.SEPARATOR);
         this._table = new TsGanttTable(this._data);
         this._chart = new TsGanttChart(this._data);
         this._baseComponents.push(this._table, this._chart);
@@ -2075,17 +2089,17 @@ class TsGantt {
         this._htmlTableWrapper = tableWrapper;
         this._htmlChartWrapper = chartWrapper;
         window.addEventListener("resize", this.onResize);
-        document.addEventListener(TsGanttConst.ROW_CLICK_EVENT, this.onRowClick);
-        document.addEventListener(TsGanttConst.ROW_CONTEXT_MENU_EVENT, this.onRowContextMenu);
-        document.addEventListener(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, this.onRowExpanderClick);
+        document.addEventListener(TsGanttConst.EVENTS.ROW_CLICK, this.onRowClick);
+        document.addEventListener(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, this.onRowContextMenu);
+        document.addEventListener(TsGanttConst.EVENTS.TABLE_BODY_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
     }
     removeWindowEventListeners() {
         window.removeEventListener("resize", this.onResize);
     }
     removeDocumentEventListeners() {
-        document.removeEventListener(TsGanttConst.ROW_CLICK_EVENT, this.onRowClick);
-        document.removeEventListener(TsGanttConst.ROW_CONTEXT_MENU_EVENT, this.onRowContextMenu);
-        document.removeEventListener(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, this.onRowExpanderClick);
+        document.removeEventListener(TsGanttConst.EVENTS.ROW_CLICK, this.onRowClick);
+        document.removeEventListener(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, this.onRowContextMenu);
+        document.removeEventListener(TsGanttConst.EVENTS.TABLE_BODY_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
     }
     toggleTaskSelection(task, ctrl) {
         const selectionResult = this._data.toggleTaskSelection(task, ctrl);

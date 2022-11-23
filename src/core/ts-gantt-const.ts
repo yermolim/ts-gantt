@@ -1,55 +1,63 @@
-class TsGanttConst {  
-  static readonly CSS_VAR_SEPARATOR_WIDTH = "--tsg-separator-width";
-  static readonly CSS_VAR_HEADER_HEIGHT = "--tsg-header-height";
-  static readonly CSS_VAR_ROW_HEIGHT = "--tsg-row-height";
-  static readonly CSS_VAR_GRIDLINES_WIDTH = "--tsg-gridlines-width";
-  static readonly CSS_VAR_BAR_STROKE_WIDTH = "--tsg-bar-stroke-width";
-  
-  static readonly TEXT_SELECTION_DISABLED = "tsg-no-text-selection";
+export const TsGanttConst = {
+  CSS_VAR_SEPARATOR_WIDTH: "--tsg-separator-width",
+  CSS_VAR_HEADER_HEIGHT: "--tsg-header-height",
+  CSS_VAR_ROW_HEIGHT: "--tsg-row-height",
+  CSS_VAR_GRIDLINES_WIDTH: "--tsg-gridlines-width",
+  CSS_VAR_BAR_STROKE_WIDTH: "--tsg-bar-stroke-width",
 
-  static readonly WRAPPER_CLASS = "tsg-wrapper";
-  static readonly FOOTER_CLASS = "tsg-footer";
-  static readonly SEPARATOR_CLASS = "tsg-separator";
+  EVENTS: {
+    ROW_CLICK: "tsgrowclick",
+    ROW_CONTEXT_MENU: "tsgrowcontextmenu",
+    TABLE_COLUMN_REORDER: "tsgtablecolreorder",
+    TABLE_BODY_CELL_EXPANDER_CLICK: "tsgexpanderclick",
+  },
 
-  static readonly ROW_SELECTED_CLASS = "selected";
-  static readonly ROW_OVERDUE_CLASS = "overdue";
-  static readonly ROW_CLICK_EVENT = "tsgrowclick";
-  static readonly ROW_CONTEXT_MENU_EVENT = "tsgrowcontextmenu";
+  CLASSES: {
 
-  static readonly TABLE_WRAPPER_CLASS = "tsg-table-wrapper";
-  static readonly TABLE_CLASS = "tsg-table";
-  static readonly TABLE_COLUMN_RESIZER_CLASS = "tsg-table-col-resizer";
-  static readonly TABLE_COLUMN_DATA_ORDER = "tsgColOrder";
-  static readonly TABLE_COLUMN_REORDER_DATA = "application/tsg-col-order";
-  static readonly TABLE_COLUMN_REORDER_EVENT = "tsgtablecolreorder";
-  static readonly TABLE_HEADER_CLASS = "tsg-table-header";
-  static readonly TABLE_BODY_ROW_CLASS = "tsg-table-body-row";
-  static readonly TABLE_BODY_CELL_CLASS = "tsg-table-body-cell";
-  static readonly TABLE_BODY_CELL_TEXT_WRAPPER_CLASS = "tsg-table-body-cell-text-wrapper";
-  static readonly TABLE_BODY_CELL_TEXT_CLASS = "tsg-table-body-cell-text";
-  static readonly TABLE_BODY_CELL_EXPANDER_CLASS = "tsg-table-body-cell-text-expander";  
-  static readonly TABLE_BODY_CELL_EXPANDER_NESTING_PREFIX = "nesting-";
-  static readonly TABLE_BODY_CELL_EXPANDER_CLICK_EVENT = "tsgexpanderclick";
-  
-  static readonly CHART_WRAPPER_CLASS = "tsg-chart-wrapper";
-  static readonly CHART_CLASS = "tsg-chart";
-  static readonly CHART_HEADER_CLASS = "tsg-chart-header";
-  static readonly CHART_HEADER_BACKGROUND_CLASS = "tsg-chart-header-bg";
-  static readonly CHART_HEADER_GRIDLINES_CLASS = "tsg-chart-header-gl";
-  static readonly CHART_HEADER_TEXT_CLASS = "tsg-chart-header-text";
-  static readonly CHART_BODY_CLASS = "tsg-chart-body";
-  static readonly CHART_BODY_BACKGROUND_CLASS = "tsg-chart-body-bg";
-  static readonly CHART_BODY_GRIDLINES_CLASS = "tsg-chart-body-gl";  
-  static readonly CHART_BODY_TODAY_LINE_CLASS = "tsg-chart-body-gl-today";  
-  static readonly CHART_ROW_WRAPPER_CLASS = "tsg-chart-row-wrapper";
-  static readonly CHART_ROW_CLASS = "tsg-chart-row";
-  static readonly CHART_ROW_BACKGROUND_CLASS = "tsg-chart-row-bg";
-  static readonly CHART_BAR_GROUP_CLASS = "tsg-chart-bar-group";
-  static readonly CHART_BAR_WRAPPER_CLASS = "tsg-chart-bar-wrapper";
-  static readonly CHART_BAR_PLANNED_CLASS = "tsg-chart-bar-planned";
-  static readonly CHART_BAR_PLANNED_PROGRESS_CLASS = "tsg-chart-bar-planned-progress";
-  static readonly CHART_BAR_ACTUAL_CLASS = "tsg-chart-bar-actual";
-  static readonly CHART_BAR_ACTUAL_PROGRESS_CLASS = "tsg-chart-bar-actual-progress";
-}
+    ROOT: {
+      TEXT_SELECTION_DISABLED: "tsg-no-text-selection",
+      MAIN_ELEMENT: "tsg-wrapper",
+      CHART_WRAPPER: "tsg-chart-wrapper",
+      TABLE_WRAPPER: "tsg-table-wrapper",
+      FOOTER: "tsg-footer",
+      SEPARATOR: "tsg-separator",
+      ROW_SELECTED: "selected",
+    },
 
-export { TsGanttConst };
+    CHART: {
+      MAIN_ELEMENT: "tsg-chart",
+      HEADER: "tsg-chart-header",
+      HEADER_BACKGROUND: "tsg-chart-header-bg",
+      HEADER_GRIDLINES: "tsg-chart-header-gl",
+      HEADER_TEXT: "tsg-chart-header-text",
+      BODY: "tsg-chart-body",
+      BODY_BACKGROUND:  "tsg-chart-body-bg",
+      BODY_GRIDLINES:  "tsg-chart-body-gl", 
+      BODY_TODAY_LINE:  "tsg-chart-body-gl-today", 
+      ROW_WRAPPER:  "tsg-chart-row-wrapper",
+      ROW:  "tsg-chart-row",
+      ROW_BACKGROUND:  "tsg-chart-row-bg",
+      BAR_GROUP:  "tsg-chart-bar-group",
+      BAR_WRAPPER:  "tsg-chart-bar-wrapper",
+      BAR_PLANNED:  "tsg-chart-bar-planned",
+      BAR_PLANNED_PROGRESS:  "tsg-chart-bar-planned-progress",
+      BAR_ACTUAL:  "tsg-chart-bar-actual",
+      BAR_ACTUAL_PROGRESS:  "tsg-chart-bar-actual-progress",
+      BAR_HANDLE_WRAPPER:  "tsg-chart-bar-handle-wrapper",
+      BAR_HANDLE: "tsg-chart-bar-handle",
+    },
+
+    TABLE: {
+      MAIN_ELEMENT: "tsg-table",
+      COLUMN_RESIZER: "tsg-table-col-resizer",
+      HEADER: "tsg-table-header",
+      BODY_ROW: "tsg-table-body-row",
+      BODY_CELL: "tsg-table-body-cell",
+      BODY_CELL_TEXT_WRAPPER: "tsg-table-body-cell-text-wrapper",
+      BODY_CELL_TEXT: "tsg-table-body-cell-text",
+      BODY_CELL_EXPANDER: "tsg-table-body-cell-text-expander", 
+      BODY_CELL_EXPANDER_NESTING_PREFIX: "nesting-",
+    },
+
+  }
+} as const;

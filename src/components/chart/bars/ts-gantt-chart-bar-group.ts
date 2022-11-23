@@ -1,10 +1,11 @@
 import { ChartBarType } from "../../../core/ts-gantt-common";
 import { TsGanttTask } from "../../../core/ts-gantt-task";
 
+import { AppendableComponent } from "../../abstract/appendable-component";
 import { TsGanttChartBarGroupOptions } from "./ts-gantt-chart-bar-group-options";
 import { TsGanttChartBar } from "./ts-gantt-chart-bar";
 
-export class TsGanttChartBarGroup {
+export class TsGanttChartBarGroup implements AppendableComponent {
   readonly task: TsGanttTask;
   private _bars: TsGanttChartBar[];
 
@@ -19,7 +20,7 @@ export class TsGanttChartBarGroup {
     });
   }
 
-  appendTo(parent: SVGElement) {
+  appendTo(parent: Element) {
     if (!this._bars?.length) {
       return;
     }
@@ -28,7 +29,7 @@ export class TsGanttChartBarGroup {
     });
   }
 
-  appendToWithOffset(parent: SVGElement, offsetX: number) {    
+  appendToWithOffset(parent: Element, offsetX: number) {    
     if (!this._bars?.length || !offsetX) {
       return;
     }

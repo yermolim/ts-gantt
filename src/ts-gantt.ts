@@ -113,14 +113,14 @@ class TsGantt {
 
   private createLayout() {
     const wrapper = document.createElement("div");
-    wrapper.classList.add(TsGanttConst.WRAPPER_CLASS, TsGanttConst.TEXT_SELECTION_DISABLED);    
+    wrapper.classList.add(TsGanttConst.CLASSES.ROOT.MAIN_ELEMENT, TsGanttConst.CLASSES.ROOT.TEXT_SELECTION_DISABLED);
     const tableWrapper = document.createElement("div");
-    tableWrapper.classList.add(TsGanttConst.TABLE_WRAPPER_CLASS);
+    tableWrapper.classList.add(TsGanttConst.CLASSES.ROOT.TABLE_WRAPPER);
     const chartWrapper = document.createElement("div");
-    chartWrapper.classList.add(TsGanttConst.CHART_WRAPPER_CLASS);
+    chartWrapper.classList.add(TsGanttConst.CLASSES.ROOT.CHART_WRAPPER);
 
     const separator = document.createElement("div");
-    separator.classList.add(TsGanttConst.SEPARATOR_CLASS);  
+    separator.classList.add(TsGanttConst.CLASSES.ROOT.SEPARATOR);  
     
     this._table = new TsGanttTable(this._data);
     this._chart = new TsGanttChart(this._data);
@@ -150,9 +150,9 @@ class TsGantt {
     this._htmlChartWrapper = chartWrapper;
 
     window.addEventListener("resize", this.onResize);
-    document.addEventListener(TsGanttConst.ROW_CLICK_EVENT, this.onRowClick);
-    document.addEventListener(TsGanttConst.ROW_CONTEXT_MENU_EVENT, this.onRowContextMenu);
-    document.addEventListener(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, this.onRowExpanderClick);
+    document.addEventListener(TsGanttConst.EVENTS.ROW_CLICK, this.onRowClick);
+    document.addEventListener(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, this.onRowContextMenu);
+    document.addEventListener(TsGanttConst.EVENTS.TABLE_BODY_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
   }
   // #endregion
 
@@ -251,9 +251,9 @@ class TsGantt {
     window.removeEventListener("resize", this.onResize);
   }
   private removeDocumentEventListeners() {
-    document.removeEventListener(TsGanttConst.ROW_CLICK_EVENT, this.onRowClick);
-    document.removeEventListener(TsGanttConst.ROW_CONTEXT_MENU_EVENT, this.onRowContextMenu);
-    document.removeEventListener(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, this.onRowExpanderClick);
+    document.removeEventListener(TsGanttConst.EVENTS.ROW_CLICK, this.onRowClick);
+    document.removeEventListener(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, this.onRowContextMenu);
+    document.removeEventListener(TsGanttConst.EVENTS.TABLE_BODY_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
   }
   // #endregion
 

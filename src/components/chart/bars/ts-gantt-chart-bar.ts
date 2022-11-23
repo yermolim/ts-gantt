@@ -1,33 +1,17 @@
 import { createSvgElement } from "../../../core/ts-gantt-common";
 import { TsGanttConst } from "../../../core/ts-gantt-const";
+import { TsGanttSvgComponentBase } from "../../abstract/ts-gantt-svg-component-base";
 
 import { TsGanttChartBarOptions } from "./ts-gantt-chart-bar-options";
 
-export class TsGanttChartBar {
+export class TsGanttChartBar extends TsGanttSvgComponentBase {
   private readonly _options: TsGanttChartBarOptions;
 
-  private _svg: SVGElement;
-
   constructor(options: TsGanttChartBarOptions) {
+    super();
+
     this._options = options;
     this.draw();
-  }
-
-  destroy() {
-    this._svg.remove();
-  }
-
-  appendTo(parent: SVGElement) {
-    parent.append(this._svg);
-  }
-  
-  appendToWithOffset(parent: SVGElement, offsetX: number) {    
-    if (!this._svg || !offsetX) {
-      return;
-    }
-    const currentOffsetX = +this._svg.getAttribute("x");
-    this._svg.setAttribute("x", currentOffsetX + offsetX + "");
-    parent.append(this._svg);
   }
 
   private draw() {
@@ -47,8 +31,8 @@ export class TsGanttChartBar {
     const { wrapper, width, height, margin } = options;
 
     const barClassList = barType === "planned"
-      ? [TsGanttConst.CHART_BAR_PLANNED_CLASS]
-      : [TsGanttConst.CHART_BAR_ACTUAL_CLASS];
+      ? [TsGanttConst.CLASSES.CHART.BAR_PLANNED]
+      : [TsGanttConst.CLASSES.CHART.BAR_ACTUAL];
     createSvgElement("rect", barClassList, [
       ["x", margin + ""],
       ["y", margin + ""],
@@ -68,8 +52,8 @@ export class TsGanttChartBar {
       ? 0
       : calculatedProgressWidth;
     const progressBarClassList = barType === "planned"
-      ? [TsGanttConst.CHART_BAR_PLANNED_PROGRESS_CLASS]
-      : [TsGanttConst.CHART_BAR_ACTUAL_PROGRESS_CLASS];
+      ? [TsGanttConst.CLASSES.CHART.BAR_PLANNED_PROGRESS]
+      : [TsGanttConst.CLASSES.CHART.BAR_ACTUAL_PROGRESS];
     createSvgElement("rect", progressBarClassList, [
       ["x", margin + ""],
       ["y", margin + ""],
@@ -90,7 +74,7 @@ export class TsGanttChartBar {
     const offsetX = (startDate.diff(minDate, "day")) * dayWidth;
     const widthDays = endDate.diff(startDate, "day") + 1;
     const wrapperWidth = Math.max(widthDays * dayWidth, minWrapperWidth);
-    const wrapper = createSvgElement("svg", [TsGanttConst.CHART_BAR_WRAPPER_CLASS], [
+    const wrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BAR_WRAPPER], [
       ["x", offsetX + ""],
       ["y", topPosition + ""],
       ["width", wrapperWidth + ""],

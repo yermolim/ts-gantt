@@ -59,7 +59,7 @@ class TsGanttChart implements TsGanttBaseComponent {
 
   private createChartDiv(): HTMLDivElement {
     const svg = document.createElement("div");
-    svg.classList.add(TsGanttConst.CHART_CLASS);
+    svg.classList.add(TsGanttConst.CLASSES.CHART.MAIN_ELEMENT);
     return svg;
   }
 
@@ -73,8 +73,7 @@ class TsGanttChart implements TsGanttBaseComponent {
   private redraw() {
     const oldHtml = this._html;
 
-    const newHtml = document.createElement("div");
-    newHtml.classList.add(TsGanttConst.CHART_CLASS);
+    const newHtml = this.createChartDiv();
     
     this._header.appendTo(newHtml);
     this._body.appendTo(newHtml);

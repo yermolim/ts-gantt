@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import { ChartBarMode, getRandomUuid } from "./ts-gantt-common";
 import { TsGanttTaskModel } from "./ts-gantt-task-model";
 
-class TsGanttTask {
+export class TsGanttTask {
   readonly uuid: string;
   readonly parentUuid: string;
   
@@ -271,7 +271,7 @@ class TsGanttTask {
     return this.name.localeCompare(another.name);
   }
 
-  getState(): "not-started" | "in-progress" | "overdue" | "completed" | "completed-late" {   
+  getState(): TsGanttTaskState {
     if (this.progress === 0) {
       return "not-started";
     }
@@ -358,19 +358,19 @@ class TsGanttTask {
   }
 }
 
-interface TsGanttTaskUpdateResult {
+export interface TsGanttTaskUpdateResult {
   oldTasks: TsGanttTask[]; 
   newTasks: TsGanttTask[];
 }
 
-interface TsGanttTaskChangeResult {
+export interface TsGanttTaskChangeResult {
   added: TsGanttTask[]; 
   deleted: TsGanttTask[]; 
   changed: TsGanttTask[];
   all: TsGanttTask[];
 }
 
-interface TsGanttTaskSelectionChangeResult {
+export interface TsGanttTaskSelectionChangeResult {
   deselected: string[];
   selected: string[];
 
@@ -378,5 +378,4 @@ interface TsGanttTaskSelectionChangeResult {
   selectedTasks: TsGanttTask[];
 }
 
-export { TsGanttTask, TsGanttTaskUpdateResult,
-  TsGanttTaskChangeResult, TsGanttTaskSelectionChangeResult };
+export type TsGanttTaskState = "not-started" | "in-progress" | "overdue" | "completed" | "completed-late";

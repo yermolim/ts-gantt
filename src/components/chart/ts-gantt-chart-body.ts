@@ -26,7 +26,7 @@ class TsGanttChartBody {
     this._svg.remove();
   }
 
-  appendTo(parent: HTMLElement) {
+  appendTo(parent: Element) {
     parent.append(this._svg);
   }
 
@@ -35,32 +35,32 @@ class TsGanttChartBody {
     for (const uuid of deselected) {
       const rowBg = this._chartRowBgs.get(uuid);
       if (rowBg) {
-        rowBg.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
+        rowBg.classList.remove(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
       }
       const rowWrapper = this._chartRowFgs.get(uuid);
       if (rowWrapper) {
-        rowWrapper.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
+        rowWrapper.classList.remove(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
       }
     }
     for (const uuid of selected) {  
       const rowBg = this._chartRowBgs.get(uuid);
       if (rowBg) {
-        rowBg.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
+        rowBg.classList.add(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
       }
       const rowWrapper = this._chartRowFgs.get(uuid);
       if (rowWrapper) {
-        rowWrapper.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
+        rowWrapper.classList.add(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
       }
     }
   }
 
   private createWrapper(y0: number, width: number, height: number) {
-    const body = createSvgElement("svg", [TsGanttConst.CHART_BODY_CLASS], [
+    const body = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BODY], [
       ["y", y0 + ""],
       ["width", width + ""],
       ["height", height + ""],
     ]);
-    createSvgElement("rect", [TsGanttConst.CHART_BODY_BACKGROUND_CLASS], [
+    createSvgElement("rect", [TsGanttConst.CLASSES.CHART.BODY_BACKGROUND], [
       ["width", width + ""],
       ["height", height + ""],
     ], body);
@@ -101,27 +101,27 @@ class TsGanttChartBody {
   }
 
   private drawRow(parent: SVGElement, task: TsGanttTask, offsetY: number, width: number, height: number) {
-    const rowWrapper = createSvgElement("svg", [TsGanttConst.CHART_ROW_WRAPPER_CLASS], [
+    const rowWrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.ROW_WRAPPER], [
       ["y", offsetY + ""],
       ["width", width + ""],
       ["height", height + ""],
       ["data-tsg-row-uuid", task.uuid],
     ], parent);
     rowWrapper.addEventListener("click", (e: MouseEvent) => {
-      rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK_EVENT, {
+      rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CLICK, {
         bubbles: true,
         composed: true,
         detail: { task, event: e },
       }));
     });
     rowWrapper.addEventListener("contextmenu", (e: MouseEvent) => {
-      rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU_EVENT, {
+      rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, {
         bubbles: true,
         composed: true,
         detail: { task, event: e },
       }));
     });
-    createSvgElement("rect", [TsGanttConst.CHART_ROW_CLASS], [
+    createSvgElement("rect", [TsGanttConst.CLASSES.CHART.ROW], [
       ["width", width + ""],
       ["height", height + ""],
     ], rowWrapper);
@@ -130,7 +130,7 @@ class TsGanttChartBody {
 
   private drawRowBackground(parent: SVGElement, barGroupIndex: number, rowHeight: number, width: number) {
     const rowBg = createSvgElement("rect",
-      [TsGanttConst.CHART_ROW_BACKGROUND_CLASS], [
+      [TsGanttConst.CLASSES.CHART.ROW_BACKGROUND], [
         ["y", (barGroupIndex * rowHeight) + ""],
         ["width", width + ""],
         ["height", rowHeight + ""],
@@ -160,7 +160,7 @@ class TsGanttChartBody {
 
   private drawTodayLine(parent: SVGElement, minDate: dayjs.Dayjs, dayWidth: number, height: number) {
     const todayX = dayjs().startOf("day").diff(minDate, "day") * dayWidth;
-    createSvgElement("line", [TsGanttConst.CHART_BODY_TODAY_LINE_CLASS], [
+    createSvgElement("line", [TsGanttConst.CLASSES.CHART.BODY_TODAY_LINE], [
       ["x1", todayX + ""],
       ["y1", 0 + ""],
       ["x2", todayX + ""],
@@ -169,7 +169,7 @@ class TsGanttChartBody {
   } 
 
   private drawHorizontalLine(parent: SVGElement, top: number, width: number) {
-    createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
+    createSvgElement("line", [TsGanttConst.CLASSES.CHART.BODY_GRIDLINES], [
       ["x1", 0 + ""],
       ["y1", top + ""],
       ["x2", width + ""],
@@ -178,7 +178,7 @@ class TsGanttChartBody {
   }
 
   private drawVerticalLine(parent: SVGElement, left: number, height: number, ) {
-    createSvgElement("line", [TsGanttConst.CHART_BODY_GRIDLINES_CLASS], [
+    createSvgElement("line", [TsGanttConst.CLASSES.CHART.BODY_GRIDLINES], [
       ["x1", left + ""],
       ["y1", 0 + ""],
       ["x2", left + ""],

@@ -27,12 +27,12 @@ class TsGanttTable implements TsGanttBaseComponent {
     this.initBaseHtml();
     this.initColumns();
 
-    document.addEventListener(TsGanttConst.TABLE_COLUMN_REORDER_EVENT, this.onColumnReorder);
+    document.addEventListener(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, this.onColumnReorder);
   }
 
   destroy() {
     this._html.remove();
-    document.removeEventListener(TsGanttConst.TABLE_COLUMN_REORDER_EVENT, this.onColumnReorder);
+    document.removeEventListener(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, this.onColumnReorder);
   }
 
   appendTo(parent: HTMLElement) {
@@ -57,20 +57,20 @@ class TsGanttTable implements TsGanttBaseComponent {
     for (const uuid of deselected) {
       const row = this._tableRows.get(uuid);
       if (row) {
-        row.html.classList.remove(TsGanttConst.ROW_SELECTED_CLASS);
+        row.html.classList.remove(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
       }
     }
     for (const uuid of selected) {
       const row = this._tableRows.get(uuid);
       if (row) {
-        row.html.classList.add(TsGanttConst.ROW_SELECTED_CLASS);
+        row.html.classList.add(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
       }
     }
   }
 
   private initBaseHtml() {
     const table = document.createElement("table");
-    table.classList.add(TsGanttConst.TABLE_CLASS);
+    table.classList.add(TsGanttConst.CLASSES.TABLE.MAIN_ELEMENT);
     const tableHead = table.createTHead();
     const tableBody = table.createTBody();
 

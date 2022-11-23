@@ -3,7 +3,6 @@ import { TsGanttConst } from "../../core/ts-gantt-const";
 import { TsGanttTableColumn } from "./ts-gantt-table-column";
 
 class TsGanttTableRow {
-
   readonly task: TsGanttTask;
   readonly html: HTMLTableRowElement;
   readonly expander: HTMLParagraphElement;
@@ -17,11 +16,11 @@ class TsGanttTableRow {
   private createRow(columns: TsGanttTableColumn[], addStateClass: boolean): HTMLTableRowElement {
 
     const row = document.createElement("tr");
-    row.classList.add(TsGanttConst.TABLE_BODY_ROW_CLASS);
+    row.classList.add(TsGanttConst.CLASSES.TABLE.BODY_ROW);
     row.addEventListener("click", (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.classList.contains(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS)) {
-        row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CLICK_EVENT, {
+      if (!target.classList.contains(TsGanttConst.CLASSES.TABLE.BODY_CELL_EXPANDER)) {
+        row.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CLICK, {
           bubbles: true,
           composed: true,
           detail: {task: this.task, event: e},
@@ -30,8 +29,8 @@ class TsGanttTableRow {
     });
     row.addEventListener("contextmenu", (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.classList.contains(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS)) {
-        row.dispatchEvent(new CustomEvent(TsGanttConst.ROW_CONTEXT_MENU_EVENT, {
+      if (!target.classList.contains(TsGanttConst.CLASSES.TABLE.BODY_CELL_EXPANDER)) {
+        row.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, {
           bubbles: true,
           composed: true,
           detail: {task: this.task, event: e},
@@ -44,16 +43,16 @@ class TsGanttTableRow {
 
     columns.forEach((x, i) => {
       const cell = document.createElement("td");
-      cell.classList.add(TsGanttConst.TABLE_BODY_CELL_CLASS);
+      cell.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL);
       const cellInnerDiv = document.createElement("div");
-      cellInnerDiv.classList.add(TsGanttConst.TABLE_BODY_CELL_TEXT_WRAPPER_CLASS, x.contentAlign);
+      cellInnerDiv.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_TEXT_WRAPPER, x.contentAlign);
 
       if (i === 0) {
         cellInnerDiv.append(this.expander);
       }
 
       const cellText = document.createElement("p");
-      cellText.classList.add(TsGanttConst.TABLE_BODY_CELL_TEXT_CLASS);
+      cellText.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_TEXT);
       cellText.innerHTML = x.valueGetter(this.task);
       cellInnerDiv.append(cellText);
         
@@ -66,15 +65,15 @@ class TsGanttTableRow {
 
   private createExpander() {
     const expander = document.createElement("p");
-    expander.classList.add(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLASS);
+    expander.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_EXPANDER);
     const lvl = this.task.nestingLvl;
     if (lvl) {
-      expander.classList.add(TsGanttConst.TABLE_BODY_CELL_EXPANDER_NESTING_PREFIX + 
+      expander.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_EXPANDER_NESTING_PREFIX + 
         (lvl < 10 ? lvl : 10));
     }
     if (this.task.hasChildren) {
       expander.addEventListener("click", (e: Event) => {
-        expander.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_BODY_CELL_EXPANDER_CLICK_EVENT, {
+        expander.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.TABLE_BODY_CELL_EXPANDER_CLICK, {
           bubbles: true,
           composed: true,
           detail: {task: this.task, event: e},
@@ -83,7 +82,6 @@ class TsGanttTableRow {
     }
     return expander;
   }
-
 }
 
 export { TsGanttTableRow };

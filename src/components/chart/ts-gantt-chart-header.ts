@@ -33,16 +33,16 @@ class TsGanttChartHeader {
     this._svg.remove();
   }
 
-  appendTo(parent: HTMLElement) {
+  appendTo(parent: Element) {
     parent.append(this._svg);
   }
 
   private createWrapper(width: number, height: number): SVGElement {
-    const header = createSvgElement("svg", [TsGanttConst.CHART_HEADER_CLASS], [
+    const header = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.HEADER], [
       ["width", width + ""],
       ["height", height + ""],
     ]);
-    createSvgElement("rect", [TsGanttConst.CHART_HEADER_BACKGROUND_CLASS], [
+    createSvgElement("rect", [TsGanttConst.CLASSES.CHART.HEADER_BACKGROUND], [
       ["width", width + ""],
       ["height", height + ""],
     ], header);
@@ -91,7 +91,7 @@ class TsGanttChartHeader {
   }
 
   private drawHorizontalBorder(header: SVGElement, top: number, width: number) {
-    createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+    createSvgElement("line", [TsGanttConst.CLASSES.CHART.HEADER_GRIDLINES], [
       ["x1", 0 + ""],
       ["y1", top + ""],
       ["x2", width + ""],
@@ -100,7 +100,7 @@ class TsGanttChartHeader {
   }
 
   private drawVerticalBorder(header: SVGElement, left: number, top: number, height: number) {
-    createSvgElement("line", [TsGanttConst.CHART_HEADER_GRIDLINES_CLASS], [
+    createSvgElement("line", [TsGanttConst.CLASSES.CHART.HEADER_GRIDLINES], [
       ["x1", left + ""],
       ["y1", top + ""],
       ["x2", left + ""],
@@ -109,7 +109,7 @@ class TsGanttChartHeader {
   }
 
   private drawText(parent: SVGElement, text: string) {
-    createSvgElement("text", [TsGanttConst.CHART_HEADER_TEXT_CLASS], [
+    createSvgElement("text", [TsGanttConst.CLASSES.CHART.HEADER_TEXT], [
       ["x", "50%"],
       ["y", "50%"],
       ["dominant-baseline", "middle"],

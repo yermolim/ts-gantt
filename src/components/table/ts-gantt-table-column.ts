@@ -1,6 +1,9 @@
 import { TsGanttTask } from "../../core/ts-gantt-task";
 import { TsGanttConst } from "../../core/ts-gantt-const";
 
+const TABLE_COLUMN_DATA_ORDER = "tsgColOrder";
+const TABLE_COLUMN_REORDER_DATA = "application/tsg-col-order";
+
 class TsGanttTableColumn {
   readonly html: HTMLTableCellElement;
   readonly resizer: HTMLDivElement;
@@ -64,14 +67,14 @@ class TsGanttTableColumn {
 
   private createHeaderCell(): HTMLTableCellElement {
     const headerCell = document.createElement("th");
-    headerCell.classList.add(TsGanttConst.TABLE_HEADER_CLASS);
-    headerCell.dataset[TsGanttConst.TABLE_COLUMN_DATA_ORDER] = this.order + "";
+    headerCell.classList.add(TsGanttConst.CLASSES.TABLE.HEADER);
+    headerCell.dataset[TABLE_COLUMN_DATA_ORDER] = this.order + "";
     headerCell.style.minWidth = this.minWidth + "px";
     headerCell.style.width = this.minWidth + "px";
     headerCell.draggable = true;
     headerCell.innerHTML = this.header;
     headerCell.addEventListener("dragstart", (e: DragEvent) => {
-      e.dataTransfer.setData(TsGanttConst.TABLE_COLUMN_REORDER_DATA, this.order + "");
+      e.dataTransfer.setData(TABLE_COLUMN_REORDER_DATA, this.order + "");
     });
     headerCell.addEventListener("dragover", (e: DragEvent) => {
       e.preventDefault();
@@ -79,11 +82,11 @@ class TsGanttTableColumn {
     });
     headerCell.addEventListener("drop", (e: DragEvent) => {
       e.preventDefault();
-      const orderFrom = e.dataTransfer.getData(TsGanttConst.TABLE_COLUMN_REORDER_DATA);
+      const orderFrom = e.dataTransfer.getData(TABLE_COLUMN_REORDER_DATA);
       if (!orderFrom && orderFrom !== "0") {
         return;
       }
-      headerCell.dispatchEvent(new CustomEvent(TsGanttConst.TABLE_COLUMN_REORDER_EVENT, {
+      headerCell.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, {
         bubbles: true,
         composed: true,
         detail: {orderFrom: +orderFrom, orderTo: this.order, event: e},
@@ -94,7 +97,7 @@ class TsGanttTableColumn {
 
   private createResizer(): HTMLDivElement {
     const resizer = document.createElement("div");
-    resizer.classList.add(TsGanttConst.TABLE_COLUMN_RESIZER_CLASS);
+    resizer.classList.add(TsGanttConst.CLASSES.TABLE.COLUMN_RESIZER);
     return resizer;
   }
 }

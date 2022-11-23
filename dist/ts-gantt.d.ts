@@ -56,7 +56,7 @@ export declare class TsGanttTask {
 	};
 	equals(another: TsGanttTask): boolean;
 	compareTo(another: TsGanttTask): number;
-	getState(): "not-started" | "in-progress" | "overdue" | "completed" | "completed-late";
+	getState(): TsGanttTaskState;
 	toModel(): TsGanttTaskModel;
 	toggleExpanded(): void;
 	getMinMaxDates(chartBarMode: ChartBarMode): {
@@ -75,6 +75,7 @@ export interface TsGanttTaskChangeResult {
 	changed: TsGanttTask[];
 	all: TsGanttTask[];
 }
+export declare type TsGanttTaskState = "not-started" | "in-progress" | "overdue" | "completed" | "completed-late";
 export declare class TsGanttOptions {
 	useShadowDom: false;
 	multilineSelection: boolean;
