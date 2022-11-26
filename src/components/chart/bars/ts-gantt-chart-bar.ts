@@ -20,7 +20,7 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
     this._options = options;
     this.draw();
   }
-  
+
   override appendToWithOffset(parent: Element, offsetX: number, addOffsetToCurrent = false) {
     if (!addOffsetToCurrent) {
       offsetX = offsetX + this._defaultOffsetX;
@@ -39,7 +39,9 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
       this.drawProgressBars(wrapper, barCoords);
     }
 
-    this.drawHandles(wrapper, handlesCoords);
+    if (this._options.showHandles) {
+      this.drawHandles(wrapper, handlesCoords);
+    }
 
     this._defaultOffsetX = wrapperCoords.left;
     this._svg = wrapper;
@@ -73,7 +75,7 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
 
     const startHandleOffsetX = 0;
     const endHandleOffsetX = wrapperWidth - handleWidth;
-    const progressHandleOffsetX = Math.min(barLeft + progressBarWidth, barLeft + barWidth - handleWidth);
+    const progressHandleOffsetX = barLeft + progressBarWidth - handleWidth / 2;
 
     return {
       wrapper: {
@@ -134,13 +136,13 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
   private drawHandles(wrapper: SVGElement, coords: HandlesCoords) {
     const handleOptions: TsGanttChartBarHandleOptions = { width: coords.width, height: coords.height };
 
-    const startHandle = new TsGanttDateStartHandle(handleOptions, null, null);
+    const startHandle = new TsGanttDateStartHandle(handleOptions, null);
     startHandle.appendToWithOffset(wrapper, coords.startHandleOffsetX);
 
-    const endHandle = new TsGanttDateEndHandle(handleOptions, null, null);
+    const endHandle = new TsGanttDateEndHandle(handleOptions, null);
     endHandle.appendToWithOffset(wrapper, coords.endHandleOffsetX);
 
-    const progressHandle = new TsGanttProgressHandle(handleOptions, null, null);
+    const progressHandle = new TsGanttProgressHandle(handleOptions, null);
     progressHandle.appendToWithOffset(wrapper, coords.progressHandleOffsetX);
   }
 

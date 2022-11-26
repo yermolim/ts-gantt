@@ -2,13 +2,9 @@ import { TsGanttRowSymbols } from "./ts-gantt-common";
 import { TsGanttTask } from "./ts-gantt-task";
 
 class TsGanttOptions {
-
-  // IMPLEMENT
-  // enableChartEdit = false;
-  // enablePlannedDatesEdit = true;
-  // enableActualDatesEdit = true;
-  // bindParentDatesToChild = true;
-  // enableProgressEdit = true;
+  // not implemented yet
+  bindParentDatesToChild = false;
+  enableChartEdit = false;
 
   useShadowDom: false;
 

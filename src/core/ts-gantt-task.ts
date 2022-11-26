@@ -290,8 +290,8 @@ export class TsGanttTask {
       return "overdue";
     }
     return "in-progress";
-  }  
-  
+  }
+
   toModel(): TsGanttTaskModel {
     const model = <TsGanttTaskModel>{};
 
@@ -355,6 +355,10 @@ export class TsGanttTask {
     }
     const offsetX = taskMinDate.diff(chartMinDate, "day") * dayWidthPx;
     return offsetX;
+  }
+
+  updateParents() {
+    // TODO: implement
   }
 }
 

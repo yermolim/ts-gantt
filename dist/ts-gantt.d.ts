@@ -64,6 +64,7 @@ export declare class TsGanttTask {
 		maxDate: dayjs.Dayjs;
 	};
 	getHorizontalOffsetPx(chartBarMode: ChartBarMode, chartMinDate: dayjs.Dayjs, dayWidthPx: number): number;
+	updateParents(): void;
 }
 export interface TsGanttTaskUpdateResult {
 	oldTasks: TsGanttTask[];
@@ -77,6 +78,8 @@ export interface TsGanttTaskChangeResult {
 }
 export declare type TsGanttTaskState = "not-started" | "in-progress" | "overdue" | "completed" | "completed-late";
 export declare class TsGanttOptions {
+	bindParentDatesToChild: boolean;
+	enableChartEdit: boolean;
 	useShadowDom: false;
 	multilineSelection: boolean;
 	useCtrlKeyForMultilineSelection: boolean;

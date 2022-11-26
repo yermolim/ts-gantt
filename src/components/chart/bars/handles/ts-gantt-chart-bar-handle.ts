@@ -1,6 +1,5 @@
 import { createSvgElement } from "../../../../core/ts-gantt-common";
 import { TsGanttConst } from "../../../../core/ts-gantt-const";
-import { TsGanttTask } from "../../../../core/ts-gantt-task";
 
 import { TsGanttSvgComponentBase } from "../../../abstract/ts-gantt-svg-component-base";
 
@@ -8,15 +7,13 @@ import { TsGanttChartBarHandleOptions } from "./ts-gantt-chart-bar-handle-option
 
 export abstract class TsGanttChartBarHandle extends TsGanttSvgComponentBase {  
   protected readonly _options: TsGanttChartBarHandleOptions;
-  protected readonly _task: TsGanttTask;
-  protected readonly _callbackOnTaskUpdate: () => {};
+  protected readonly _callbackOnMoveUpdate: () => {};
 
-  constructor(options: TsGanttChartBarHandleOptions, task: TsGanttTask, callbackOnTaskUpdate: () => {}) {
+  constructor(options: TsGanttChartBarHandleOptions, callbackOnMove: () => {}) {
     super();
 
     this._options = options;
-    this._task = task;
-    this._callbackOnTaskUpdate = callbackOnTaskUpdate;
+    this._callbackOnMoveUpdate = callbackOnMove;
 
     this.draw();
   }

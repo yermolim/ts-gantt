@@ -1,14 +1,13 @@
 import { createSvgElement } from "../../../../core/ts-gantt-common";
 import { TsGanttConst } from "../../../../core/ts-gantt-const";
-import { TsGanttTask } from "../../../../core/ts-gantt-task";
 
 import { TsGanttChartBarHandleOptions } from "./ts-gantt-chart-bar-handle-options";
 import { TsGanttChartBarHandle } from "./ts-gantt-chart-bar-handle";
 
 export class TsGanttDateEndHandle extends TsGanttChartBarHandle {
   
-  constructor(options: TsGanttChartBarHandleOptions, task: TsGanttTask, callbackOnTaskUpdate: () => {}) {
-    super(options, task, callbackOnTaskUpdate);
+  constructor(options: TsGanttChartBarHandleOptions, callbackOnMove: () => {}) {
+    super(options, callbackOnMove);
   }
 
   protected override drawHandle(wrapper: SVGElement): SVGElement {

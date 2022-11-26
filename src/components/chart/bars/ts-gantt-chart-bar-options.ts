@@ -6,13 +6,18 @@ export interface TsGanttChartBarOptions {
   minDate: dayjs.Dayjs; 
   startDate: dayjs.Dayjs; 
   endDate: dayjs.Dayjs;
+
   barType: ChartBarType;
-  showProgress: boolean;
+
   dayWidth: number;
   minWrapperWidth: number;
   wrapperHeight: number;
   borderWidth: number;
   cornerRadius: number;
   topPosition: number;
+
+  showProgress: boolean;
   progress: number;
+
+  showHandles: boolean;
 }

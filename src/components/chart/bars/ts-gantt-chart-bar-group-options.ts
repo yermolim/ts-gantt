@@ -4,6 +4,7 @@ import { TsGanttOptions } from "../../../core/ts-gantt-options";
 class TsGanttChartBarGroupOptions {
   readonly mode: ChartBarMode;
   readonly showProgress: boolean;
+  readonly showHandles: boolean;
   readonly dayWidth: number;
   readonly rowHeight: number; 
   readonly barMinWidth: number;
@@ -16,6 +17,7 @@ class TsGanttChartBarGroupOptions {
   static getFromGanttOptions(options: TsGanttOptions): TsGanttChartBarGroupOptions {
     const mode = options.chartDisplayMode;
     const showProgress = options.chartShowProgress;
+    const showHandles = options.enableChartEdit;
     const dayWidth = options.dayWidthPx;
     const rowHeight = options.rowHeightPx;
     const border = options.borderWidthPx;
@@ -38,7 +40,7 @@ class TsGanttChartBarGroupOptions {
         break;
     }
 
-    return { mode, showProgress, dayWidth, rowHeight,
+    return { mode, showProgress, showHandles, dayWidth, rowHeight,
       barMinWidth, barHeight, barBorder, barCornerR, y0, y1 };
   }
 }

@@ -404,6 +404,8 @@ const TsGanttConst = {
 
 class TsGanttOptions {
     constructor(item = null) {
+        this.bindParentDatesToChild = false;
+        this.enableChartEdit = false;
         this.multilineSelection = true;
         this.useCtrlKeyForMultilineSelection = true;
         this.drawTodayLine = true;
@@ -915,6 +917,8 @@ class TsGanttTask {
         const offsetX = taskMinDate.diff(chartMinDate, "day") * dayWidthPx;
         return offsetX;
     }
+    updateParents() {
+    }
 }
 TsGanttTask.defaultComparer = (a, b) => a.compareTo(b);
 
@@ -1359,6 +1363,7 @@ class TsGanttChartBarGroupOptions {
     static getFromGanttOptions(options) {
         const mode = options.chartDisplayMode;
         const showProgress = options.chartShowProgress;
+        const showHandles = options.enableChartEdit;
         const dayWidth = options.dayWidthPx;
         const rowHeight = options.rowHeightPx;
         const border = options.borderWidthPx;
@@ -1379,7 +1384,7 @@ class TsGanttChartBarGroupOptions {
                 barHeight = rowHeight - 2 * barMargin;
                 break;
         }
-        return { mode, showProgress, dayWidth, rowHeight,
+        return { mode, showProgress, showHandles, dayWidth, rowHeight,
             barMinWidth, barHeight, barBorder, barCornerR, y0, y1 };
     }
 }
@@ -1405,11 +1410,10 @@ class TsGanttSvgComponentBase {
 }
 
 class TsGanttChartBarHandle extends TsGanttSvgComponentBase {
-    constructor(options, task, callbackOnTaskUpdate) {
+    constructor(options, callbackOnMove) {
         super();
         this._options = options;
-        this._task = task;
-        this._callbackOnTaskUpdate = callbackOnTaskUpdate;
+        this._callbackOnMoveUpdate = callbackOnMove;
         this.draw();
     }
     draw() {
@@ -1431,8 +1435,8 @@ class TsGanttChartBarHandle extends TsGanttSvgComponentBase {
 }
 
 class TsGanttDateStartHandle extends TsGanttChartBarHandle {
-    constructor(options, task, callbackOnTaskUpdate) {
-        super(options, task, callbackOnTaskUpdate);
+    constructor(options, callbackOnMove) {
+        super(options, callbackOnMove);
     }
     drawHandle(wrapper) {
         const handleSvg = createSvgElement("polygon", [TsGanttConst.CLASSES.CHART.BAR.HANDLE], [
@@ -1443,8 +1447,8 @@ class TsGanttDateStartHandle extends TsGanttChartBarHandle {
 }
 
 class TsGanttDateEndHandle extends TsGanttChartBarHandle {
-    constructor(options, task, callbackOnTaskUpdate) {
-        super(options, task, callbackOnTaskUpdate);
+    constructor(options, callbackOnMove) {
+        super(options, callbackOnMove);
     }
     drawHandle(wrapper) {
         const handleSvg = createSvgElement("polygon", [TsGanttConst.CLASSES.CHART.BAR.HANDLE], [
@@ -1455,8 +1459,8 @@ class TsGanttDateEndHandle extends TsGanttChartBarHandle {
 }
 
 class TsGanttProgressHandle extends TsGanttChartBarHandle {
-    constructor(options, task, callbackOnTaskUpdate) {
-        super(options, task, callbackOnTaskUpdate);
+    constructor(options, callbackOnMove) {
+        super(options, callbackOnMove);
     }
     drawHandle(wrapper) {
         const handleSvg = createSvgElement("circle", [TsGanttConst.CLASSES.CHART.BAR.HANDLE], [
@@ -1487,7 +1491,9 @@ class TsGanttChartBar extends TsGanttSvgComponentBase {
         if (this._options.showProgress) {
             this.drawProgressBars(wrapper, barCoords);
         }
-        this.drawHandles(wrapper, handlesCoords);
+        if (this._options.showHandles) {
+            this.drawHandles(wrapper, handlesCoords);
+        }
         this._defaultOffsetX = wrapperCoords.left;
         this._svg = wrapper;
     }
@@ -1509,7 +1515,7 @@ class TsGanttChartBar extends TsGanttSvgComponentBase {
             : calculatedProgressWidth;
         const startHandleOffsetX = 0;
         const endHandleOffsetX = wrapperWidth - handleWidth;
-        const progressHandleOffsetX = Math.min(barLeft + progressBarWidth, barLeft + barWidth - handleWidth);
+        const progressHandleOffsetX = barLeft + progressBarWidth - handleWidth / 2;
         return {
             wrapper: {
                 width: wrapperWidth,
@@ -1563,11 +1569,11 @@ class TsGanttChartBar extends TsGanttSvgComponentBase {
     }
     drawHandles(wrapper, coords) {
         const handleOptions = { width: coords.width, height: coords.height };
-        const startHandle = new TsGanttDateStartHandle(handleOptions, null, null);
+        const startHandle = new TsGanttDateStartHandle(handleOptions, null);
         startHandle.appendToWithOffset(wrapper, coords.startHandleOffsetX);
-        const endHandle = new TsGanttDateEndHandle(handleOptions, null, null);
+        const endHandle = new TsGanttDateEndHandle(handleOptions, null);
         endHandle.appendToWithOffset(wrapper, coords.endHandleOffsetX);
-        const progressHandle = new TsGanttProgressHandle(handleOptions, null, null);
+        const progressHandle = new TsGanttProgressHandle(handleOptions, null);
         progressHandle.appendToWithOffset(wrapper, coords.progressHandleOffsetX);
     }
     createWrapper(coords) {
@@ -1611,7 +1617,7 @@ class TsGanttChartBarGroup {
         });
     }
     draw(task, options) {
-        const { mode, showProgress, dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
+        const { mode, showProgress, showHandles, dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
         const { minDate, maxDate } = task.getMinMaxDates(mode);
         if (!minDate || !maxDate) {
             return;
@@ -1622,6 +1628,7 @@ class TsGanttChartBarGroup {
         const commonBarOptionsPartial = {
             minDate,
             showProgress,
+            showHandles,
             dayWidth,
             minWrapperWidth: barMinWidth,
             wrapperHeight: barHeight,

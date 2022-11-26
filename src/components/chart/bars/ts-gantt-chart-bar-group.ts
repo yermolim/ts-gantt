@@ -39,7 +39,8 @@ export class TsGanttChartBarGroup implements AppendableComponent {
   }
 
   private draw(task: TsGanttTask, options: TsGanttChartBarGroupOptions) {
-    const { mode, showProgress, dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
+    const { mode, showProgress, showHandles, 
+      dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
 
     const { minDate, maxDate } = task.getMinMaxDates(mode);
     if (!minDate || !maxDate) {
@@ -53,6 +54,7 @@ export class TsGanttChartBarGroup implements AppendableComponent {
     const commonBarOptionsPartial = {
       minDate,
       showProgress,
+      showHandles,
       dayWidth, 
       minWrapperWidth: barMinWidth,
       wrapperHeight: barHeight, 
