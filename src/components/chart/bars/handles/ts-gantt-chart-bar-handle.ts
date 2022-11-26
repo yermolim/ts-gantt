@@ -4,14 +4,14 @@ import { TsGanttTask } from "../../../../core/ts-gantt-task";
 
 import { TsGanttSvgComponentBase } from "../../../abstract/ts-gantt-svg-component-base";
 
-import { TsGanttChartBarOptions } from "../ts-gantt-chart-bar-options";
+import { TsGanttChartBarHandleOptions } from "./ts-gantt-chart-bar-handle-options";
 
 export abstract class TsGanttChartBarHandle extends TsGanttSvgComponentBase {  
-  protected readonly _options: TsGanttChartBarOptions;
+  protected readonly _options: TsGanttChartBarHandleOptions;
   protected readonly _task: TsGanttTask;
   protected readonly _callbackOnTaskUpdate: () => {};
 
-  constructor(options: TsGanttChartBarOptions, task: TsGanttTask, callbackOnTaskUpdate: () => {}) {
+  constructor(options: TsGanttChartBarHandleOptions, task: TsGanttTask, callbackOnTaskUpdate: () => {}) {
     super();
 
     this._options = options;
@@ -21,18 +21,25 @@ export abstract class TsGanttChartBarHandle extends TsGanttSvgComponentBase {
     this.draw();
   }
 
-  protected abstract draw(): void;
+  protected draw() {
+    const wrapper = this.createWrapper();
+    this.drawHandle(wrapper);
+    this._svg = wrapper;
+  }  
 
-  protected createWrapper(): any {
-    const { wrapperHeight, topPosition } = this._options;
+  protected createWrapper(): SVGElement {
+    const { width, height } = this._options;
 
-    const wrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BAR_HANDLE_WRAPPER], [
+    const wrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BAR.HANDLE_WRAPPER], [
       ["x", "0"],
-      ["y", topPosition + ""],
-      ["width", wrapperHeight + ""],
-      ["height", wrapperHeight + ""],
+      ["y", "0"],
+      ["viewBox", "0 0 100 100"],
+      ["width", width + ""],
+      ["height", height + ""],
     ]);
 
     return wrapper;
   }
+
+  protected abstract drawHandle(wrapper: SVGElement): void;
 }

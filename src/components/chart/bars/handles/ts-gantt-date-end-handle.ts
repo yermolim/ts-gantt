@@ -1,17 +1,21 @@
+import { createSvgElement } from "../../../../core/ts-gantt-common";
+import { TsGanttConst } from "../../../../core/ts-gantt-const";
 import { TsGanttTask } from "../../../../core/ts-gantt-task";
 
-import { TsGanttChartBarOptions } from "../ts-gantt-chart-bar-options";
+import { TsGanttChartBarHandleOptions } from "./ts-gantt-chart-bar-handle-options";
 import { TsGanttChartBarHandle } from "./ts-gantt-chart-bar-handle";
 
 export class TsGanttDateEndHandle extends TsGanttChartBarHandle {
   
-  constructor(options: TsGanttChartBarOptions, task: TsGanttTask, callbackOnTaskUpdate: () => {}) {
+  constructor(options: TsGanttChartBarHandleOptions, task: TsGanttTask, callbackOnTaskUpdate: () => {}) {
     super(options, task, callbackOnTaskUpdate);
   }
 
-  protected override draw(): void {
-    const wrapper = this.createWrapper();
+  protected override drawHandle(wrapper: SVGElement): SVGElement {
+    const handleSvg = createSvgElement("polygon", [TsGanttConst.CLASSES.CHART.BAR.HANDLE], [
+      ["points", "40 25, 40 75, 90 50"],
+    ], wrapper);
 
-    this._svg = null;
+    return handleSvg;
   }
 }

@@ -313,6 +313,11 @@ const styles = `
     stroke: var(--tsg-chart-bar-accent-2-final);
     stroke-width: var(--tsg-bar-stroke-width);
   }
+
+  .tsg-chart-bar-handle {
+    fill: var(--tsg-symbol-color-final);
+    cursor: ew-resize;
+  }
 </style>
 `;
 
@@ -351,14 +356,16 @@ const TsGanttConst = {
             ROW_WRAPPER: "tsg-chart-row-wrapper",
             ROW: "tsg-chart-row",
             ROW_BACKGROUND: "tsg-chart-row-bg",
-            BAR_GROUP: "tsg-chart-bar-group",
-            BAR_WRAPPER: "tsg-chart-bar-wrapper",
-            BAR_PLANNED: "tsg-chart-bar-planned",
-            BAR_PLANNED_PROGRESS: "tsg-chart-bar-planned-progress",
-            BAR_ACTUAL: "tsg-chart-bar-actual",
-            BAR_ACTUAL_PROGRESS: "tsg-chart-bar-actual-progress",
-            BAR_HANDLE_WRAPPER: "tsg-chart-bar-handle-wrapper",
-            BAR_HANDLE: "tsg-chart-bar-handle",
+            BAR: {
+                GROUP: "tsg-chart-bar-group",
+                WRAPPER: "tsg-chart-bar-wrapper",
+                PLANNED: "tsg-chart-bar-planned",
+                PLANNED_PROGRESS: "tsg-chart-bar-planned-progress",
+                ACTUAL: "tsg-chart-bar-actual",
+                ACTUAL_PROGRESS: "tsg-chart-bar-actual-progress",
+                HANDLE_WRAPPER: "tsg-chart-bar-handle-wrapper",
+                HANDLE: "tsg-chart-bar-handle",
+            },
         },
         TABLE: {
             MAIN_ELEMENT: "tsg-table",
@@ -1364,12 +1371,76 @@ class TsGanttSvgComponentBase {
         parent.append(this._svg);
     }
     appendToWithOffset(parent, offsetX) {
-        if (!this._svg || !offsetX) {
+        if (!this._svg || (!offsetX && offsetX !== 0)) {
             return;
         }
-        const currentOffsetX = +this._svg.getAttribute("x");
+        const currentOffsetX = +this._svg.getAttribute("x") || 0;
         this._svg.setAttribute("x", currentOffsetX + offsetX + "");
         parent.append(this._svg);
+    }
+}
+
+class TsGanttChartBarHandle extends TsGanttSvgComponentBase {
+    constructor(options, task, callbackOnTaskUpdate) {
+        super();
+        this._options = options;
+        this._task = task;
+        this._callbackOnTaskUpdate = callbackOnTaskUpdate;
+        this.draw();
+    }
+    draw() {
+        const wrapper = this.createWrapper();
+        this.drawHandle(wrapper);
+        this._svg = wrapper;
+    }
+    createWrapper() {
+        const { width, height } = this._options;
+        const wrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BAR.HANDLE_WRAPPER], [
+            ["x", "0"],
+            ["y", "0"],
+            ["viewBox", "0 0 100 100"],
+            ["width", width + ""],
+            ["height", height + ""],
+        ]);
+        return wrapper;
+    }
+}
+
+class TsGanttDateStartHandle extends TsGanttChartBarHandle {
+    constructor(options, task, callbackOnTaskUpdate) {
+        super(options, task, callbackOnTaskUpdate);
+    }
+    drawHandle(wrapper) {
+        const handleSvg = createSvgElement("polygon", [TsGanttConst.CLASSES.CHART.BAR.HANDLE], [
+            ["points", "60 25, 60 75, 10 50"],
+        ], wrapper);
+        return handleSvg;
+    }
+}
+
+class TsGanttDateEndHandle extends TsGanttChartBarHandle {
+    constructor(options, task, callbackOnTaskUpdate) {
+        super(options, task, callbackOnTaskUpdate);
+    }
+    drawHandle(wrapper) {
+        const handleSvg = createSvgElement("polygon", [TsGanttConst.CLASSES.CHART.BAR.HANDLE], [
+            ["points", "40 25, 40 75, 90 50"],
+        ], wrapper);
+        return handleSvg;
+    }
+}
+
+class TsGanttProgressHandle extends TsGanttChartBarHandle {
+    constructor(options, task, callbackOnTaskUpdate) {
+        super(options, task, callbackOnTaskUpdate);
+    }
+    drawHandle(wrapper) {
+        const handleSvg = createSvgElement("circle", [TsGanttConst.CLASSES.CHART.BAR.HANDLE], [
+            ["cx", "50"],
+            ["cy", "50"],
+            ["r", "25"],
+        ], wrapper);
+        return handleSvg;
     }
 }
 
@@ -1380,62 +1451,102 @@ class TsGanttChartBar extends TsGanttSvgComponentBase {
         this.draw();
     }
     draw() {
-        const drawTaskBarWrapperResult = this.createWrapper();
-        this.drawTaskBar(drawTaskBarWrapperResult);
+        const { wrapper: wrapperCoords, bar: barCoords, handles: handlesCoords } = this.getDrawData();
+        const wrapper = this.createWrapper(wrapperCoords);
+        this.drawTaskBar(wrapper, barCoords);
         if (this._options.showProgress) {
-            this.drawProgressBars(drawTaskBarWrapperResult);
+            this.drawProgressBars(wrapper, barCoords);
         }
-        this._svg = drawTaskBarWrapperResult.wrapper;
+        this.drawHandles(wrapper, handlesCoords);
+        this._svg = wrapper;
     }
-    drawTaskBar(options) {
-        const { barType, cornerRadius } = this._options;
-        const { wrapper, width, height, margin } = options;
-        const barClassList = barType === "planned"
-            ? [TsGanttConst.CLASSES.CHART.BAR_PLANNED]
-            : [TsGanttConst.CLASSES.CHART.BAR_ACTUAL];
-        createSvgElement("rect", barClassList, [
-            ["x", margin + ""],
-            ["y", margin + ""],
-            ["width", width + ""],
-            ["height", height + ""],
-            ["rx", cornerRadius + ""],
-            ["ry", cornerRadius + ""],
-        ], wrapper);
-    }
-    drawProgressBars(options) {
-        const { barType, minWrapperWidth, borderWidth, cornerRadius, progress } = this._options;
-        const { wrapper, width, height, margin } = options;
-        const calculatedProgressWidth = width * progress / 100;
-        const progressWidth = calculatedProgressWidth < minWrapperWidth - borderWidth
+    getDrawData() {
+        const { minDate, startDate, endDate, dayWidth, minWrapperWidth, wrapperHeight, borderWidth, topPosition, progress, } = this._options;
+        const baseOffsetX = (startDate.diff(minDate, "day")) * dayWidth;
+        const widthDays = endDate.diff(startDate, "day") + 1;
+        const baseWidth = Math.max(widthDays * dayWidth, minWrapperWidth);
+        const handleWidth = wrapperHeight;
+        const wrapperWidth = baseWidth + 2 * handleWidth;
+        const wrapperLeft = baseOffsetX - handleWidth;
+        const barWidth = baseWidth - borderWidth;
+        const barHeight = wrapperHeight - borderWidth;
+        const barLeft = borderWidth / 2 + handleWidth;
+        const barTop = borderWidth / 2;
+        const calculatedProgressWidth = barWidth * progress / 100;
+        const progressBarWidth = calculatedProgressWidth < minWrapperWidth - borderWidth
             ? 0
             : calculatedProgressWidth;
-        const progressBarClassList = barType === "planned"
-            ? [TsGanttConst.CLASSES.CHART.BAR_PLANNED_PROGRESS]
-            : [TsGanttConst.CLASSES.CHART.BAR_ACTUAL_PROGRESS];
-        createSvgElement("rect", progressBarClassList, [
-            ["x", margin + ""],
-            ["y", margin + ""],
-            ["width", progressWidth + ""],
-            ["height", height + ""],
+        const startHandleOffsetX = 0;
+        const endHandleOffsetX = wrapperWidth - handleWidth;
+        const progressHandleOffsetX = Math.min(barLeft + progressBarWidth, barLeft + barWidth - handleWidth);
+        return {
+            wrapper: {
+                width: wrapperWidth,
+                height: wrapperHeight,
+                left: wrapperLeft,
+                top: topPosition,
+            },
+            bar: {
+                width: barWidth,
+                height: barHeight,
+                left: barLeft,
+                top: barTop,
+                progressWidth: progressBarWidth,
+            },
+            handles: {
+                width: handleWidth,
+                height: handleWidth,
+                startHandleOffsetX,
+                endHandleOffsetX,
+                progressHandleOffsetX,
+            }
+        };
+    }
+    drawTaskBar(wrapper, coords) {
+        const { barType, cornerRadius } = this._options;
+        const barClassList = barType === "planned"
+            ? [TsGanttConst.CLASSES.CHART.BAR.PLANNED]
+            : [TsGanttConst.CLASSES.CHART.BAR.ACTUAL];
+        createSvgElement("rect", barClassList, [
+            ["x", coords.left + ""],
+            ["y", coords.top + ""],
+            ["width", coords.width + ""],
+            ["height", coords.height + ""],
             ["rx", cornerRadius + ""],
             ["ry", cornerRadius + ""],
         ], wrapper);
     }
-    createWrapper() {
-        const { minDate, startDate, endDate, dayWidth, minWrapperWidth, wrapperHeight, borderWidth, topPosition } = this._options;
-        const offsetX = (startDate.diff(minDate, "day")) * dayWidth;
-        const widthDays = endDate.diff(startDate, "day") + 1;
-        const wrapperWidth = Math.max(widthDays * dayWidth, minWrapperWidth);
-        const wrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BAR_WRAPPER], [
-            ["x", offsetX + ""],
-            ["y", topPosition + ""],
-            ["width", wrapperWidth + ""],
-            ["height", wrapperHeight + ""],
+    drawProgressBars(wrapper, coords) {
+        const { barType, cornerRadius } = this._options;
+        const progressBarClassList = barType === "planned"
+            ? [TsGanttConst.CLASSES.CHART.BAR.PLANNED_PROGRESS]
+            : [TsGanttConst.CLASSES.CHART.BAR.ACTUAL_PROGRESS];
+        createSvgElement("rect", progressBarClassList, [
+            ["x", coords.left + ""],
+            ["y", coords.top + ""],
+            ["width", coords.progressWidth + ""],
+            ["height", coords.height + ""],
+            ["rx", cornerRadius + ""],
+            ["ry", cornerRadius + ""],
+        ], wrapper);
+    }
+    drawHandles(wrapper, coords) {
+        const handleOptions = { width: coords.width, height: coords.height };
+        const startHandle = new TsGanttDateStartHandle(handleOptions, null, null);
+        startHandle.appendToWithOffset(wrapper, coords.startHandleOffsetX);
+        const endHandle = new TsGanttDateEndHandle(handleOptions, null, null);
+        endHandle.appendToWithOffset(wrapper, coords.endHandleOffsetX);
+        const progressHandle = new TsGanttProgressHandle(handleOptions, null, null);
+        progressHandle.appendToWithOffset(wrapper, coords.progressHandleOffsetX);
+    }
+    createWrapper(coords) {
+        const wrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BAR.WRAPPER], [
+            ["x", coords.left + ""],
+            ["y", coords.top + ""],
+            ["width", coords.width + ""],
+            ["height", coords.height + ""],
         ]);
-        const margin = borderWidth / 2;
-        const width = wrapperWidth - borderWidth;
-        const height = wrapperHeight - borderWidth;
-        return { wrapper, width, height, margin };
+        return wrapper;
     }
 }
 

@@ -29,7 +29,7 @@ export class TsGanttChartBarGroup implements AppendableComponent {
     });
   }
 
-  appendToWithOffset(parent: Element, offsetX: number) {    
+  appendToWithOffset(parent: Element, offsetX: number) {
     if (!this._bars?.length || !offsetX) {
       return;
     }

@@ -315,5 +315,10 @@ export const styles = /*html*/`
     stroke: var(--tsg-chart-bar-accent-2-final);
     stroke-width: var(--tsg-bar-stroke-width);
   }
+
+  .tsg-chart-bar-handle {
+    fill: var(--tsg-symbol-color-final);
+    cursor: ew-resize;
+  }
 </style>
 `;

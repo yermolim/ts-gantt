@@ -311,3 +311,8 @@
   stroke: var(--tsg-chart-bar-accent-2);
   stroke-width: var(--tsg-bar-stroke-width);
 }
+
+.tsg-chart-bar-handle {
+  fill: var(--tsg-symbol-color);
+  cursor: ew-resize;
+}
