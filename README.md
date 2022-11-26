@@ -142,7 +142,9 @@ preffered way to customize styling is to change css variable values. It'll work 
   --tsg-header-color: rgb(210, 210, 210); /* header background color */
   --tsg-border-color: rgb(190, 190, 190);
   --tsg-symbol-color: rgb(80, 80, 80); /* color of row special symbols */
-  --tsg-selection-color: rgb(230, 230, 230); /* background color of selected row */
+  --tsg-selection-color: rgb(230, 230, 230); /* background color of selected row */  
+  --tsg-scrollbar-track-color: #eeeeee; /* webkit browsers only */  
+  --tsg-scrollbar-thumb-color: #b0b0b0; /* webkit browsers only */  
 
   --tsg-not-started-fg-color: dimgray; /* color of task row text depending on task state */
   --tsg-in-progress-fg-color: black;

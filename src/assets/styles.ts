@@ -14,6 +14,8 @@ export const styles = /*html*/`
     --tsg-border-color-final: var(--tsg-border-color, lightgray);
     --tsg-symbol-color-final: var(--tsg-symbol-color, dimgray);
     --tsg-selection-color-final: var(--tsg-selection-color, ghostwhite);
+    --tsg-scrollbar-track-color-final: var(--tsg-scrollbar-track-color, #eeeeee);
+    --tsg-scrollbar-thumb-color-final: var(--tsg-scrollbar-thumb-color, #b0b0b0);
 
     --tsg-not-started-fg-color-final: var(--tsg-not-started-fg-color, dimgray);
     --tsg-in-progress-fg-color-final: var(--tsg-in-progress-fg-color, black);
@@ -319,6 +321,25 @@ export const styles = /*html*/`
   .tsg-chart-bar-handle {
     fill: var(--tsg-symbol-color-final);
     cursor: ew-resize;
+  }
+
+  .tsg-table-wrapper::-webkit-scrollbar { 
+    width: 0;
+    height: 15px;
+  }
+  .tsg-chart-wrapper::-webkit-scrollbar { 
+    width: 15px;
+    height: 15px;
+  }
+  .tsg-table-wrapper::-webkit-scrollbar-track,
+  .tsg-chart-wrapper::-webkit-scrollbar-track {
+    border-radius: 0;
+    background: var(--tsg-scrollbar-track-color-final);
+  }
+  .tsg-table-wrapper::-webkit-scrollbar-thumb,
+  .tsg-chart-wrapper::-webkit-scrollbar-thumb {
+    border-radius: 0;
+    background: var(--tsg-scrollbar-thumb-color-final);
   }
 </style>
 `;
