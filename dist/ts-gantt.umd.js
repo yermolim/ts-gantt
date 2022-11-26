@@ -1376,12 +1376,15 @@
       appendTo(parent) {
           parent.append(this._svg);
       }
-      appendToWithOffset(parent, offsetX) {
+      appendToWithOffset(parent, offsetX, addOffsetToCurrent = false) {
           if (!this._svg || (!offsetX && offsetX !== 0)) {
               return;
           }
-          const currentOffsetX = +this._svg.getAttribute("x") || 0;
-          this._svg.setAttribute("x", currentOffsetX + offsetX + "");
+          if (addOffsetToCurrent) {
+              const currentOffsetX = +this._svg.getAttribute("x") || 0;
+              offsetX = currentOffsetX + offsetX;
+          }
+          this._svg.setAttribute("x", offsetX + "");
           parent.append(this._svg);
       }
   }
@@ -1456,6 +1459,12 @@
           this._options = options;
           this.draw();
       }
+      appendToWithOffset(parent, offsetX, addOffsetToCurrent = false) {
+          if (!addOffsetToCurrent) {
+              offsetX = offsetX + this._defaultOffsetX;
+          }
+          super.appendToWithOffset(parent, offsetX, addOffsetToCurrent);
+      }
       draw() {
           const { wrapper: wrapperCoords, bar: barCoords, handles: handlesCoords } = this.getDrawData();
           const wrapper = this.createWrapper(wrapperCoords);
@@ -1464,6 +1473,7 @@
               this.drawProgressBars(wrapper, barCoords);
           }
           this.drawHandles(wrapper, handlesCoords);
+          this._defaultOffsetX = wrapperCoords.left;
           this._svg = wrapper;
       }
       getDrawData() {

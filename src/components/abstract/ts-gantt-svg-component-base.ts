@@ -11,12 +11,16 @@ export abstract class TsGanttSvgComponentBase implements AppendableComponent {
     parent.append(this._svg);
   }
 
-  appendToWithOffset(parent: Element, offsetX: number) {
+  appendToWithOffset(parent: Element, offsetX: number, addOffsetToCurrent = false) {
     if (!this._svg || (!offsetX && offsetX !== 0)) {
       return;
     }
-    const currentOffsetX = +this._svg.getAttribute("x") || 0;
-    this._svg.setAttribute("x", currentOffsetX + offsetX + "");
+
+    if (addOffsetToCurrent) {
+      const currentOffsetX = +this._svg.getAttribute("x") || 0;
+      offsetX = currentOffsetX + offsetX;
+    }
+    this._svg.setAttribute("x", offsetX + "");
     parent.append(this._svg);
   }
 }

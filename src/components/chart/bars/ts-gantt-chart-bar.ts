@@ -12,11 +12,20 @@ import { TsGanttProgressHandle } from "./handles/ts-gantt-progress-handle";
 export class TsGanttChartBar extends TsGanttSvgComponentBase {
   private readonly _options: TsGanttChartBarOptions;
 
+  private _defaultOffsetX: number;
+
   constructor(options: TsGanttChartBarOptions) {
     super();
 
     this._options = options;
     this.draw();
+  }
+  
+  override appendToWithOffset(parent: Element, offsetX: number, addOffsetToCurrent = false) {
+    if (!addOffsetToCurrent) {
+      offsetX = offsetX + this._defaultOffsetX;
+    }
+    super.appendToWithOffset(parent, offsetX, addOffsetToCurrent);
   }
 
   private draw() {
@@ -32,6 +41,7 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
 
     this.drawHandles(wrapper, handlesCoords);
 
+    this._defaultOffsetX = wrapperCoords.left;
     this._svg = wrapper;
   }  
 
