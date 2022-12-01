@@ -1,7 +1,7 @@
-import { TsGanttRowSymbols } from "./ts-gantt-common";
+import { ChartBarMode, ChartScale, ColumnTextAlignment, TsGanttRowSymbols } from "./ts-gantt-common";
 import { TsGanttTask } from "./ts-gantt-task";
 
-class TsGanttOptions {
+export class TsGanttOptions {
   // not implemented yet
   bindParentDatesToChild = false;
   enableChartEdit = false;
@@ -15,7 +15,7 @@ class TsGanttOptions {
   highlightRowsDependingOnTaskState = true;
 
   columnsMinWidthPx: number[] = [200, 100, 100, 100, 100, 100, 100, 100];
-  columnsContentAlign: ("start" | "center" | "end")[] = ["start", "end", "center", "center", "center", "center", "center", "center"];
+  columnsContentAlign: (ColumnTextAlignment)[] = ["start", "end", "center", "center", "center", "center", "center", "center"];
 
   separatorWidthPx = 5;
   headerHeightPx = 90;
@@ -32,8 +32,8 @@ class TsGanttOptions {
   };
 
   chartShowProgress = true;
-  chartDisplayMode: "planned" | "actual" | "both" = "both";
-  chartScale: "day" | "week" | "month" | "year" = "month";
+  chartDisplayMode: ChartBarMode = "both";
+  chartScale: ChartScale = "month";
   chartDateOffsetDays: {[key: string]: number} = {
     "day": 14,
     "week": 60,
@@ -151,7 +151,7 @@ class TsGanttOptions {
     ja: (duration: number) => duration === 1 ? "1 日" : duration + " 日間",
   };
 
-  columnValueGetters: ((a: TsGanttTask) => string)[] = [
+  columnValueGetters: (ColumnValueGetter)[] = [
     (task: TsGanttTask) => task.localizedNames && task.localizedNames[this.locale] || task.name,
     (task: TsGanttTask) => (+task.progress.toFixed(2)).toLocaleString("en-US")
       .replace(".", this.localeDecimalSeparator[this.locale] || ".") + " %",
@@ -204,4 +204,4 @@ class TsGanttOptions {
   }
 }
 
-export { TsGanttOptions };
+export type ColumnValueGetter = (a: TsGanttTask) => string;

@@ -90,7 +90,7 @@
             .then(text => {
                 const inputModels = JSON.parse(text);
 
-                const options = new tsGantt.TsGanttOptions({useShadowDom: true, enableChartEdit: false});
+                const options = new tsGantt.TsGanttOptions({useShadowDom: true, enableChartEdit: true});
                 const ganttChart = new tsGantt.TsGantt("#gantt-container", options);
                 ganttChart.tasks = inputModels;
 

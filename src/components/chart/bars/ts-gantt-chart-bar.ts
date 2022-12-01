@@ -97,6 +97,7 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
         startHandleOffsetX,
         endHandleOffsetX,
         progressHandleOffsetX,
+        displacementThreshold: dayWidth,
       }
     };
   }
@@ -134,15 +135,19 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
   }
 
   private drawHandles(wrapper: SVGElement, coords: HandlesCoords) {
-    const handleOptions: TsGanttChartBarHandleOptions = { width: coords.width, height: coords.height };
+    const handleOptions: TsGanttChartBarHandleOptions = { 
+      width: coords.width, 
+      height: coords.height,
+      displacementThreshold: coords.displacementThreshold,
+    };
 
-    const startHandle = new TsGanttDateStartHandle(handleOptions, null);
+    const startHandle = new TsGanttDateStartHandle(handleOptions);
     startHandle.appendToWithOffset(wrapper, coords.startHandleOffsetX);
 
-    const endHandle = new TsGanttDateEndHandle(handleOptions, null);
+    const endHandle = new TsGanttDateEndHandle(handleOptions);
     endHandle.appendToWithOffset(wrapper, coords.endHandleOffsetX);
 
-    const progressHandle = new TsGanttProgressHandle(handleOptions, null);
+    const progressHandle = new TsGanttProgressHandle(handleOptions);
     progressHandle.appendToWithOffset(wrapper, coords.progressHandleOffsetX);
   }
 
@@ -185,4 +190,5 @@ interface HandlesCoords {
   startHandleOffsetX: number;
   endHandleOffsetX: number;
   progressHandleOffsetX: number;
+  displacementThreshold: number;
 }

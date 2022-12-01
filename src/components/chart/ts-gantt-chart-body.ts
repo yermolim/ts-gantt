@@ -108,11 +108,14 @@ class TsGanttChartBody {
       ["data-tsg-row-uuid", task.uuid],
     ], parent);
     rowWrapper.addEventListener("click", (e: MouseEvent) => {
-      rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CLICK, {
-        bubbles: true,
-        composed: true,
-        detail: { task, event: e },
-      }));
+      const target = e.target as HTMLElement;
+      if (!target.classList.contains(TsGanttConst.CLASSES.CHART.BAR.HANDLE)) {
+        rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CLICK, {
+          bubbles: true,
+          composed: true,
+          detail: { task, event: e },
+        }));
+      }
     });
     rowWrapper.addEventListener("contextmenu", (e: MouseEvent) => {
       rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, {

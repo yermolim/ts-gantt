@@ -58,5 +58,12 @@ export interface TsGanttRowSymbols {
   childless: string;
 }
 
+export interface Coords {
+  x: number; 
+  y: number;
+}
+
 export type ChartBarType = "planned" | "actual";
 export type ChartBarMode = ChartBarType | "both";
+export type ChartScale = "day" | "week" | "month" | "year";
+export type ColumnTextAlignment = "start" | "center" | "end";

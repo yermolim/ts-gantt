@@ -1,6 +1,9 @@
 import { AppendableComponent } from "./appendable-component";
+import { AppendableWithOffsetComponent } from "./appendable-with-offset-component";
+import { DestroyableComponent } from "./destroyable-component";
 
-export abstract class TsGanttSvgComponentBase implements AppendableComponent {
+export abstract class TsGanttSvgComponentBase 
+implements AppendableComponent, AppendableWithOffsetComponent, DestroyableComponent {
   protected _svg: SVGElement;
 
   destroy() {

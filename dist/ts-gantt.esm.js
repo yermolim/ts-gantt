@@ -353,6 +353,8 @@ const TsGanttConst = {
         ROW_CONTEXT_MENU: "tsgrowcontextmenu",
         TABLE_COLUMN_REORDER: "tsgtablecolreorder",
         TABLE_BODY_CELL_EXPANDER_CLICK: "tsgexpanderclick",
+        HANDLE_MOVE: "tsghandlemove",
+        HANDLE_MOVE_END: "tsghandlemoveend",
     },
     CLASSES: {
         ROOT: {
@@ -1098,10 +1100,20 @@ class TsGanttTableColumnOrder {
     }
 }
 
+class TsGanttHtmlComponentBase {
+    destroy() {
+        this._html.remove();
+    }
+    appendTo(parent) {
+        parent.append(this._html);
+    }
+}
+
 const TABLE_COLUMN_DATA_ORDER = "tsgColOrder";
 const TABLE_COLUMN_REORDER_DATA = "application/tsg-col-order";
-class TsGanttTableColumn {
-    constructor(minWidth, order, header, textAlign, valueGetter) {
+class TsGanttTableColumn extends TsGanttHtmlComponentBase {
+    constructor(options) {
+        super();
         this._dragActive = false;
         this.onMouseDownOnResizer = (e) => {
             document.addEventListener("mousemove", this.onMouseMoveWhileResizing);
@@ -1114,11 +1126,11 @@ class TsGanttTableColumn {
             if (!this._dragActive) {
                 return false;
             }
-            const headerOffset = this.html.getBoundingClientRect().left;
+            const headerOffset = this._html.getBoundingClientRect().left;
             const userDefinedWidth = e instanceof MouseEvent
                 ? e.clientX - headerOffset
                 : e.touches[0].clientX - headerOffset;
-            this.html.style.width = Math.max(this.minWidth, userDefinedWidth) + "px";
+            this._html.style.width = Math.max(this.options.minWidth, userDefinedWidth) + "px";
             e.preventDefault();
         };
         this.onMouseUpWhileResizing = (e) => {
@@ -1128,27 +1140,20 @@ class TsGanttTableColumn {
             document.removeEventListener("touchend", this.onMouseUpWhileResizing);
             this._dragActive = false;
         };
-        this.minWidth = minWidth;
-        this.order = order;
-        this.header = header;
-        this.contentAlign = textAlign;
-        this.valueGetter = valueGetter;
-        this.html = this.createHeaderCell();
-        this.resizer = this.createResizer();
-        this.resizer.addEventListener("mousedown", this.onMouseDownOnResizer);
-        this.resizer.addEventListener("touchstart", this.onMouseDownOnResizer);
-        this.html.append(this.resizer);
+        this.options = options;
+        this._html = this.createHeaderCell();
     }
     createHeaderCell() {
+        const { header, order, minWidth } = this.options;
         const headerCell = document.createElement("th");
         headerCell.classList.add(TsGanttConst.CLASSES.TABLE.HEADER);
-        headerCell.dataset[TABLE_COLUMN_DATA_ORDER] = this.order + "";
-        headerCell.style.minWidth = this.minWidth + "px";
-        headerCell.style.width = this.minWidth + "px";
+        headerCell.dataset[TABLE_COLUMN_DATA_ORDER] = order + "";
+        headerCell.style.minWidth = minWidth + "px";
+        headerCell.style.width = minWidth + "px";
         headerCell.draggable = true;
-        headerCell.innerHTML = this.header;
+        headerCell.innerHTML = header;
         headerCell.addEventListener("dragstart", (e) => {
-            e.dataTransfer.setData(TABLE_COLUMN_REORDER_DATA, this.order + "");
+            e.dataTransfer.setData(TABLE_COLUMN_REORDER_DATA, order + "");
         });
         headerCell.addEventListener("dragover", (e) => {
             e.preventDefault();
@@ -1163,25 +1168,102 @@ class TsGanttTableColumn {
             headerCell.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, {
                 bubbles: true,
                 composed: true,
-                detail: { orderFrom: +orderFrom, orderTo: this.order, event: e },
+                detail: { orderFrom: +orderFrom, orderTo: order, event: e },
             }));
         });
+        headerCell.append(this.createResizer());
         return headerCell;
     }
     createResizer() {
         const resizer = document.createElement("div");
         resizer.classList.add(TsGanttConst.CLASSES.TABLE.COLUMN_RESIZER);
+        resizer.addEventListener("mousedown", this.onMouseDownOnResizer);
+        resizer.addEventListener("touchstart", this.onMouseDownOnResizer);
         return resizer;
     }
 }
 
-class TsGanttTableRow {
-    constructor(task, columns, addStateClass) {
-        this.task = task;
-        this.expander = this.createExpander();
-        this.html = this.createRow(columns, addStateClass);
+class TsGanttTableCell extends TsGanttHtmlComponentBase {
+    constructor(value, alignment, expander) {
+        super();
+        this._html = this.createElement(value, alignment, expander);
     }
-    createRow(columns, addStateClass) {
+    createElement(value, alignment, expander) {
+        const cellElement = document.createElement("td");
+        cellElement.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL);
+        const cellInnerDiv = document.createElement("div");
+        cellInnerDiv.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_TEXT_WRAPPER, alignment);
+        expander === null || expander === void 0 ? void 0 : expander.appendTo(cellInnerDiv);
+        const cellText = document.createElement("p");
+        cellText.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_TEXT);
+        cellText.innerHTML = value;
+        cellInnerDiv.append(cellText);
+        cellElement.append(cellInnerDiv);
+        return cellElement;
+    }
+}
+
+class TsGanttTableExpander extends TsGanttHtmlComponentBase {
+    constructor(options, task) {
+        super();
+        this._options = options;
+        this._task = task;
+        this._html = this.createElement();
+    }
+    updateSymbol() {
+        const task = this._task;
+        const symbols = this._options.rowSymbols;
+        if (!task.hasChildren) {
+            this._html.innerHTML = symbols.childless;
+        }
+        else if (task.expanded) {
+            this._html.innerHTML = symbols.expanded;
+        }
+        else {
+            this._html.innerHTML = symbols.collapsed;
+        }
+    }
+    createElement() {
+        const task = this._task;
+        const expanderElement = document.createElement("p");
+        expanderElement.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_EXPANDER);
+        const lvl = task.nestingLvl;
+        if (lvl) {
+            expanderElement.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_EXPANDER_NESTING_PREFIX +
+                (lvl < 10 ? lvl : 10));
+        }
+        if (task.hasChildren) {
+            expanderElement.addEventListener("click", (e) => {
+                expanderElement.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.TABLE_BODY_CELL_EXPANDER_CLICK, {
+                    bubbles: true,
+                    composed: true,
+                    detail: { task, event: e },
+                }));
+            });
+        }
+        return expanderElement;
+    }
+}
+
+class TsGanttTableRow extends TsGanttHtmlComponentBase {
+    constructor(options, task, columns) {
+        super();
+        this._task = task;
+        this._expander = new TsGanttTableExpander(options, task);
+        this._html = this.createElement(columns, options.highlightRowsDependingOnTaskState);
+    }
+    appendTo(parent) {
+        this._expander.updateSymbol();
+        super.appendTo(parent);
+    }
+    select() {
+        this._html.classList.add(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
+    }
+    deselect() {
+        this._html.classList.remove(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
+    }
+    createElement(columns, addStateClass) {
+        const task = this._task;
         const row = document.createElement("tr");
         row.classList.add(TsGanttConst.CLASSES.TABLE.BODY_ROW);
         row.addEventListener("click", (e) => {
@@ -1190,7 +1272,7 @@ class TsGanttTableRow {
                 row.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CLICK, {
                     bubbles: true,
                     composed: true,
-                    detail: { task: this.task, event: e },
+                    detail: { task, event: e },
                 }));
             }
         });
@@ -1200,48 +1282,19 @@ class TsGanttTableRow {
                 row.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, {
                     bubbles: true,
                     composed: true,
-                    detail: { task: this.task, event: e },
+                    detail: { task, event: e },
                 }));
             }
         });
         if (addStateClass) {
-            row.classList.add(this.task.getState());
+            row.classList.add(task.getState());
         }
-        columns.forEach((x, i) => {
-            const cell = document.createElement("td");
-            cell.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL);
-            const cellInnerDiv = document.createElement("div");
-            cellInnerDiv.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_TEXT_WRAPPER, x.contentAlign);
-            if (i === 0) {
-                cellInnerDiv.append(this.expander);
-            }
-            const cellText = document.createElement("p");
-            cellText.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_TEXT);
-            cellText.innerHTML = x.valueGetter(this.task);
-            cellInnerDiv.append(cellText);
-            cell.append(cellInnerDiv);
-            row.append(cell);
+        columns.forEach((column, i) => {
+            const taskValue = column.valueGetter(task);
+            const cell = new TsGanttTableCell(taskValue, column.textAlign, i === 0 ? this._expander : null);
+            cell.appendTo(row);
         });
         return row;
-    }
-    createExpander() {
-        const expander = document.createElement("p");
-        expander.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_EXPANDER);
-        const lvl = this.task.nestingLvl;
-        if (lvl) {
-            expander.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_EXPANDER_NESTING_PREFIX +
-                (lvl < 10 ? lvl : 10));
-        }
-        if (this.task.hasChildren) {
-            expander.addEventListener("click", (e) => {
-                expander.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.TABLE_BODY_CELL_EXPANDER_CLICK, {
-                    bubbles: true,
-                    composed: true,
-                    detail: { task: this.task, event: e },
-                }));
-            });
-        }
-        return expander;
     }
 }
 
@@ -1281,18 +1334,13 @@ class TsGanttTable {
         this.redraw();
     }
     applySelection(selectionResult) {
+        var _a, _b;
         const { selected, deselected } = selectionResult;
         for (const uuid of deselected) {
-            const row = this._tableRows.get(uuid);
-            if (row) {
-                row.html.classList.remove(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
-            }
+            (_a = this._tableRows.get(uuid)) === null || _a === void 0 ? void 0 : _a.deselect();
         }
         for (const uuid of selected) {
-            const row = this._tableRows.get(uuid);
-            if (row) {
-                row.html.classList.add(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
-            }
+            (_b = this._tableRows.get(uuid)) === null || _b === void 0 ? void 0 : _b.select();
         }
     }
     initBaseHtml() {
@@ -1317,7 +1365,14 @@ class TsGanttTable {
             if (!minColumnWidth) {
                 continue;
             }
-            columns.push(new TsGanttTableColumn(minColumnWidth, currentOrder++, options.localeHeaders[options.locale][i] || "", options.columnsContentAlign[i], options.columnValueGetters[i] || ((task) => "")));
+            const columnOptions = {
+                minWidth: minColumnWidth,
+                order: currentOrder++,
+                header: options.localeHeaders[options.locale][i] || "",
+                textAlign: options.columnsContentAlign[i],
+                valueGetter: options.columnValueGetters[i] || ((task) => ""),
+            };
+            columns.push(new TsGanttTableColumn(columnOptions));
         }
         this._tableColumns = columns;
     }
@@ -1328,350 +1383,19 @@ class TsGanttTable {
         this.redraw();
     }
     updateRows(data) {
-        const addStateClass = this._data.options.highlightRowsDependingOnTaskState;
         const columns = this._tableColumns;
         const rows = this._tableRows;
-        data.deleted.forEach(x => rows.delete(x.uuid));
-        data.changed.forEach(x => rows.set(x.uuid, new TsGanttTableRow(x, columns, addStateClass)));
-        data.added.forEach(x => rows.set(x.uuid, new TsGanttTableRow(x, columns, addStateClass)));
+        data.deleted.forEach(task => rows.delete(task.uuid));
+        data.changed.forEach(task => rows.set(task.uuid, new TsGanttTableRow(this._data.options, task, columns.map(col => col.options))));
+        data.added.forEach(task => rows.set(task.uuid, new TsGanttTableRow(this._data.options, task, columns.map(col => col.options))));
     }
     redraw() {
         const headerRow = document.createElement("tr");
-        this._tableColumns.forEach(x => headerRow.append(x.html));
+        this._tableColumns.forEach(col => col.appendTo(headerRow));
         this._htmlHead.innerHTML = "";
         this._htmlHead.append(headerRow);
         this._htmlBody.innerHTML = "";
-        this._htmlBody.append(...this._activeUuids.map(x => this.getRowHtml(x)));
-    }
-    getRowHtml(uuid) {
-        const symbols = this._data.options.rowSymbols;
-        const row = this._tableRows.get(uuid);
-        if (!row.task.hasChildren) {
-            row.expander.innerHTML = symbols.childless;
-        }
-        else if (row.task.expanded) {
-            row.expander.innerHTML = symbols.expanded;
-        }
-        else {
-            row.expander.innerHTML = symbols.collapsed;
-        }
-        return row.html;
-    }
-}
-
-class TsGanttChartBarGroupOptions {
-    static getFromGanttOptions(options) {
-        const mode = options.chartDisplayMode;
-        const showProgress = options.chartShowProgress;
-        const showHandles = options.enableChartEdit;
-        const dayWidth = options.dayWidthPx;
-        const rowHeight = options.rowHeightPx;
-        const border = options.borderWidthPx;
-        const barMargin = options.barMarginPx;
-        const barBorder = options.barStrokeWidthPx;
-        const barCornerR = options.barCornerRadiusPx;
-        const barMinWidth = barBorder + 2 * barCornerR;
-        const y0 = barMargin - border / 2;
-        let barHeight;
-        let y1;
-        switch (mode) {
-            case "both":
-                barHeight = (rowHeight - 3 * barMargin) / 2;
-                y1 = barHeight + 2 * barMargin - border / 2;
-                break;
-            case "planned":
-            case "actual":
-                barHeight = rowHeight - 2 * barMargin;
-                break;
-        }
-        return { mode, showProgress, showHandles, dayWidth, rowHeight,
-            barMinWidth, barHeight, barBorder, barCornerR, y0, y1 };
-    }
-}
-
-class TsGanttSvgComponentBase {
-    destroy() {
-        this._svg.remove();
-    }
-    appendTo(parent) {
-        parent.append(this._svg);
-    }
-    appendToWithOffset(parent, offsetX, addOffsetToCurrent = false) {
-        if (!this._svg || (!offsetX && offsetX !== 0)) {
-            return;
-        }
-        if (addOffsetToCurrent) {
-            const currentOffsetX = +this._svg.getAttribute("x") || 0;
-            offsetX = currentOffsetX + offsetX;
-        }
-        this._svg.setAttribute("x", offsetX + "");
-        parent.append(this._svg);
-    }
-}
-
-class TsGanttChartBarHandle extends TsGanttSvgComponentBase {
-    constructor(options, callbackOnMove) {
-        super();
-        this._options = options;
-        this._callbackOnMoveUpdate = callbackOnMove;
-        this.draw();
-    }
-    draw() {
-        const wrapper = this.createWrapper();
-        this.drawHandle(wrapper);
-        this._svg = wrapper;
-    }
-    createWrapper() {
-        const { width, height } = this._options;
-        const wrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BAR.HANDLE_WRAPPER], [
-            ["x", "0"],
-            ["y", "0"],
-            ["viewBox", "0 0 100 100"],
-            ["width", width + ""],
-            ["height", height + ""],
-        ]);
-        return wrapper;
-    }
-}
-
-class TsGanttDateStartHandle extends TsGanttChartBarHandle {
-    constructor(options, callbackOnMove) {
-        super(options, callbackOnMove);
-    }
-    drawHandle(wrapper) {
-        const handleSvg = createSvgElement("polygon", [TsGanttConst.CLASSES.CHART.BAR.HANDLE], [
-            ["points", "60 25, 60 75, 10 50"],
-        ], wrapper);
-        return handleSvg;
-    }
-}
-
-class TsGanttDateEndHandle extends TsGanttChartBarHandle {
-    constructor(options, callbackOnMove) {
-        super(options, callbackOnMove);
-    }
-    drawHandle(wrapper) {
-        const handleSvg = createSvgElement("polygon", [TsGanttConst.CLASSES.CHART.BAR.HANDLE], [
-            ["points", "40 25, 40 75, 90 50"],
-        ], wrapper);
-        return handleSvg;
-    }
-}
-
-class TsGanttProgressHandle extends TsGanttChartBarHandle {
-    constructor(options, callbackOnMove) {
-        super(options, callbackOnMove);
-    }
-    drawHandle(wrapper) {
-        const handleSvg = createSvgElement("circle", [TsGanttConst.CLASSES.CHART.BAR.HANDLE], [
-            ["cx", "50"],
-            ["cy", "50"],
-            ["r", "25"],
-        ], wrapper);
-        return handleSvg;
-    }
-}
-
-class TsGanttChartBar extends TsGanttSvgComponentBase {
-    constructor(options) {
-        super();
-        this._options = options;
-        this.draw();
-    }
-    appendToWithOffset(parent, offsetX, addOffsetToCurrent = false) {
-        if (!addOffsetToCurrent) {
-            offsetX = offsetX + this._defaultOffsetX;
-        }
-        super.appendToWithOffset(parent, offsetX, addOffsetToCurrent);
-    }
-    draw() {
-        const { wrapper: wrapperCoords, bar: barCoords, handles: handlesCoords } = this.getDrawData();
-        const wrapper = this.createWrapper(wrapperCoords);
-        this.drawTaskBar(wrapper, barCoords);
-        if (this._options.showProgress) {
-            this.drawProgressBars(wrapper, barCoords);
-        }
-        if (this._options.showHandles) {
-            this.drawHandles(wrapper, handlesCoords);
-        }
-        this._defaultOffsetX = wrapperCoords.left;
-        this._svg = wrapper;
-    }
-    getDrawData() {
-        const { minDate, startDate, endDate, dayWidth, minWrapperWidth, wrapperHeight, borderWidth, topPosition, progress, } = this._options;
-        const baseOffsetX = (startDate.diff(minDate, "day")) * dayWidth;
-        const widthDays = endDate.diff(startDate, "day") + 1;
-        const baseWidth = Math.max(widthDays * dayWidth, minWrapperWidth);
-        const handleWidth = wrapperHeight;
-        const wrapperWidth = baseWidth + 2 * handleWidth;
-        const wrapperLeft = baseOffsetX - handleWidth;
-        const barWidth = baseWidth - borderWidth;
-        const barHeight = wrapperHeight - borderWidth;
-        const barLeft = borderWidth / 2 + handleWidth;
-        const barTop = borderWidth / 2;
-        const calculatedProgressWidth = barWidth * progress / 100;
-        const progressBarWidth = calculatedProgressWidth < minWrapperWidth - borderWidth
-            ? 0
-            : calculatedProgressWidth;
-        const startHandleOffsetX = 0;
-        const endHandleOffsetX = wrapperWidth - handleWidth;
-        const progressHandleOffsetX = barLeft + progressBarWidth - handleWidth / 2;
-        return {
-            wrapper: {
-                width: wrapperWidth,
-                height: wrapperHeight,
-                left: wrapperLeft,
-                top: topPosition,
-            },
-            bar: {
-                width: barWidth,
-                height: barHeight,
-                left: barLeft,
-                top: barTop,
-                progressWidth: progressBarWidth,
-            },
-            handles: {
-                width: handleWidth,
-                height: handleWidth,
-                startHandleOffsetX,
-                endHandleOffsetX,
-                progressHandleOffsetX,
-            }
-        };
-    }
-    drawTaskBar(wrapper, coords) {
-        const { barType, cornerRadius } = this._options;
-        const barClassList = barType === "planned"
-            ? [TsGanttConst.CLASSES.CHART.BAR.PLANNED]
-            : [TsGanttConst.CLASSES.CHART.BAR.ACTUAL];
-        createSvgElement("rect", barClassList, [
-            ["x", coords.left + ""],
-            ["y", coords.top + ""],
-            ["width", coords.width + ""],
-            ["height", coords.height + ""],
-            ["rx", cornerRadius + ""],
-            ["ry", cornerRadius + ""],
-        ], wrapper);
-    }
-    drawProgressBars(wrapper, coords) {
-        const { barType, cornerRadius } = this._options;
-        const progressBarClassList = barType === "planned"
-            ? [TsGanttConst.CLASSES.CHART.BAR.PLANNED_PROGRESS]
-            : [TsGanttConst.CLASSES.CHART.BAR.ACTUAL_PROGRESS];
-        createSvgElement("rect", progressBarClassList, [
-            ["x", coords.left + ""],
-            ["y", coords.top + ""],
-            ["width", coords.progressWidth + ""],
-            ["height", coords.height + ""],
-            ["rx", cornerRadius + ""],
-            ["ry", cornerRadius + ""],
-        ], wrapper);
-    }
-    drawHandles(wrapper, coords) {
-        const handleOptions = { width: coords.width, height: coords.height };
-        const startHandle = new TsGanttDateStartHandle(handleOptions, null);
-        startHandle.appendToWithOffset(wrapper, coords.startHandleOffsetX);
-        const endHandle = new TsGanttDateEndHandle(handleOptions, null);
-        endHandle.appendToWithOffset(wrapper, coords.endHandleOffsetX);
-        const progressHandle = new TsGanttProgressHandle(handleOptions, null);
-        progressHandle.appendToWithOffset(wrapper, coords.progressHandleOffsetX);
-    }
-    createWrapper(coords) {
-        const wrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BAR.WRAPPER], [
-            ["x", coords.left + ""],
-            ["y", coords.top + ""],
-            ["width", coords.width + ""],
-            ["height", coords.height + ""],
-        ]);
-        return wrapper;
-    }
-}
-
-class TsGanttChartBarGroup {
-    constructor(task, options) {
-        this.task = task;
-        this.draw(task, options);
-    }
-    destroy() {
-        var _a;
-        (_a = this._bars) === null || _a === void 0 ? void 0 : _a.forEach(bar => {
-            bar.destroy();
-        });
-    }
-    appendTo(parent) {
-        var _a;
-        if (!((_a = this._bars) === null || _a === void 0 ? void 0 : _a.length)) {
-            return;
-        }
-        this._bars.forEach(bar => {
-            bar.appendTo(parent);
-        });
-    }
-    appendToWithOffset(parent, offsetX) {
-        var _a;
-        if (!((_a = this._bars) === null || _a === void 0 ? void 0 : _a.length) || !offsetX) {
-            return;
-        }
-        this._bars.forEach(bar => {
-            bar.appendToWithOffset(parent, offsetX);
-        });
-    }
-    draw(task, options) {
-        const { mode, showProgress, showHandles, dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
-        const { minDate, maxDate } = task.getMinMaxDates(mode);
-        if (!minDate || !maxDate) {
-            return;
-        }
-        const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = task;
-        const plannedDatesSet = datePlannedStart && datePlannedEnd;
-        const actualDatesSet = dateActualStart && dateActualEnd;
-        const commonBarOptionsPartial = {
-            minDate,
-            showProgress,
-            showHandles,
-            dayWidth,
-            minWrapperWidth: barMinWidth,
-            wrapperHeight: barHeight,
-            borderWidth: barBorder,
-            cornerRadius: barCornerR,
-            progress: task.progress,
-        };
-        const plannedBarOptionsPartial = {
-            barType: "planned",
-            startDate: datePlannedStart,
-            endDate: datePlannedEnd,
-        };
-        const actualBarOptionsPartial = {
-            barType: "actual",
-            startDate: dateActualStart,
-            endDate: dateActualEnd,
-        };
-        const bars = [];
-        if (mode === "both") {
-            if (actualDatesSet || plannedDatesSet) {
-                if (plannedDatesSet) {
-                    bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, plannedBarOptionsPartial, {
-                        topPosition: y0,
-                    })));
-                }
-                if (actualDatesSet) {
-                    bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, actualBarOptionsPartial, {
-                        topPosition: y1,
-                    })));
-                }
-            }
-        }
-        else if (mode === "planned" && plannedDatesSet) {
-            bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, plannedBarOptionsPartial, {
-                topPosition: y0,
-            })));
-        }
-        else if (mode === "actual" && actualDatesSet) {
-            bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, actualBarOptionsPartial, {
-                topPosition: y0,
-            })));
-        }
-        this._bars = bars;
+        this._activeUuids.forEach(uuid => { var _a; return (_a = this._tableRows.get(uuid)) === null || _a === void 0 ? void 0 : _a.appendTo(this._htmlBody); });
     }
 }
 
@@ -1932,11 +1656,14 @@ class TsGanttChartBody {
             ["data-tsg-row-uuid", task.uuid],
         ], parent);
         rowWrapper.addEventListener("click", (e) => {
-            rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CLICK, {
-                bubbles: true,
-                composed: true,
-                detail: { task, event: e },
-            }));
+            const target = e.target;
+            if (!target.classList.contains(TsGanttConst.CLASSES.CHART.BAR.HANDLE)) {
+                rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CLICK, {
+                    bubbles: true,
+                    composed: true,
+                    detail: { task, event: e },
+                }));
+            }
         });
         rowWrapper.addEventListener("contextmenu", (e) => {
             rowWrapper.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, {
@@ -2002,18 +1729,420 @@ class TsGanttChartBody {
     }
 }
 
+class TsGanttChartBarGroupOptions {
+    static getFromGanttOptions(options) {
+        const mode = options.chartDisplayMode;
+        const showProgress = options.chartShowProgress;
+        const showHandles = options.enableChartEdit;
+        const dayWidth = options.dayWidthPx;
+        const rowHeight = options.rowHeightPx;
+        const border = options.borderWidthPx;
+        const barMargin = options.barMarginPx;
+        const barBorder = options.barStrokeWidthPx;
+        const barCornerR = options.barCornerRadiusPx;
+        const barMinWidth = barBorder + 2 * barCornerR;
+        const y0 = barMargin - border / 2;
+        let barHeight;
+        let y1;
+        switch (mode) {
+            case "both":
+                barHeight = (rowHeight - 3 * barMargin) / 2;
+                y1 = barHeight + 2 * barMargin - border / 2;
+                break;
+            case "planned":
+            case "actual":
+                barHeight = rowHeight - 2 * barMargin;
+                break;
+        }
+        return { mode, showProgress, showHandles, dayWidth, rowHeight,
+            barMinWidth, barHeight, barBorder, barCornerR, y0, y1 };
+    }
+}
+
+class TsGanttSvgComponentBase {
+    destroy() {
+        this._svg.remove();
+    }
+    appendTo(parent) {
+        parent.append(this._svg);
+    }
+    appendToWithOffset(parent, offsetX, addOffsetToCurrent = false) {
+        if (!this._svg || (!offsetX && offsetX !== 0)) {
+            return;
+        }
+        if (addOffsetToCurrent) {
+            const currentOffsetX = +this._svg.getAttribute("x") || 0;
+            offsetX = currentOffsetX + offsetX;
+        }
+        this._svg.setAttribute("x", offsetX + "");
+        parent.append(this._svg);
+    }
+}
+
+class TsGanttChartBarHandle extends TsGanttSvgComponentBase {
+    constructor(options, callbackOnMove, callbackOnMoveEnd) {
+        super();
+        this.onPointerDown = (e) => {
+            if (!e.isPrimary || e.button === 2) {
+                return;
+            }
+            const target = e.target;
+            target.addEventListener("pointermove", this.onPointerMove);
+            target.addEventListener("pointerup", this.onPointerUp);
+            target.addEventListener("pointerout", this.onPointerUp);
+            target.setPointerCapture(e.pointerId);
+            this._moveStartCoords = { x: e.x, y: e.y };
+        };
+        this.onPointerMove = (e) => {
+            if (!this._moveStartCoords || !e.isPrimary) {
+                return;
+            }
+            const displacement = {
+                x: e.x - this._moveStartCoords.x,
+                y: e.y - this._moveStartCoords.y,
+            };
+            const displacementSinceLastEvent = this._lastMoveCoords
+                ? Math.abs(e.x - this._lastMoveCoords.x)
+                : Math.abs(displacement.x);
+            const displacementThresholdExceeded = displacementSinceLastEvent > this._options.displacementThreshold;
+            if (displacementThresholdExceeded) {
+                this._lastMoveCoords = { x: e.x, y: e.y };
+                this._currentDisplacement = displacement;
+                this._callbackOnMove(displacement);
+            }
+        };
+        this.onPointerUp = (e) => {
+            if (!e.isPrimary) {
+                return;
+            }
+            const target = e.target;
+            target.removeEventListener("pointermove", this.onPointerMove);
+            target.removeEventListener("pointerup", this.onPointerUp);
+            target.removeEventListener("pointerout", this.onPointerUp);
+            target.releasePointerCapture(e.pointerId);
+            const displacement = {
+                x: e.x - this._moveStartCoords.x,
+                y: e.y - this._moveStartCoords.y,
+            };
+            this._moveStartCoords = null;
+            this._lastMoveCoords = null;
+            this._currentDisplacement = displacement;
+            this._callbackOnMoveEnd(this._currentDisplacement);
+        };
+        this._options = options;
+        this._callbackOnMove = callbackOnMove;
+        this._callbackOnMoveEnd = callbackOnMoveEnd;
+        this.draw();
+    }
+    draw() {
+        const wrapper = this.createWrapper();
+        const handle = this.drawHandle(wrapper);
+        handle.addEventListener("pointerdown", this.onPointerDown);
+        this._svg = wrapper;
+    }
+    createWrapper() {
+        const { width, height } = this._options;
+        const wrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BAR.HANDLE_WRAPPER], [
+            ["x", "0"],
+            ["y", "0"],
+            ["viewBox", "0 0 100 100"],
+            ["width", width + ""],
+            ["height", height + ""],
+        ]);
+        return wrapper;
+    }
+}
+
+class HandleMoveEvent extends CustomEvent {
+    constructor(detail) {
+        super(TsGanttConst.EVENTS.HANDLE_MOVE, { detail });
+    }
+}
+class HandleMoveEndEvent extends CustomEvent {
+    constructor(detail) {
+        super(TsGanttConst.EVENTS.HANDLE_MOVE_END, { detail });
+    }
+}
+
+class TsGanttDateStartHandle extends TsGanttChartBarHandle {
+    constructor(options) {
+        super(options, (displacement) => {
+            document.dispatchEvent(new HandleMoveEvent({ handleType: "start", displacement }));
+        }, (displacement) => {
+            document.dispatchEvent(new HandleMoveEndEvent({ handleType: "start", displacement }));
+        });
+    }
+    drawHandle(wrapper) {
+        const handleSvg = createSvgElement("polygon", [TsGanttConst.CLASSES.CHART.BAR.HANDLE], [
+            ["points", "60 25, 60 75, 10 50"],
+        ], wrapper);
+        return handleSvg;
+    }
+}
+
+class TsGanttDateEndHandle extends TsGanttChartBarHandle {
+    constructor(options) {
+        super(options, (displacement) => {
+            document.dispatchEvent(new HandleMoveEvent({ handleType: "end", displacement }));
+        }, (displacement) => {
+            document.dispatchEvent(new HandleMoveEndEvent({ handleType: "end", displacement }));
+        });
+    }
+    drawHandle(wrapper) {
+        const handleSvg = createSvgElement("polygon", [TsGanttConst.CLASSES.CHART.BAR.HANDLE], [
+            ["points", "40 25, 40 75, 90 50"],
+        ], wrapper);
+        return handleSvg;
+    }
+}
+
+class TsGanttProgressHandle extends TsGanttChartBarHandle {
+    constructor(options) {
+        super(options, (displacement) => {
+            document.dispatchEvent(new HandleMoveEvent({ handleType: "progress", displacement }));
+        }, (displacement) => {
+            document.dispatchEvent(new HandleMoveEndEvent({ handleType: "progress", displacement }));
+        });
+    }
+    drawHandle(wrapper) {
+        const handleSvg = createSvgElement("circle", [TsGanttConst.CLASSES.CHART.BAR.HANDLE], [
+            ["cx", "50"],
+            ["cy", "50"],
+            ["r", "25"],
+        ], wrapper);
+        return handleSvg;
+    }
+}
+
+class TsGanttChartBar extends TsGanttSvgComponentBase {
+    constructor(options) {
+        super();
+        this._options = options;
+        this.draw();
+    }
+    appendToWithOffset(parent, offsetX, addOffsetToCurrent = false) {
+        if (!addOffsetToCurrent) {
+            offsetX = offsetX + this._defaultOffsetX;
+        }
+        super.appendToWithOffset(parent, offsetX, addOffsetToCurrent);
+    }
+    draw() {
+        const { wrapper: wrapperCoords, bar: barCoords, handles: handlesCoords } = this.getDrawData();
+        const wrapper = this.createWrapper(wrapperCoords);
+        this.drawTaskBar(wrapper, barCoords);
+        if (this._options.showProgress) {
+            this.drawProgressBars(wrapper, barCoords);
+        }
+        if (this._options.showHandles) {
+            this.drawHandles(wrapper, handlesCoords);
+        }
+        this._defaultOffsetX = wrapperCoords.left;
+        this._svg = wrapper;
+    }
+    getDrawData() {
+        const { minDate, startDate, endDate, dayWidth, minWrapperWidth, wrapperHeight, borderWidth, topPosition, progress, } = this._options;
+        const baseOffsetX = (startDate.diff(minDate, "day")) * dayWidth;
+        const widthDays = endDate.diff(startDate, "day") + 1;
+        const baseWidth = Math.max(widthDays * dayWidth, minWrapperWidth);
+        const handleWidth = wrapperHeight;
+        const wrapperWidth = baseWidth + 2 * handleWidth;
+        const wrapperLeft = baseOffsetX - handleWidth;
+        const barWidth = baseWidth - borderWidth;
+        const barHeight = wrapperHeight - borderWidth;
+        const barLeft = borderWidth / 2 + handleWidth;
+        const barTop = borderWidth / 2;
+        const calculatedProgressWidth = barWidth * progress / 100;
+        const progressBarWidth = calculatedProgressWidth < minWrapperWidth - borderWidth
+            ? 0
+            : calculatedProgressWidth;
+        const startHandleOffsetX = 0;
+        const endHandleOffsetX = wrapperWidth - handleWidth;
+        const progressHandleOffsetX = barLeft + progressBarWidth - handleWidth / 2;
+        return {
+            wrapper: {
+                width: wrapperWidth,
+                height: wrapperHeight,
+                left: wrapperLeft,
+                top: topPosition,
+            },
+            bar: {
+                width: barWidth,
+                height: barHeight,
+                left: barLeft,
+                top: barTop,
+                progressWidth: progressBarWidth,
+            },
+            handles: {
+                width: handleWidth,
+                height: handleWidth,
+                startHandleOffsetX,
+                endHandleOffsetX,
+                progressHandleOffsetX,
+                displacementThreshold: dayWidth,
+            }
+        };
+    }
+    drawTaskBar(wrapper, coords) {
+        const { barType, cornerRadius } = this._options;
+        const barClassList = barType === "planned"
+            ? [TsGanttConst.CLASSES.CHART.BAR.PLANNED]
+            : [TsGanttConst.CLASSES.CHART.BAR.ACTUAL];
+        createSvgElement("rect", barClassList, [
+            ["x", coords.left + ""],
+            ["y", coords.top + ""],
+            ["width", coords.width + ""],
+            ["height", coords.height + ""],
+            ["rx", cornerRadius + ""],
+            ["ry", cornerRadius + ""],
+        ], wrapper);
+    }
+    drawProgressBars(wrapper, coords) {
+        const { barType, cornerRadius } = this._options;
+        const progressBarClassList = barType === "planned"
+            ? [TsGanttConst.CLASSES.CHART.BAR.PLANNED_PROGRESS]
+            : [TsGanttConst.CLASSES.CHART.BAR.ACTUAL_PROGRESS];
+        createSvgElement("rect", progressBarClassList, [
+            ["x", coords.left + ""],
+            ["y", coords.top + ""],
+            ["width", coords.progressWidth + ""],
+            ["height", coords.height + ""],
+            ["rx", cornerRadius + ""],
+            ["ry", cornerRadius + ""],
+        ], wrapper);
+    }
+    drawHandles(wrapper, coords) {
+        const handleOptions = {
+            width: coords.width,
+            height: coords.height,
+            displacementThreshold: coords.displacementThreshold,
+        };
+        const startHandle = new TsGanttDateStartHandle(handleOptions);
+        startHandle.appendToWithOffset(wrapper, coords.startHandleOffsetX);
+        const endHandle = new TsGanttDateEndHandle(handleOptions);
+        endHandle.appendToWithOffset(wrapper, coords.endHandleOffsetX);
+        const progressHandle = new TsGanttProgressHandle(handleOptions);
+        progressHandle.appendToWithOffset(wrapper, coords.progressHandleOffsetX);
+    }
+    createWrapper(coords) {
+        const wrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BAR.WRAPPER], [
+            ["x", coords.left + ""],
+            ["y", coords.top + ""],
+            ["width", coords.width + ""],
+            ["height", coords.height + ""],
+        ]);
+        return wrapper;
+    }
+}
+
+class TsGanttChartBarGroup {
+    constructor(task, options) {
+        this.task = task;
+        this.draw(task, options);
+    }
+    destroy() {
+        var _a;
+        (_a = this._bars) === null || _a === void 0 ? void 0 : _a.forEach(bar => {
+            bar.destroy();
+        });
+    }
+    appendTo(parent) {
+        var _a;
+        if (!((_a = this._bars) === null || _a === void 0 ? void 0 : _a.length)) {
+            return;
+        }
+        this._bars.forEach(bar => {
+            bar.appendTo(parent);
+        });
+    }
+    appendToWithOffset(parent, offsetX) {
+        var _a;
+        if (!((_a = this._bars) === null || _a === void 0 ? void 0 : _a.length) || !offsetX) {
+            return;
+        }
+        this._bars.forEach(bar => {
+            bar.appendToWithOffset(parent, offsetX);
+        });
+    }
+    draw(task, options) {
+        const { mode, showProgress, showHandles, dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
+        const { minDate, maxDate } = task.getMinMaxDates(mode);
+        if (!minDate || !maxDate) {
+            return;
+        }
+        const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = task;
+        const plannedDatesSet = datePlannedStart && datePlannedEnd;
+        const actualDatesSet = dateActualStart && dateActualEnd;
+        const commonBarOptionsPartial = {
+            minDate,
+            showProgress,
+            showHandles,
+            dayWidth,
+            minWrapperWidth: barMinWidth,
+            wrapperHeight: barHeight,
+            borderWidth: barBorder,
+            cornerRadius: barCornerR,
+            progress: task.progress,
+        };
+        const plannedBarOptionsPartial = {
+            barType: "planned",
+            startDate: datePlannedStart,
+            endDate: datePlannedEnd,
+        };
+        const actualBarOptionsPartial = {
+            barType: "actual",
+            startDate: dateActualStart,
+            endDate: dateActualEnd,
+        };
+        const bars = [];
+        if (mode === "both") {
+            if (actualDatesSet || plannedDatesSet) {
+                if (plannedDatesSet) {
+                    bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, plannedBarOptionsPartial, {
+                        topPosition: y0,
+                    })));
+                }
+                if (actualDatesSet) {
+                    bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, actualBarOptionsPartial, {
+                        topPosition: y1,
+                    })));
+                }
+            }
+        }
+        else if (mode === "planned" && plannedDatesSet) {
+            bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, plannedBarOptionsPartial, {
+                topPosition: y0,
+            })));
+        }
+        else if (mode === "actual" && actualDatesSet) {
+            bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, actualBarOptionsPartial, {
+                topPosition: y0,
+            })));
+        }
+        this._bars = bars;
+    }
+}
+
 class TsGanttChart {
     constructor(data) {
         this._activeUuids = [];
         this._chartBarGroups = new Map();
+        this.onHandleMove = (e) => {
+            console.log(e);
+        };
+        this.onHandleMoveEnd = (e) => {
+            console.log(e);
+            console.log("ENDED");
+        };
         this._data = data;
         this._html = this.createChartDiv();
     }
     destroy() {
+        this.removeEventListeners();
         this._html.remove();
     }
     appendTo(parent) {
         parent.append(this._html);
+        this.addEventListeners();
     }
     update(forceRedraw, data, uuids) {
         const { options, dateMinOffset, dateMaxOffset } = this._data;
@@ -2041,8 +2170,16 @@ class TsGanttChart {
     }
     updateBarGroups(data) {
         const barGroupOptions = TsGanttChartBarGroupOptions.getFromGanttOptions(this._data.options);
-        data.deleted.forEach(x => this._chartBarGroups.delete(x.uuid));
-        data.changed.forEach(x => this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions)));
+        data.deleted.forEach(x => {
+            var _a;
+            (_a = this._chartBarGroups.get(x.uuid)) === null || _a === void 0 ? void 0 : _a.destroy();
+            this._chartBarGroups.delete(x.uuid);
+        });
+        data.changed.forEach(x => {
+            var _a;
+            (_a = this._chartBarGroups.get(x.uuid)) === null || _a === void 0 ? void 0 : _a.destroy();
+            this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions));
+        });
         data.added.forEach(x => this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions)));
     }
     redraw() {
@@ -2052,6 +2189,14 @@ class TsGanttChart {
         this._body.appendTo(newHtml);
         oldHtml.replaceWith(newHtml);
         this._html = newHtml;
+    }
+    addEventListeners() {
+        document.addEventListener(TsGanttConst.EVENTS.HANDLE_MOVE, this.onHandleMove);
+        document.addEventListener(TsGanttConst.EVENTS.HANDLE_MOVE_END, this.onHandleMoveEnd);
+    }
+    removeEventListeners() {
+        document.removeEventListener(TsGanttConst.EVENTS.HANDLE_MOVE, this.onHandleMove);
+        document.removeEventListener(TsGanttConst.EVENTS.HANDLE_MOVE_END, this.onHandleMoveEnd);
     }
 }
 

@@ -1,19 +1,39 @@
 import { TsGanttTask } from "../../core/ts-gantt-task";
 import { TsGanttConst } from "../../core/ts-gantt-const";
-import { TsGanttTableColumn } from "./ts-gantt-table-column";
+import { TsGanttOptions } from "../../ts-gantt";
 
-class TsGanttTableRow {
-  readonly task: TsGanttTask;
-  readonly html: HTMLTableRowElement;
-  readonly expander: HTMLParagraphElement;
+import { TsGanttHtmlComponentBase } from "../abstract/ts-gantt-html-component-base";
 
-  constructor(task: TsGanttTask, columns: TsGanttTableColumn[], addStateClass: boolean) {
-    this.task = task;
-    this.expander = this.createExpander();
-    this.html = this.createRow(columns, addStateClass);
+import { TsGanttTableCell } from "./ts-gantt-table-cell";
+import { TsGanttTableExpander } from "./ts-gantt-table-expander";
+import { TsGanttTableColumnOptions } from "./ts-gantt-table-column-options";
+
+class TsGanttTableRow extends TsGanttHtmlComponentBase {
+  private readonly _task: TsGanttTask;
+  private readonly _expander: TsGanttTableExpander;
+
+  constructor(options: TsGanttOptions, task: TsGanttTask, columns: TsGanttTableColumnOptions[]) {
+    super();
+    this._task = task;
+    this._expander = new TsGanttTableExpander(options, task);
+    this._html = this.createElement(columns, options.highlightRowsDependingOnTaskState);
   }
 
-  private createRow(columns: TsGanttTableColumn[], addStateClass: boolean): HTMLTableRowElement {
+  override appendTo(parent: Element): void {
+    this._expander.updateSymbol();
+    super.appendTo(parent);
+  }
+
+  select() {
+    this._html.classList.add(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
+  }
+
+  deselect() {
+    this._html.classList.remove(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
+  }
+
+  private createElement(columns: TsGanttTableColumnOptions[], addStateClass: boolean): HTMLTableRowElement {
+    const task = this._task;
 
     const row = document.createElement("tr");
     row.classList.add(TsGanttConst.CLASSES.TABLE.BODY_ROW);
@@ -23,7 +43,7 @@ class TsGanttTableRow {
         row.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CLICK, {
           bubbles: true,
           composed: true,
-          detail: {task: this.task, event: e},
+          detail: {task, event: e},
         }));
       }
     });
@@ -33,54 +53,21 @@ class TsGanttTableRow {
         row.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, {
           bubbles: true,
           composed: true,
-          detail: {task: this.task, event: e},
+          detail: {task, event: e},
         }));
       }
     });
     if (addStateClass) {
-      row.classList.add(this.task.getState());
+      row.classList.add(task.getState());
     }
 
-    columns.forEach((x, i) => {
-      const cell = document.createElement("td");
-      cell.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL);
-      const cellInnerDiv = document.createElement("div");
-      cellInnerDiv.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_TEXT_WRAPPER, x.contentAlign);
-
-      if (i === 0) {
-        cellInnerDiv.append(this.expander);
-      }
-
-      const cellText = document.createElement("p");
-      cellText.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_TEXT);
-      cellText.innerHTML = x.valueGetter(this.task);
-      cellInnerDiv.append(cellText);
-        
-      cell.append(cellInnerDiv);
-      row.append(cell);
+    columns.forEach((column, i) => {
+      const taskValue = column.valueGetter(task);
+      const cell = new TsGanttTableCell(taskValue, column.textAlign, i === 0 ? this._expander: null);
+      cell.appendTo(row);
     });
 
     return row;
-  }
-
-  private createExpander() {
-    const expander = document.createElement("p");
-    expander.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_EXPANDER);
-    const lvl = this.task.nestingLvl;
-    if (lvl) {
-      expander.classList.add(TsGanttConst.CLASSES.TABLE.BODY_CELL_EXPANDER_NESTING_PREFIX + 
-        (lvl < 10 ? lvl : 10));
-    }
-    if (this.task.hasChildren) {
-      expander.addEventListener("click", (e: Event) => {
-        expander.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.TABLE_BODY_CELL_EXPANDER_CLICK, {
-          bubbles: true,
-          composed: true,
-          detail: {task: this.task, event: e},
-        }));
-      });
-    }
-    return expander;
   }
 }
 

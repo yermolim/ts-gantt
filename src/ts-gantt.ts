@@ -10,6 +10,7 @@ import { TsGanttData, TsGanttDataChangeResult } from "./core/ts-gantt-data";
 import { TsGanttBaseComponent } from "./components/abstract/ts-gantt-base-component";
 import { TsGanttTable } from "./components/table/ts-gantt-table";
 import { TsGanttChart } from "./components/chart/ts-gantt-chart";
+import { ChartBarMode, ChartScale } from "./core/ts-gantt-common";
 
 class TsGantt {
   private readonly _data: TsGanttData;
@@ -52,14 +53,14 @@ class TsGantt {
     }
   }
 
-  set chartScale(value: "day" | "week" | "month" | "year") {
+  set chartScale(value: ChartScale) {
     if (value !== this._options.chartScale) {
       this._options.chartScale = value;
       this.updateChartScale();
     }
   }
 
-  set chartDisplayMode(value: "planned" | "actual" | "both") {
+  set chartDisplayMode(value: ChartBarMode) {
     if (value !== this._options.chartDisplayMode) {
       this._options.chartDisplayMode = value;
       this.updateChartDisplayMode();

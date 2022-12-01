@@ -8,8 +8,12 @@ export const TsGanttConst = {
   EVENTS: {
     ROW_CLICK: "tsgrowclick",
     ROW_CONTEXT_MENU: "tsgrowcontextmenu",
+
     TABLE_COLUMN_REORDER: "tsgtablecolreorder",
     TABLE_BODY_CELL_EXPANDER_CLICK: "tsgexpanderclick",
+    
+    HANDLE_MOVE: "tsghandlemove",
+    HANDLE_MOVE_END: "tsghandlemoveend",
   },
 
   CLASSES: {

@@ -7,6 +7,7 @@ import { TsGanttBaseComponent } from "../abstract/ts-gantt-base-component";
 import { TsGanttTableColumnOrder } from "./ts-gantt-table-column-order";
 import { TsGanttTableColumn } from "./ts-gantt-table-column";
 import { TsGanttTableRow } from "./ts-gantt-table-row";
+import { TsGanttTableColumnOptions } from "./ts-gantt-table-column-options";
 
 class TsGanttTable implements TsGanttBaseComponent {
   private _data: TsGanttData;
@@ -55,16 +56,10 @@ class TsGanttTable implements TsGanttBaseComponent {
   applySelection(selectionResult: TsGanttTaskSelectionChangeResult) {
     const {selected, deselected} = selectionResult;
     for (const uuid of deselected) {
-      const row = this._tableRows.get(uuid);
-      if (row) {
-        row.html.classList.remove(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
-      }
+      this._tableRows.get(uuid)?.deselect();
     }
     for (const uuid of selected) {
-      const row = this._tableRows.get(uuid);
-      if (row) {
-        row.html.classList.add(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
-      }
+      this._tableRows.get(uuid)?.select();
     }
   }
 
@@ -94,10 +89,14 @@ class TsGanttTable implements TsGanttBaseComponent {
       if (!minColumnWidth) {
         continue;
       }
-      columns.push(new TsGanttTableColumn(minColumnWidth, currentOrder++,
-        options.localeHeaders[options.locale][i] || "",
-        options.columnsContentAlign[i],
-        options.columnValueGetters[i] || ((task: TsGanttTask) => "")));
+      const columnOptions: TsGanttTableColumnOptions = {
+        minWidth: minColumnWidth,
+        order: currentOrder++,
+        header: options.localeHeaders[options.locale][i] || "",
+        textAlign: options.columnsContentAlign[i],
+        valueGetter: options.columnValueGetters[i] || ((task: TsGanttTask) => ""),
+      };
+      columns.push(new TsGanttTableColumn(columnOptions));
     }
     this._tableColumns = columns;
   }
@@ -110,38 +109,23 @@ class TsGanttTable implements TsGanttBaseComponent {
   }
 
   private updateRows(data: TsGanttDataChangeResult) {
-    const addStateClass = this._data.options.highlightRowsDependingOnTaskState;
-
     const columns = this._tableColumns;
     const rows = this._tableRows;
 
-    data.deleted.forEach(x => rows.delete(x.uuid));
-    data.changed.forEach(x => rows.set(x.uuid, new TsGanttTableRow(x, columns, addStateClass)));
-    data.added.forEach(x => rows.set(x.uuid, new TsGanttTableRow(x, columns, addStateClass)));
+    data.deleted.forEach(task => rows.delete(task.uuid));
+    data.changed.forEach(task => rows.set(task.uuid, new TsGanttTableRow(this._data.options, task, columns.map(col => col.options))));
+    data.added.forEach(task => rows.set(task.uuid, new TsGanttTableRow(this._data.options, task, columns.map(col => col.options))));
   }
 
   private redraw() {
     const headerRow = document.createElement("tr");
-    this._tableColumns.forEach(x => headerRow.append(x.html));
+    this._tableColumns.forEach(col => col.appendTo(headerRow));
 
     this._htmlHead.innerHTML = "";
     this._htmlHead.append(headerRow);
 
     this._htmlBody.innerHTML = "";
-    this._htmlBody.append(...this._activeUuids.map(x => this.getRowHtml(x)));
-  }
-
-  private getRowHtml(uuid: string): HTMLTableRowElement {    
-    const symbols = this._data.options.rowSymbols;
-    const row = this._tableRows.get(uuid);
-    if (!row.task.hasChildren) {
-      row.expander.innerHTML = symbols.childless;
-    } else if (row.task.expanded) {
-      row.expander.innerHTML = symbols.expanded;
-    } else {
-      row.expander.innerHTML = symbols.collapsed;
-    }
-    return row.html;
+    this._activeUuids.forEach(uuid => this._tableRows.get(uuid)?.appendTo(this._htmlBody));
   }
 
   private onColumnReorder = <EventListener>((e: CustomEvent) => {

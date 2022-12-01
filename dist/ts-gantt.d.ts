@@ -9,6 +9,8 @@ export interface TsGanttRowSymbols {
 }
 export declare type ChartBarType = "planned" | "actual";
 export declare type ChartBarMode = ChartBarType | "both";
+export declare type ChartScale = "day" | "week" | "month" | "year";
+export declare type ColumnTextAlignment = "start" | "center" | "end";
 export interface TsGanttTaskModel {
 	id: string;
 	parentId: string;
@@ -86,7 +88,7 @@ export declare class TsGanttOptions {
 	drawTodayLine: boolean;
 	highlightRowsDependingOnTaskState: boolean;
 	columnsMinWidthPx: number[];
-	columnsContentAlign: ("start" | "center" | "end")[];
+	columnsContentAlign: (ColumnTextAlignment)[];
 	separatorWidthPx: number;
 	headerHeightPx: number;
 	rowHeightPx: number;
@@ -96,8 +98,8 @@ export declare class TsGanttOptions {
 	barCornerRadiusPx: number;
 	rowSymbols: TsGanttRowSymbols;
 	chartShowProgress: boolean;
-	chartDisplayMode: "planned" | "actual" | "both";
-	chartScale: "day" | "week" | "month" | "year";
+	chartDisplayMode: ChartBarMode;
+	chartScale: ChartScale;
 	chartDateOffsetDays: {
 		[key: string]: number;
 	};
@@ -138,11 +140,12 @@ export declare class TsGanttOptions {
 	localeDurationFormatters: {
 		[key: string]: (duration: number) => string;
 	};
-	columnValueGetters: ((a: TsGanttTask) => string)[];
+	columnValueGetters: (ColumnValueGetter)[];
 	get dayWidthPx(): number;
 	taskComparer: (taskA: TsGanttTask, taskB: TsGanttTask) => number;
 	constructor(item?: object);
 }
+export declare type ColumnValueGetter = (a: TsGanttTask) => string;
 export declare class TsGantt {
 	private readonly _data;
 	private get _options();
@@ -161,8 +164,8 @@ export declare class TsGantt {
 	get selectedTasks(): TsGanttTaskModel[];
 	set selectedTasks(models: TsGanttTaskModel[]);
 	set locale(value: string);
-	set chartScale(value: "day" | "week" | "month" | "year");
-	set chartDisplayMode(value: "planned" | "actual" | "both");
+	set chartScale(value: ChartScale);
+	set chartDisplayMode(value: ChartBarMode);
 	onRowClickCb: (model: TsGanttTaskModel, event: MouseEvent) => void;
 	onRowDoubleClickCb: (model: TsGanttTaskModel, event: MouseEvent) => void;
 	onRowContextMenuCb: (model: TsGanttTaskModel, event: MouseEvent) => void;

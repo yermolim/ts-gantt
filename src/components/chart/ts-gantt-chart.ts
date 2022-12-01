@@ -4,10 +4,12 @@ import { TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
 
 import { TsGanttBaseComponent } from "../abstract/ts-gantt-base-component";
 
-import { TsGanttChartBarGroupOptions } from "./bars/ts-gantt-chart-bar-group-options";
-import { TsGanttChartBarGroup } from "./bars/ts-gantt-chart-bar-group";
 import { TsGanttChartHeader } from "./ts-gantt-chart-header";
 import { TsGanttChartBody } from "./ts-gantt-chart-body";
+
+import { HandleMoveEvent } from "./bars/handles/custom-events";
+import { TsGanttChartBarGroupOptions } from "./bars/ts-gantt-chart-bar-group-options";
+import { TsGanttChartBarGroup } from "./bars/ts-gantt-chart-bar-group";
 
 class TsGanttChart implements TsGanttBaseComponent {
   private _data: TsGanttData;
@@ -26,11 +28,15 @@ class TsGanttChart implements TsGanttBaseComponent {
   }
 
   destroy() {
+    this.removeEventListeners();
+
     this._html.remove();
   }
 
   appendTo(parent: HTMLElement) {
     parent.append(this._html);
+
+    this.addEventListeners();
   }
 
   update(forceRedraw: boolean, data: TsGanttDataChangeResult, uuids: string[]) {
@@ -45,8 +51,9 @@ class TsGanttChart implements TsGanttBaseComponent {
     if (uuids) {
       this._activeUuids = uuids;
     }
-    
+
     const barGroups = this._activeUuids.map(x => this._chartBarGroups.get(x));
+    // TODO: try to optimize and get rid of redrawing the body on each update
     this._body = new TsGanttChartBody(this._data.options, barGroups, 
       this._header.xCoords, dateMinOffset, 
       this._header.height, this._header.width);
@@ -65,14 +72,19 @@ class TsGanttChart implements TsGanttBaseComponent {
 
   private updateBarGroups(data: TsGanttDataChangeResult) {
     const barGroupOptions = TsGanttChartBarGroupOptions.getFromGanttOptions(this._data.options);
-    data.deleted.forEach(x => this._chartBarGroups.delete(x.uuid));
-    data.changed.forEach(x => this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions)));
+    data.deleted.forEach(x => {
+      this._chartBarGroups.get(x.uuid)?.destroy();
+      this._chartBarGroups.delete(x.uuid);
+    });
+    data.changed.forEach(x => {
+      this._chartBarGroups.get(x.uuid)?.destroy();
+      this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions));
+    });
     data.added.forEach(x => this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions)));
   }
 
   private redraw() {
     const oldHtml = this._html;
-
     const newHtml = this.createChartDiv();
     
     this._header.appendTo(newHtml);
@@ -80,7 +92,26 @@ class TsGanttChart implements TsGanttBaseComponent {
 
     oldHtml.replaceWith(newHtml);
     this._html = newHtml;
+  }  
+
+  private addEventListeners() {
+    document.addEventListener(TsGanttConst.EVENTS.HANDLE_MOVE, this.onHandleMove);
+    document.addEventListener(TsGanttConst.EVENTS.HANDLE_MOVE_END, this.onHandleMoveEnd);
   }
+
+  private removeEventListeners() {
+    document.removeEventListener(TsGanttConst.EVENTS.HANDLE_MOVE, this.onHandleMove);
+    document.removeEventListener(TsGanttConst.EVENTS.HANDLE_MOVE_END, this.onHandleMoveEnd);
+  }
+
+  private onHandleMove = (e: HandleMoveEvent) => {
+    console.log(e);
+  };
+
+  private onHandleMoveEnd = (e: HandleMoveEvent) => {
+    console.log(e);
+    console.log("ENDED"); 
+  };
 }
 
 export { TsGanttChart };

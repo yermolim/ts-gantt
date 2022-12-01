@@ -1,13 +1,20 @@
-import { createSvgElement } from "../../../../core/ts-gantt-common";
+import { Coords, createSvgElement } from "../../../../core/ts-gantt-common";
 import { TsGanttConst } from "../../../../core/ts-gantt-const";
 
 import { TsGanttChartBarHandleOptions } from "./ts-gantt-chart-bar-handle-options";
 import { TsGanttChartBarHandle } from "./ts-gantt-chart-bar-handle";
+import { HandleMoveEvent, HandleMoveEndEvent } from "./custom-events";
 
 export class TsGanttProgressHandle extends TsGanttChartBarHandle {
   
-  constructor(options: TsGanttChartBarHandleOptions, callbackOnMove: () => {}) {
-    super(options, callbackOnMove);
+  constructor(options: TsGanttChartBarHandleOptions) {
+    super(options, 
+      (displacement: Coords) => { 
+        document.dispatchEvent(new HandleMoveEvent({handleType: "progress", displacement})); 
+      }, 
+      (displacement: Coords) => { 
+        document.dispatchEvent(new HandleMoveEndEvent({handleType: "progress", displacement})); 
+      });
   }
 
   protected override drawHandle(wrapper: SVGElement): SVGElement {

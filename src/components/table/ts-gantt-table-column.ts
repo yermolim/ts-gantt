@@ -1,38 +1,22 @@
-import { TsGanttTask } from "../../core/ts-gantt-task";
 import { TsGanttConst } from "../../core/ts-gantt-const";
+import { ColumnTextAlignment } from "../../core/ts-gantt-common";
+import { ColumnValueGetter } from "../../core/ts-gantt-options";
+
+import { TsGanttHtmlComponentBase } from "../abstract/ts-gantt-html-component-base";
+import { TsGanttTableColumnOptions } from "./ts-gantt-table-column-options";
 
 const TABLE_COLUMN_DATA_ORDER = "tsgColOrder";
 const TABLE_COLUMN_REORDER_DATA = "application/tsg-col-order";
 
-class TsGanttTableColumn {
-  readonly html: HTMLTableCellElement;
-  readonly resizer: HTMLDivElement;
-
-  readonly minWidth: number;
-  readonly order: number;
-  readonly header: string;
-  readonly contentAlign: "start" | "center" | "end";
-
-  readonly valueGetter: (a: TsGanttTask) => string;
+class TsGanttTableColumn extends TsGanttHtmlComponentBase {
+  readonly options: TsGanttTableColumnOptions;
 
   private _dragActive = false;
 
-  constructor(minWidth: number, order: number, header: string,
-    textAlign: "start" | "center" | "end", 
-    valueGetter: (a: TsGanttTask) => string) {
-
-    this.minWidth = minWidth;
-    this.order = order;
-    this.header = header;
-    this.contentAlign = textAlign;
-    this.valueGetter = valueGetter;
-
-    this.html = this.createHeaderCell();
-
-    this.resizer = this.createResizer();
-    this.resizer.addEventListener("mousedown", this.onMouseDownOnResizer);
-    this.resizer.addEventListener("touchstart", this.onMouseDownOnResizer);
-    this.html.append(this.resizer);
+  constructor(options: TsGanttTableColumnOptions) {
+    super();
+    this.options = options;
+    this._html = this.createHeaderCell();
   }
 
   onMouseDownOnResizer = (e: MouseEvent | TouchEvent) => {
@@ -47,12 +31,12 @@ class TsGanttTableColumn {
     if (!this._dragActive) {
       return false;
     }  
-    const headerOffset = this.html.getBoundingClientRect().left;
+    const headerOffset = this._html.getBoundingClientRect().left;
     const userDefinedWidth = e instanceof MouseEvent
       ? e.clientX - headerOffset
       : e.touches[0].clientX - headerOffset;
 
-    this.html.style.width = Math.max(this.minWidth, userDefinedWidth) + "px";
+    this._html.style.width = Math.max(this.options.minWidth, userDefinedWidth) + "px";
 
     e.preventDefault();
   };
@@ -66,15 +50,17 @@ class TsGanttTableColumn {
   }; 
 
   private createHeaderCell(): HTMLTableCellElement {
+    const { header, order, minWidth } = this.options;
+
     const headerCell = document.createElement("th");
     headerCell.classList.add(TsGanttConst.CLASSES.TABLE.HEADER);
-    headerCell.dataset[TABLE_COLUMN_DATA_ORDER] = this.order + "";
-    headerCell.style.minWidth = this.minWidth + "px";
-    headerCell.style.width = this.minWidth + "px";
+    headerCell.dataset[TABLE_COLUMN_DATA_ORDER] = order + "";
+    headerCell.style.minWidth = minWidth + "px";
+    headerCell.style.width = minWidth + "px";
     headerCell.draggable = true;
-    headerCell.innerHTML = this.header;
+    headerCell.innerHTML = header;
     headerCell.addEventListener("dragstart", (e: DragEvent) => {
-      e.dataTransfer.setData(TABLE_COLUMN_REORDER_DATA, this.order + "");
+      e.dataTransfer.setData(TABLE_COLUMN_REORDER_DATA, order + "");
     });
     headerCell.addEventListener("dragover", (e: DragEvent) => {
       e.preventDefault();
@@ -89,15 +75,20 @@ class TsGanttTableColumn {
       headerCell.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, {
         bubbles: true,
         composed: true,
-        detail: {orderFrom: +orderFrom, orderTo: this.order, event: e},
+        detail: {orderFrom: +orderFrom, orderTo: order, event: e},
       }));
     });
+
+    headerCell.append(this.createResizer());
+
     return headerCell;
   }
 
   private createResizer(): HTMLDivElement {
     const resizer = document.createElement("div");
     resizer.classList.add(TsGanttConst.CLASSES.TABLE.COLUMN_RESIZER);
+    resizer.addEventListener("mousedown", this.onMouseDownOnResizer);
+    resizer.addEventListener("touchstart", this.onMouseDownOnResizer);
     return resizer;
   }
 }
