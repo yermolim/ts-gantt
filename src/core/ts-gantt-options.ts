@@ -4,6 +4,7 @@ import { TsGanttTask } from "./ts-gantt-task";
 export class TsGanttOptions {
   // not implemented yet
   bindParentDatesToChild = false;
+  
   enableChartEdit = false;
 
   useShadowDom: false;

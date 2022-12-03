@@ -2656,6 +2656,7 @@ class TsGantt {
         const data = this._data.getAllTasksAsChanged();
         this._chart.update(true, data, null);
         this.refreshSelection();
+        this.scrollChartToTasks(this._data.tasks);
     }
     updateChartDisplayMode() {
         const data = this._data.getAllTasksAsChanged();

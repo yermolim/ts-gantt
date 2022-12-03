@@ -33,6 +33,10 @@ class TsGantt {
   private _table: TsGanttBaseComponent;
   private _chart: TsGanttBaseComponent; 
 
+  /**
+   * returns all the tasks models in their current state.
+   * i.e. with all the changes applied if there were any
+   */
   get tasks(): TsGanttTaskModel[] {
     return this._data.models;
   }
@@ -89,7 +93,7 @@ class TsGantt {
       throw new Error("Container is null");
     }
 
-    this.createLayout();    
+    this.createLayout();
   }
 
   destroy() {
@@ -341,6 +345,7 @@ class TsGantt {
     const data = this._data.getAllTasksAsChanged();
     this._chart.update(true, data, null);
     this.refreshSelection();
+    this.scrollChartToTasks(this._data.tasks);
   }
 
   private updateChartDisplayMode() {
@@ -356,7 +361,7 @@ class TsGantt {
     this.update(null);
   }
 
-  private scrollChartToTasks(tasks: TsGanttTask[]) {
+  private scrollChartToTasks(tasks: readonly TsGanttTask[]) {
     const { dayWidthPx, chartDisplayMode } = this._options;
     const offsets = tasks
       .map(task => task.getHorizontalOffsetPx(chartDisplayMode, this._data.dateMinOffset, dayWidthPx))
