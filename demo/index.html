@@ -3,17 +3,19 @@
   
 <head>
     <style>
+        :root {
+            box-sizing: border-box;
+        }
         html, body {
             position: relative;
             min-width: 320px;
             min-height: 700px;
             width: 100%;
-            height: 100%;
+            height: 90%;
             margin: 0;
             padding: 0;
         }
         #gantt-container {
-            box-sizing: border-box;
             position: relative;
             width: calc(100%-2*20px);
             height: 600px;
@@ -29,8 +31,8 @@
             cursor: pointer;
             border: 0;
             border-radius: 20px;
-            background-color: rgb(41, 156, 195);
-            color: white;
+            background-color: lightgray;
+            color: black;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }  
         button:hover {
@@ -39,11 +41,11 @@
             margin: 0 5px 0 0;
             font-weight: bold;
             cursor: pointer;
-            background-color: rgb(29, 109, 135);
+            background-color: dimgray;
             color: white;
         }  
         .button-div {
-            display: block;
+            display: inline-block;
             margin: 0 0 20px 20px;
         }
     </style>
@@ -64,7 +66,7 @@
             <button id="btn-locale-uk">Uk</button>
             <button id="btn-locale-ru">Ru</button>
             <button id="btn-locale-ja">Ja</button>
-        </div>                
+        </div>
         <div class="button-div">
             <button id="btn-scale-day">Day</button>
             <button id="btn-scale-week">Week</button>
