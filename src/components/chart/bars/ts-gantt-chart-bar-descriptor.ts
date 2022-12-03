@@ -20,4 +20,6 @@ export interface TsGanttChartBarDescriptor {
   progress: number;
 
   showHandles: boolean;
+
+  taskUuid: string;
 }

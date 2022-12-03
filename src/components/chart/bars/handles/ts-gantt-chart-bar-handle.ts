@@ -5,7 +5,7 @@ import { TsGanttSvgComponentBase } from "../../../abstract/ts-gantt-svg-componen
 
 import { TsGanttChartBarHandleDescriptor } from "./ts-gantt-chart-bar-handle-descriptor";
 
-export abstract class TsGanttChartBarHandle extends TsGanttSvgComponentBase {  
+export abstract class TsGanttChartBarHandle extends TsGanttSvgComponentBase {
   protected readonly _descriptor: TsGanttChartBarHandleDescriptor;
   protected readonly _callbackOnMove: (displacement: Coords) => void;
   protected readonly _callbackOnMoveEnd: (displacement: Coords) => void;

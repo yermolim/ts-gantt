@@ -135,7 +135,8 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
   }
 
   private drawHandles(wrapper: SVGElement, coords: HandlesCoords) {
-    const handleOptions: TsGanttChartBarHandleDescriptor = { 
+    const handleOptions: TsGanttChartBarHandleDescriptor = {
+      taskUuid: this._descriptor.taskUuid,
       width: coords.width, 
       height: coords.height,
       displacementThreshold: coords.displacementThreshold,

@@ -53,10 +53,9 @@ class TsGanttChart implements TsGanttBaseComponent {
     }
 
     const barGroups = this._activeUuids.map(x => this._chartBarGroups.get(x));
-    // TODO: try to optimize and get rid of redrawing the body on each update
-    this._body = new TsGanttChartBody(this._data.options, barGroups, 
-      this._header.xCoords, dateMinOffset, 
-      this._header.height, this._header.width);
+    // TODO: try to optimize this and get rid of redrawing the body on each update
+    this._body = new TsGanttChartBody(this._data.options, barGroups, dateMinOffset,
+      this._header.xCoords, this._header.height, this._header.width);
     this.redraw();
   }
 

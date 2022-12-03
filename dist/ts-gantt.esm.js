@@ -1655,8 +1655,11 @@ class TsGanttChartBody {
         const { dayWidthPx, rowHeightPx, borderWidthPx, drawTodayLine, chartDisplayMode } = this._options;
         const heightPx = rowHeightPx * barGroups.length;
         const body = this.createWrapper(top, width, heightPx);
-        const rowBgs = this.drawRowBackgrounds(body, barGroups, rowHeightPx, width);
-        this.drawChartGridLines(body, barGroups, rowHeightPx, width, heightPx, borderWidthPx, xCoords);
+        const rowBgs = this.drawRowBackgrounds(body, barGroups.map(bg => bg.task.uuid), rowHeightPx, width);
+        this.drawChartGridLines(body, barGroups.length, rowHeightPx, width, heightPx, borderWidthPx, xCoords);
+        if (drawTodayLine) {
+            this.drawTodayLine(body, minDate, dayWidthPx, heightPx);
+        }
         const rowFgs = new Map();
         barGroups.forEach((barGroup, i) => {
             const task = barGroup.task;
@@ -1666,9 +1669,6 @@ class TsGanttChartBody {
             rowFgs.set(task.uuid, row);
             barGroup.appendToWithOffset(row, offsetX);
         });
-        if (drawTodayLine) {
-            this.drawTodayLine(body, minDate, dayWidthPx, heightPx);
-        }
         this._svg = body;
         this._chartRowBgs = rowBgs;
         this._chartRowFgs = rowFgs;
@@ -1711,15 +1711,15 @@ class TsGanttChartBody {
         ], parent);
         return rowBg;
     }
-    drawRowBackgrounds(parent, barGroups, rowHeight, width) {
+    drawRowBackgrounds(parent, taskUuids, rowHeight, width) {
         const rowBgs = new Map();
-        barGroups.forEach((x, i) => {
-            rowBgs.set(x.task.uuid, this.drawRowBackground(parent, i, rowHeight, width));
+        taskUuids.forEach((uuid, i) => {
+            rowBgs.set(uuid, this.drawRowBackground(parent, i, rowHeight, width));
         });
         return rowBgs;
     }
-    drawChartGridLines(parent, barGroups, rowHeight, width, height, border, xCoords) {
-        for (let i = 0; i < barGroups.length;) {
+    drawChartGridLines(parent, rowCount, rowHeight, width, height, border, xCoords) {
+        for (let i = 0; i < rowCount;) {
             const lineY = ++i * rowHeight - border / 2;
             this.drawHorizontalLine(parent, lineY, width);
         }

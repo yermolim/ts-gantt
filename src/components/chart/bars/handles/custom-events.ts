@@ -4,6 +4,7 @@ import { Coords } from "../../../../core/ts-gantt-common";
 export interface HandleMoveEventDetail {
   handleType: "start" | "end" | "progress";
   displacement: Coords;
+  taskUuid: string;
 }
 
 export class HandleMoveEvent extends CustomEvent<HandleMoveEventDetail> {

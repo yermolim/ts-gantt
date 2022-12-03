@@ -10,10 +10,18 @@ export class TsGanttProgressHandle extends TsGanttChartBarHandle {
   constructor(descriptor: TsGanttChartBarHandleDescriptor) {
     super(descriptor, 
       (displacement: Coords) => { 
-        document.dispatchEvent(new HandleMoveEvent({handleType: "progress", displacement})); 
+        document.dispatchEvent(new HandleMoveEvent({
+          handleType: "progress", 
+          displacement, taskUuid: 
+          descriptor.taskUuid
+        })); 
       },
       (displacement: Coords) => { 
-        document.dispatchEvent(new HandleMoveEndEvent({handleType: "progress", displacement})); 
+        document.dispatchEvent(new HandleMoveEndEvent({
+          handleType: "progress", 
+          displacement, 
+          taskUuid: descriptor.taskUuid
+        })); 
       });
   }
 

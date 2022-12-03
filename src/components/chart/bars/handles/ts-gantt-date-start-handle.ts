@@ -10,10 +10,18 @@ export class TsGanttDateStartHandle extends TsGanttChartBarHandle {
   constructor(descriptor: TsGanttChartBarHandleDescriptor) {
     super(descriptor, 
       (displacement: Coords) => { 
-        document.dispatchEvent(new HandleMoveEvent({handleType: "start", displacement})); 
+        document.dispatchEvent(new HandleMoveEvent({
+          handleType: "start", 
+          displacement, 
+          taskUuid: descriptor.taskUuid
+        })); 
       },
       (displacement: Coords) => { 
-        document.dispatchEvent(new HandleMoveEndEvent({handleType: "start", displacement})); 
+        document.dispatchEvent(new HandleMoveEndEvent({
+          handleType: "start", 
+          displacement, 
+          taskUuid: descriptor.taskUuid
+        })); 
       });
   }
 

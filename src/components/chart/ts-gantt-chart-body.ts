@@ -15,11 +15,11 @@ class TsGanttChartBody {
   private _chartRowBgs: Map<string, SVGElement>;
   private _chartRowFgs: Map<string, SVGElement>;
 
-  constructor(options: TsGanttOptions, barGroups: TsGanttChartBarGroup[], xCoords: readonly number[], 
-    minDate: dayjs.Dayjs, top: number, width: number) {
+  constructor(options: TsGanttOptions, barGroups: TsGanttChartBarGroup[], minDate: dayjs.Dayjs,
+    xCoords: readonly number[], top: number, width: number) {
 
     this._options = options;
-    this.drawSvg(barGroups, xCoords, minDate, top, width);
+    this.drawSvg(barGroups, minDate, xCoords, top, width);
   }
 
   destroy() {
@@ -42,7 +42,7 @@ class TsGanttChartBody {
         rowWrapper.classList.remove(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
       }
     }
-    for (const uuid of selected) {  
+    for (const uuid of selected) {
       const rowBg = this._chartRowBgs.get(uuid);
       if (rowBg) {
         rowBg.classList.add(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
@@ -67,33 +67,32 @@ class TsGanttChartBody {
     return body;
   }
 
-  private drawSvg(barGroups: TsGanttChartBarGroup[], xCoords: readonly number[],
-    minDate: dayjs.Dayjs, top: number, width: number) {
+  private drawSvg(barGroups: TsGanttChartBarGroup[], minDate: dayjs.Dayjs,
+    xCoords: readonly number[], top: number, width: number) {
 
     const { dayWidthPx, rowHeightPx, borderWidthPx, drawTodayLine, chartDisplayMode } = this._options;
     const heightPx = rowHeightPx * barGroups.length;
 
     const body = this.createWrapper(top, width, heightPx);
-    const rowBgs = this.drawRowBackgrounds(body, barGroups, rowHeightPx, width);
-    this.drawChartGridLines(body, barGroups, rowHeightPx, width, heightPx, borderWidthPx, xCoords);
+    const rowBgs = this.drawRowBackgrounds(body, barGroups.map(bg => bg.task.uuid), rowHeightPx, width);
+    this.drawChartGridLines(body, barGroups.length, rowHeightPx, width, heightPx, borderWidthPx, xCoords);
+    if (drawTodayLine) {
+      this.drawTodayLine(body, minDate, dayWidthPx, heightPx);
+    }
 
     const rowFgs = new Map<string, SVGElement>();
 
     barGroups.forEach((barGroup, i) => {
       const task = barGroup.task;
 
-      const offsetX = task.getHorizontalOffsetPx(chartDisplayMode, minDate, dayWidthPx);
       const offsetY = i * rowHeightPx;
 
       const row = this.drawRow(body, task, offsetY, width, rowHeightPx);
       rowFgs.set(task.uuid, row);
 
+      const offsetX = task.getHorizontalOffsetPx(chartDisplayMode, minDate, dayWidthPx);
       barGroup.appendToWithOffset(row, offsetX);
     });
-
-    if (drawTodayLine) {
-      this.drawTodayLine(body, minDate, dayWidthPx, heightPx);
-    }
 
     this._svg = body;
     this._chartRowBgs = rowBgs;
@@ -141,18 +140,18 @@ class TsGanttChartBody {
     return rowBg;
   }
 
-  private drawRowBackgrounds(parent: SVGElement, barGroups: readonly TsGanttChartBarGroup[], 
+  private drawRowBackgrounds(parent: SVGElement, taskUuids: readonly string[], 
     rowHeight: number, width: number) {
     const rowBgs = new Map<string, SVGElement>();
-    barGroups.forEach((x, i) => {
-      rowBgs.set(x.task.uuid, this.drawRowBackground(parent, i, rowHeight, width));
+    taskUuids.forEach((uuid, i) => {
+      rowBgs.set(uuid, this.drawRowBackground(parent, i, rowHeight, width));
     });
     return rowBgs;
   }
 
-  private drawChartGridLines(parent: SVGElement, barGroups: readonly TsGanttChartBarGroup[], 
+  private drawChartGridLines(parent: SVGElement, rowCount: number, 
     rowHeight: number, width: number, height: number, border: number, xCoords: readonly number[]) {
-    for (let i = 0; i < barGroups.length;) {
+    for (let i = 0; i < rowCount;) {
       const lineY = ++i * rowHeight - border / 2;
       this.drawHorizontalLine(parent, lineY, width);
     }

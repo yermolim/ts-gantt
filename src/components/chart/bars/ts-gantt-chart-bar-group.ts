@@ -61,6 +61,7 @@ export class TsGanttChartBarGroup implements AppendableComponent {
       borderWidth: barBorder,
       cornerRadius: barCornerR,
       progress: task.progress,
+      taskUuid: task.uuid,
     };
  
     const plannedBarDescriptorPartial = {
