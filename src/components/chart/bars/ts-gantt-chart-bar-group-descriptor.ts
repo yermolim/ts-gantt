@@ -40,7 +40,8 @@ export class TsGanttChartBarGroupDescriptor {
         break;
     }
 
-    return { mode, showProgress, showHandles, dayWidth, rowHeight,
-      barMinWidth, barHeight, barBorder, barCornerR, y0, y1 };
+    return Object.assign(new TsGanttChartBarGroupDescriptor(),
+      { mode, showProgress, showHandles, dayWidth, rowHeight,
+        barMinWidth, barHeight, barBorder, barCornerR, y0, y1 });
   }
 }

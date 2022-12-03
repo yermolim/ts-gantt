@@ -53,9 +53,13 @@ class TsGanttChart implements TsGanttBaseComponent {
     }
 
     const barGroups = this._activeUuids.map(x => this._chartBarGroups.get(x));
+    const tasks = barGroups.map(bg => bg.task);
+
     // TODO: try to optimize this and get rid of redrawing the body on each update
-    this._body = new TsGanttChartBody(this._data.options, barGroups, dateMinOffset,
+    this._body = new TsGanttChartBody(this._data, tasks,
       this._header.xCoords, this._header.height, this._header.width);
+    barGroups.forEach(bg => this._body.appendComponentToRow(bg.task.uuid, bg));
+
     this.redraw();
   }
 
@@ -71,15 +75,16 @@ class TsGanttChart implements TsGanttBaseComponent {
 
   private updateBarGroups(data: TsGanttDataChangeResult) {
     const barGroupOptions = TsGanttChartBarGroupDescriptor.getFromGanttOptions(this._data.options);
-    data.deleted.forEach(x => {
-      this._chartBarGroups.get(x.uuid)?.destroy();
-      this._chartBarGroups.delete(x.uuid);
+    data.deleted.forEach(task => {
+      this._chartBarGroups.get(task.uuid)?.destroy();
+      this._chartBarGroups.delete(task.uuid);
     });
-    data.changed.forEach(x => {
-      this._chartBarGroups.get(x.uuid)?.destroy();
-      this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions));
+    data.changed.forEach(task => {
+      this._chartBarGroups.get(task.uuid)?.destroy();
+      this._chartBarGroups.set(task.uuid, new TsGanttChartBarGroup(barGroupOptions, task, this._data.dateMinOffset));
     });
-    data.added.forEach(x => this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions)));
+    data.added.forEach(task => 
+      this._chartBarGroups.set(task.uuid, new TsGanttChartBarGroup(barGroupOptions, task, this._data.dateMinOffset)));
   }
 
   private redraw() {
@@ -104,12 +109,16 @@ class TsGanttChart implements TsGanttBaseComponent {
   }
 
   private onHandleMove = (e: HandleMoveEvent) => {
-    console.log(e);
+    console.log(e.detail.taskUuid);
+    // if temp bar group is not created - create one with a temp task based on the task from the set
+    // draw it as a semi-transparent one on top of the body
   };
 
   private onHandleMoveEnd = (e: HandleMoveEvent) => {
-    console.log(e);
+    console.log(e.detail.taskUuid);
     console.log("ENDED"); 
+    // remove temp bar group if present
+    // TODO: raise task changed event
   };
 }
 

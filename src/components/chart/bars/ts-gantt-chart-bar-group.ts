@@ -4,14 +4,22 @@ import { TsGanttTask } from "../../../core/ts-gantt-task";
 import { AppendableComponent } from "../../abstract/appendable-component";
 import { TsGanttChartBarGroupDescriptor } from "./ts-gantt-chart-bar-group-descriptor";
 import { TsGanttChartBar } from "./ts-gantt-chart-bar";
+import dayjs from "dayjs";
 
 export class TsGanttChartBarGroup implements AppendableComponent {
   readonly task: TsGanttTask;
+
+  private readonly _descriptor: TsGanttChartBarGroupDescriptor;
+  private readonly _minDate: dayjs.Dayjs;
+
   private _bars: TsGanttChartBar[];
 
-  constructor(task: TsGanttTask, descriptor: TsGanttChartBarGroupDescriptor) {
+  constructor(descriptor: TsGanttChartBarGroupDescriptor, task: TsGanttTask, minDate: dayjs.Dayjs) {
     this.task = task;
-    this.draw(task, descriptor);
+    this._descriptor = descriptor;
+    this._minDate = minDate;
+
+    this.draw();
   }
 
   destroy() {
@@ -24,23 +32,21 @@ export class TsGanttChartBarGroup implements AppendableComponent {
     if (!this._bars?.length) {
       return;
     }
-    this._bars.forEach(bar => {
-      bar.appendTo(parent);
-    });
-  }
 
-  appendToWithOffset(parent: Element, offsetX: number) {
-    if (!this._bars?.length || !offsetX) {
+    const offsetX = this.task.getHorizontalOffsetPx(this._descriptor.mode, this._minDate, this._descriptor.dayWidth);
+    if (!offsetX) {
       return;
     }
+
     this._bars.forEach(bar => {
       bar.appendToWithOffset(parent, offsetX);
     });
   }
 
-  private draw(task: TsGanttTask, descriptor: TsGanttChartBarGroupDescriptor) {
+  private draw() {
     const { mode, showProgress, showHandles, 
-      dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = descriptor;
+      dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = this._descriptor;
+    const task = this.task;
 
     const { minDate, maxDate } = task.getMinMaxDates(mode);
     if (!minDate || !maxDate) {

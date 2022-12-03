@@ -3,31 +3,24 @@ import dayjs from "dayjs";
 import { TsGanttConst } from "../../core/ts-gantt-const";
 import { createSvgElement } from "../../core/ts-gantt-common";
 import { TsGanttOptions } from "../../core/ts-gantt-options";
+import { TsGanttData } from "../../core/ts-gantt-data";
 import { TsGanttTask, TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
 
-import { TsGanttChartBarGroup } from "./bars/ts-gantt-chart-bar-group";
+import { TsGanttSvgComponentBase } from "../abstract/ts-gantt-svg-component-base";
+import { AppendableComponent } from "../abstract/appendable-component";
 
-class TsGanttChartBody {
+class TsGanttChartBody extends TsGanttSvgComponentBase {
   private readonly _options: TsGanttOptions;
 
-  private _svg: SVGElement;
-  
   private _chartRowBgs: Map<string, SVGElement>;
   private _chartRowFgs: Map<string, SVGElement>;
 
-  constructor(options: TsGanttOptions, barGroups: TsGanttChartBarGroup[], minDate: dayjs.Dayjs,
+  constructor(data: TsGanttData, tasks: TsGanttTask[],
     xCoords: readonly number[], top: number, width: number) {
+    super();
 
-    this._options = options;
-    this.drawSvg(barGroups, minDate, xCoords, top, width);
-  }
-
-  destroy() {
-    this._svg.remove();
-  }
-
-  appendTo(parent: Element) {
-    parent.append(this._svg);
+    this._options = data.options;
+    this.draw(tasks, data.dateMinOffset, xCoords, top, width);
   }
 
   applySelection(selectionResult: TsGanttTaskSelectionChangeResult) {
@@ -54,44 +47,30 @@ class TsGanttChartBody {
     }
   }
 
-  private createWrapper(y0: number, width: number, height: number) {
-    const body = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BODY], [
-      ["y", y0 + ""],
-      ["width", width + ""],
-      ["height", height + ""],
-    ]);
-    createSvgElement("rect", [TsGanttConst.CLASSES.CHART.BODY_BACKGROUND], [
-      ["width", width + ""],
-      ["height", height + ""],
-    ], body);
-    return body;
+  appendComponentToRow(rowUuid: string, element: AppendableComponent) {    
+    const row = this._chartRowFgs.get(rowUuid);
+    if (row) {
+      element.appendTo(row);
+    }
   }
 
-  private drawSvg(barGroups: TsGanttChartBarGroup[], minDate: dayjs.Dayjs,
+  private draw(tasks: TsGanttTask[], minDate: dayjs.Dayjs,
     xCoords: readonly number[], top: number, width: number) {
 
-    const { dayWidthPx, rowHeightPx, borderWidthPx, drawTodayLine, chartDisplayMode } = this._options;
-    const heightPx = rowHeightPx * barGroups.length;
+    const { dayWidthPx, rowHeightPx, borderWidthPx, drawTodayLine } = this._options;
+    const heightPx = rowHeightPx * tasks.length;
 
     const body = this.createWrapper(top, width, heightPx);
-    const rowBgs = this.drawRowBackgrounds(body, barGroups.map(bg => bg.task.uuid), rowHeightPx, width);
-    this.drawChartGridLines(body, barGroups.length, rowHeightPx, width, heightPx, borderWidthPx, xCoords);
+    const rowBgs = this.drawRowBackgrounds(body, tasks.map(task => task.uuid), rowHeightPx, width);
+    this.drawChartGridLines(body, tasks.length, rowHeightPx, width, heightPx, borderWidthPx, xCoords);
     if (drawTodayLine) {
       this.drawTodayLine(body, minDate, dayWidthPx, heightPx);
     }
 
     const rowFgs = new Map<string, SVGElement>();
-
-    barGroups.forEach((barGroup, i) => {
-      const task = barGroup.task;
-
-      const offsetY = i * rowHeightPx;
-
-      const row = this.drawRow(body, task, offsetY, width, rowHeightPx);
+    tasks.forEach((task, i) => {
+      const row = this.drawRowForeground(body, task, i * rowHeightPx, width, rowHeightPx);
       rowFgs.set(task.uuid, row);
-
-      const offsetX = task.getHorizontalOffsetPx(chartDisplayMode, minDate, dayWidthPx);
-      barGroup.appendToWithOffset(row, offsetX);
     });
 
     this._svg = body;
@@ -99,7 +78,7 @@ class TsGanttChartBody {
     this._chartRowFgs = rowFgs;
   }
 
-  private drawRow(parent: SVGElement, task: TsGanttTask, offsetY: number, width: number, height: number) {
+  private drawRowForeground(parent: SVGElement, task: TsGanttTask, offsetY: number, width: number, height: number) {
     const rowWrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.ROW_WRAPPER], [
       ["y", offsetY + ""],
       ["width", width + ""],
@@ -186,6 +165,19 @@ class TsGanttChartBody {
       ["x2", left + ""],
       ["y2", height + ""],
     ], parent);
+  }
+
+  private createWrapper(y0: number, width: number, height: number) {
+    const body = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BODY], [
+      ["y", y0 + ""],
+      ["width", width + ""],
+      ["height", height + ""],
+    ]);
+    createSvgElement("rect", [TsGanttConst.CLASSES.CHART.BODY_BACKGROUND], [
+      ["width", width + ""],
+      ["height", height + ""],
+    ], body);
+    return body;
   }
 }
 

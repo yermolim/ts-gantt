@@ -226,7 +226,7 @@ class TsGantt {
       if (this.onRowClickCb) {
         this.onRowClickCb(task.toModel(), event);
       }
-    } else if (event.detail === 2){      
+    } else if (event.detail === 2){
       if (this.onRowDoubleClickCb) {
         this.onRowDoubleClickCb(task.toModel(), event);
       }

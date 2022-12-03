@@ -1605,16 +1605,31 @@ class TsGanttChartHeader {
     }
 }
 
-class TsGanttChartBody {
-    constructor(options, barGroups, xCoords, minDate, top, width) {
-        this._options = options;
-        this.drawSvg(barGroups, xCoords, minDate, top, width);
-    }
+class TsGanttSvgComponentBase {
     destroy() {
         this._svg.remove();
     }
     appendTo(parent) {
         parent.append(this._svg);
+    }
+    appendToWithOffset(parent, offsetX, addOffsetToCurrent = false) {
+        if (!this._svg || (!offsetX && offsetX !== 0)) {
+            return;
+        }
+        if (addOffsetToCurrent) {
+            const currentOffsetX = +this._svg.getAttribute("x") || 0;
+            offsetX = currentOffsetX + offsetX;
+        }
+        this._svg.setAttribute("x", offsetX + "");
+        parent.append(this._svg);
+    }
+}
+
+class TsGanttChartBody extends TsGanttSvgComponentBase {
+    constructor(data, tasks, xCoords, top, width) {
+        super();
+        this._options = data.options;
+        this.draw(tasks, data.dateMinOffset, xCoords, top, width);
     }
     applySelection(selectionResult) {
         const { selected, deselected } = selectionResult;
@@ -1639,41 +1654,31 @@ class TsGanttChartBody {
             }
         }
     }
-    createWrapper(y0, width, height) {
-        const body = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BODY], [
-            ["y", y0 + ""],
-            ["width", width + ""],
-            ["height", height + ""],
-        ]);
-        createSvgElement("rect", [TsGanttConst.CLASSES.CHART.BODY_BACKGROUND], [
-            ["width", width + ""],
-            ["height", height + ""],
-        ], body);
-        return body;
+    appendComponentToRow(rowUuid, element) {
+        const row = this._chartRowFgs.get(rowUuid);
+        if (row) {
+            element.appendTo(row);
+        }
     }
-    drawSvg(barGroups, xCoords, minDate, top, width) {
-        const { dayWidthPx, rowHeightPx, borderWidthPx, drawTodayLine, chartDisplayMode } = this._options;
-        const heightPx = rowHeightPx * barGroups.length;
+    draw(tasks, minDate, xCoords, top, width) {
+        const { dayWidthPx, rowHeightPx, borderWidthPx, drawTodayLine } = this._options;
+        const heightPx = rowHeightPx * tasks.length;
         const body = this.createWrapper(top, width, heightPx);
-        const rowBgs = this.drawRowBackgrounds(body, barGroups.map(bg => bg.task.uuid), rowHeightPx, width);
-        this.drawChartGridLines(body, barGroups.length, rowHeightPx, width, heightPx, borderWidthPx, xCoords);
+        const rowBgs = this.drawRowBackgrounds(body, tasks.map(task => task.uuid), rowHeightPx, width);
+        this.drawChartGridLines(body, tasks.length, rowHeightPx, width, heightPx, borderWidthPx, xCoords);
         if (drawTodayLine) {
             this.drawTodayLine(body, minDate, dayWidthPx, heightPx);
         }
         const rowFgs = new Map();
-        barGroups.forEach((barGroup, i) => {
-            const task = barGroup.task;
-            const offsetX = task.getHorizontalOffsetPx(chartDisplayMode, minDate, dayWidthPx);
-            const offsetY = i * rowHeightPx;
-            const row = this.drawRow(body, task, offsetY, width, rowHeightPx);
+        tasks.forEach((task, i) => {
+            const row = this.drawRowForeground(body, task, i * rowHeightPx, width, rowHeightPx);
             rowFgs.set(task.uuid, row);
-            barGroup.appendToWithOffset(row, offsetX);
         });
         this._svg = body;
         this._chartRowBgs = rowBgs;
         this._chartRowFgs = rowFgs;
     }
-    drawRow(parent, task, offsetY, width, height) {
+    drawRowForeground(parent, task, offsetY, width, height) {
         const rowWrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.ROW_WRAPPER], [
             ["y", offsetY + ""],
             ["width", width + ""],
@@ -1752,6 +1757,18 @@ class TsGanttChartBody {
             ["y2", height + ""],
         ], parent);
     }
+    createWrapper(y0, width, height) {
+        const body = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BODY], [
+            ["y", y0 + ""],
+            ["width", width + ""],
+            ["height", height + ""],
+        ]);
+        createSvgElement("rect", [TsGanttConst.CLASSES.CHART.BODY_BACKGROUND], [
+            ["width", width + ""],
+            ["height", height + ""],
+        ], body);
+        return body;
+    }
 }
 
 class TsGanttChartBarGroupDescriptor {
@@ -1779,28 +1796,8 @@ class TsGanttChartBarGroupDescriptor {
                 barHeight = rowHeight - 2 * barMargin;
                 break;
         }
-        return { mode, showProgress, showHandles, dayWidth, rowHeight,
-            barMinWidth, barHeight, barBorder, barCornerR, y0, y1 };
-    }
-}
-
-class TsGanttSvgComponentBase {
-    destroy() {
-        this._svg.remove();
-    }
-    appendTo(parent) {
-        parent.append(this._svg);
-    }
-    appendToWithOffset(parent, offsetX, addOffsetToCurrent = false) {
-        if (!this._svg || (!offsetX && offsetX !== 0)) {
-            return;
-        }
-        if (addOffsetToCurrent) {
-            const currentOffsetX = +this._svg.getAttribute("x") || 0;
-            offsetX = currentOffsetX + offsetX;
-        }
-        this._svg.setAttribute("x", offsetX + "");
-        parent.append(this._svg);
+        return Object.assign(new TsGanttChartBarGroupDescriptor(), { mode, showProgress, showHandles, dayWidth, rowHeight,
+            barMinWidth, barHeight, barBorder, barCornerR, y0, y1 });
     }
 }
 
@@ -1892,9 +1889,17 @@ class HandleMoveEndEvent extends CustomEvent {
 class TsGanttDateStartHandle extends TsGanttChartBarHandle {
     constructor(descriptor) {
         super(descriptor, (displacement) => {
-            document.dispatchEvent(new HandleMoveEvent({ handleType: "start", displacement }));
+            document.dispatchEvent(new HandleMoveEvent({
+                handleType: "start",
+                displacement,
+                taskUuid: descriptor.taskUuid
+            }));
         }, (displacement) => {
-            document.dispatchEvent(new HandleMoveEndEvent({ handleType: "start", displacement }));
+            document.dispatchEvent(new HandleMoveEndEvent({
+                handleType: "start",
+                displacement,
+                taskUuid: descriptor.taskUuid
+            }));
         });
     }
     drawHandle(wrapper) {
@@ -1908,9 +1913,17 @@ class TsGanttDateStartHandle extends TsGanttChartBarHandle {
 class TsGanttDateEndHandle extends TsGanttChartBarHandle {
     constructor(descriptor) {
         super(descriptor, (displacement) => {
-            document.dispatchEvent(new HandleMoveEvent({ handleType: "end", displacement }));
+            document.dispatchEvent(new HandleMoveEvent({
+                handleType: "end",
+                displacement,
+                taskUuid: descriptor.taskUuid
+            }));
         }, (displacement) => {
-            document.dispatchEvent(new HandleMoveEndEvent({ handleType: "end", displacement }));
+            document.dispatchEvent(new HandleMoveEndEvent({
+                handleType: "end",
+                displacement,
+                taskUuid: descriptor.taskUuid
+            }));
         });
     }
     drawHandle(wrapper) {
@@ -1924,9 +1937,16 @@ class TsGanttDateEndHandle extends TsGanttChartBarHandle {
 class TsGanttProgressHandle extends TsGanttChartBarHandle {
     constructor(descriptor) {
         super(descriptor, (displacement) => {
-            document.dispatchEvent(new HandleMoveEvent({ handleType: "progress", displacement }));
+            document.dispatchEvent(new HandleMoveEvent({
+                handleType: "progress",
+                displacement, taskUuid: descriptor.taskUuid
+            }));
         }, (displacement) => {
-            document.dispatchEvent(new HandleMoveEndEvent({ handleType: "progress", displacement }));
+            document.dispatchEvent(new HandleMoveEndEvent({
+                handleType: "progress",
+                displacement,
+                taskUuid: descriptor.taskUuid
+            }));
         });
     }
     drawHandle(wrapper) {
@@ -2037,6 +2057,7 @@ class TsGanttChartBar extends TsGanttSvgComponentBase {
     }
     drawHandles(wrapper, coords) {
         const handleOptions = {
+            taskUuid: this._descriptor.taskUuid,
             width: coords.width,
             height: coords.height,
             displacementThreshold: coords.displacementThreshold,
@@ -2060,9 +2081,11 @@ class TsGanttChartBar extends TsGanttSvgComponentBase {
 }
 
 class TsGanttChartBarGroup {
-    constructor(task, descriptor) {
+    constructor(descriptor, task, minDate) {
         this.task = task;
-        this.draw(task, descriptor);
+        this._descriptor = descriptor;
+        this._minDate = minDate;
+        this.draw();
     }
     destroy() {
         var _a;
@@ -2075,21 +2098,17 @@ class TsGanttChartBarGroup {
         if (!((_a = this._bars) === null || _a === void 0 ? void 0 : _a.length)) {
             return;
         }
-        this._bars.forEach(bar => {
-            bar.appendTo(parent);
-        });
-    }
-    appendToWithOffset(parent, offsetX) {
-        var _a;
-        if (!((_a = this._bars) === null || _a === void 0 ? void 0 : _a.length) || !offsetX) {
+        const offsetX = this.task.getHorizontalOffsetPx(this._descriptor.mode, this._minDate, this._descriptor.dayWidth);
+        if (!offsetX) {
             return;
         }
         this._bars.forEach(bar => {
             bar.appendToWithOffset(parent, offsetX);
         });
     }
-    draw(task, descriptor) {
-        const { mode, showProgress, showHandles, dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = descriptor;
+    draw() {
+        const { mode, showProgress, showHandles, dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = this._descriptor;
+        const task = this.task;
         const { minDate, maxDate } = task.getMinMaxDates(mode);
         if (!minDate || !maxDate) {
             return;
@@ -2107,6 +2126,7 @@ class TsGanttChartBarGroup {
             borderWidth: barBorder,
             cornerRadius: barCornerR,
             progress: task.progress,
+            taskUuid: task.uuid,
         };
         const plannedBarDescriptorPartial = {
             barType: "planned",
@@ -2152,10 +2172,10 @@ class TsGanttChart {
         this._activeUuids = [];
         this._chartBarGroups = new Map();
         this.onHandleMove = (e) => {
-            console.log(e);
+            console.log(e.detail.taskUuid);
         };
         this.onHandleMoveEnd = (e) => {
-            console.log(e);
+            console.log(e.detail.taskUuid);
             console.log("ENDED");
         };
         this._data = data;
@@ -2181,7 +2201,9 @@ class TsGanttChart {
             this._activeUuids = uuids;
         }
         const barGroups = this._activeUuids.map(x => this._chartBarGroups.get(x));
-        this._body = new TsGanttChartBody(this._data.options, barGroups, this._header.xCoords, dateMinOffset, this._header.height, this._header.width);
+        const tasks = barGroups.map(bg => bg.task);
+        this._body = new TsGanttChartBody(this._data, tasks, this._header.xCoords, this._header.height, this._header.width);
+        barGroups.forEach(bg => this._body.appendComponentToRow(bg.task.uuid, bg));
         this.redraw();
     }
     applySelection(selectionResult) {
@@ -2195,17 +2217,17 @@ class TsGanttChart {
     }
     updateBarGroups(data) {
         const barGroupOptions = TsGanttChartBarGroupDescriptor.getFromGanttOptions(this._data.options);
-        data.deleted.forEach(x => {
+        data.deleted.forEach(task => {
             var _a;
-            (_a = this._chartBarGroups.get(x.uuid)) === null || _a === void 0 ? void 0 : _a.destroy();
-            this._chartBarGroups.delete(x.uuid);
+            (_a = this._chartBarGroups.get(task.uuid)) === null || _a === void 0 ? void 0 : _a.destroy();
+            this._chartBarGroups.delete(task.uuid);
         });
-        data.changed.forEach(x => {
+        data.changed.forEach(task => {
             var _a;
-            (_a = this._chartBarGroups.get(x.uuid)) === null || _a === void 0 ? void 0 : _a.destroy();
-            this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions));
+            (_a = this._chartBarGroups.get(task.uuid)) === null || _a === void 0 ? void 0 : _a.destroy();
+            this._chartBarGroups.set(task.uuid, new TsGanttChartBarGroup(barGroupOptions, task, this._data.dateMinOffset));
         });
-        data.added.forEach(x => this._chartBarGroups.set(x.uuid, new TsGanttChartBarGroup(x, barGroupOptions)));
+        data.added.forEach(task => this._chartBarGroups.set(task.uuid, new TsGanttChartBarGroup(barGroupOptions, task, this._data.dateMinOffset)));
     }
     redraw() {
         const oldHtml = this._html;
