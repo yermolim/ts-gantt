@@ -3,10 +3,10 @@ import { TsGanttConst } from "../../../../core/ts-gantt-const";
 
 import { TsGanttSvgComponentBase } from "../../../abstract/ts-gantt-svg-component-base";
 
-import { TsGanttChartBarHandleOptions } from "./ts-gantt-chart-bar-handle-options";
+import { TsGanttChartBarHandleDescriptor } from "./ts-gantt-chart-bar-handle-descriptor";
 
 export abstract class TsGanttChartBarHandle extends TsGanttSvgComponentBase {  
-  protected readonly _options: TsGanttChartBarHandleOptions;
+  protected readonly _descriptor: TsGanttChartBarHandleDescriptor;
   protected readonly _callbackOnMove: (displacement: Coords) => void;
   protected readonly _callbackOnMoveEnd: (displacement: Coords) => void;
   
@@ -14,13 +14,13 @@ export abstract class TsGanttChartBarHandle extends TsGanttSvgComponentBase {
   protected _lastMoveCoords: Coords;
   protected _currentDisplacement: Coords;
 
-  constructor(options: TsGanttChartBarHandleOptions, 
+  constructor(descriptor: TsGanttChartBarHandleDescriptor, 
     callbackOnMove: (displacement: Coords) => void, 
     callbackOnMoveEnd: (displacement: Coords) => void) {
 
     super();
 
-    this._options = options;
+    this._descriptor = descriptor;
 
     this._callbackOnMove = callbackOnMove;
     this._callbackOnMoveEnd = callbackOnMoveEnd;
@@ -38,7 +38,7 @@ export abstract class TsGanttChartBarHandle extends TsGanttSvgComponentBase {
   }  
 
   protected createWrapper(): SVGElement {
-    const { width, height } = this._options;
+    const { width, height } = this._descriptor;
 
     const wrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BAR.HANDLE_WRAPPER], [
       ["x", "0"],
@@ -80,7 +80,7 @@ export abstract class TsGanttChartBarHandle extends TsGanttSvgComponentBase {
     const displacementSinceLastEvent = this._lastMoveCoords
       ? Math.abs(e.x - this._lastMoveCoords.x)
       : Math.abs(displacement.x);
-    const displacementThresholdExceeded = displacementSinceLastEvent > this._options.displacementThreshold;
+    const displacementThresholdExceeded = displacementSinceLastEvent > this._descriptor.displacementThreshold;
 
     if (displacementThresholdExceeded) {
       this._lastMoveCoords = {x: e.x, y: e.y};

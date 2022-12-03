@@ -1,17 +1,17 @@
 import { Coords, createSvgElement } from "../../../../core/ts-gantt-common";
 import { TsGanttConst } from "../../../../core/ts-gantt-const";
 
-import { TsGanttChartBarHandleOptions } from "./ts-gantt-chart-bar-handle-options";
+import { TsGanttChartBarHandleDescriptor } from "./ts-gantt-chart-bar-handle-descriptor";
 import { TsGanttChartBarHandle } from "./ts-gantt-chart-bar-handle";
 import { HandleMoveEndEvent, HandleMoveEvent } from "./custom-events";
 
 export class TsGanttDateStartHandle extends TsGanttChartBarHandle {
   
-  constructor(options: TsGanttChartBarHandleOptions) {
-    super(options, 
+  constructor(descriptor: TsGanttChartBarHandleDescriptor) {
+    super(descriptor, 
       (displacement: Coords) => { 
         document.dispatchEvent(new HandleMoveEvent({handleType: "start", displacement})); 
-      }, 
+      },
       (displacement: Coords) => { 
         document.dispatchEvent(new HandleMoveEndEvent({handleType: "start", displacement})); 
       });

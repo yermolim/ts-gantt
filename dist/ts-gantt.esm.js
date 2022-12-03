@@ -1095,13 +1095,13 @@ class TsGanttTableColumnDescriptor {
             if (!minColumnWidth) {
                 continue;
             }
-            const columnOptions = {
+            const columnOptions = Object.assign(new TsGanttTableColumnDescriptor(), {
                 minWidth: minColumnWidth,
                 order: currentOrder++,
                 header: options.localeHeaders[options.locale][i] || "",
                 textAlign: options.columnsContentAlign[i],
                 valueGetter: options.columnValueGetters[i] || ((task) => ""),
-            };
+            });
             descriptors.push(columnOptions);
         }
         return descriptors;
@@ -1752,7 +1752,7 @@ class TsGanttChartBody {
     }
 }
 
-class TsGanttChartBarGroupOptions {
+class TsGanttChartBarGroupDescriptor {
     static getFromGanttOptions(options) {
         const mode = options.chartDisplayMode;
         const showProgress = options.chartShowProgress;
@@ -1803,7 +1803,7 @@ class TsGanttSvgComponentBase {
 }
 
 class TsGanttChartBarHandle extends TsGanttSvgComponentBase {
-    constructor(options, callbackOnMove, callbackOnMoveEnd) {
+    constructor(descriptor, callbackOnMove, callbackOnMoveEnd) {
         super();
         this.onPointerDown = (e) => {
             if (!e.isPrimary || e.button === 2) {
@@ -1827,7 +1827,7 @@ class TsGanttChartBarHandle extends TsGanttSvgComponentBase {
             const displacementSinceLastEvent = this._lastMoveCoords
                 ? Math.abs(e.x - this._lastMoveCoords.x)
                 : Math.abs(displacement.x);
-            const displacementThresholdExceeded = displacementSinceLastEvent > this._options.displacementThreshold;
+            const displacementThresholdExceeded = displacementSinceLastEvent > this._descriptor.displacementThreshold;
             if (displacementThresholdExceeded) {
                 this._lastMoveCoords = { x: e.x, y: e.y };
                 this._currentDisplacement = displacement;
@@ -1852,7 +1852,7 @@ class TsGanttChartBarHandle extends TsGanttSvgComponentBase {
             this._currentDisplacement = displacement;
             this._callbackOnMoveEnd(this._currentDisplacement);
         };
-        this._options = options;
+        this._descriptor = descriptor;
         this._callbackOnMove = callbackOnMove;
         this._callbackOnMoveEnd = callbackOnMoveEnd;
         this.draw();
@@ -1864,7 +1864,7 @@ class TsGanttChartBarHandle extends TsGanttSvgComponentBase {
         this._svg = wrapper;
     }
     createWrapper() {
-        const { width, height } = this._options;
+        const { width, height } = this._descriptor;
         const wrapper = createSvgElement("svg", [TsGanttConst.CLASSES.CHART.BAR.HANDLE_WRAPPER], [
             ["x", "0"],
             ["y", "0"],
@@ -1888,8 +1888,8 @@ class HandleMoveEndEvent extends CustomEvent {
 }
 
 class TsGanttDateStartHandle extends TsGanttChartBarHandle {
-    constructor(options) {
-        super(options, (displacement) => {
+    constructor(descriptor) {
+        super(descriptor, (displacement) => {
             document.dispatchEvent(new HandleMoveEvent({ handleType: "start", displacement }));
         }, (displacement) => {
             document.dispatchEvent(new HandleMoveEndEvent({ handleType: "start", displacement }));
@@ -1904,8 +1904,8 @@ class TsGanttDateStartHandle extends TsGanttChartBarHandle {
 }
 
 class TsGanttDateEndHandle extends TsGanttChartBarHandle {
-    constructor(options) {
-        super(options, (displacement) => {
+    constructor(descriptor) {
+        super(descriptor, (displacement) => {
             document.dispatchEvent(new HandleMoveEvent({ handleType: "end", displacement }));
         }, (displacement) => {
             document.dispatchEvent(new HandleMoveEndEvent({ handleType: "end", displacement }));
@@ -1920,8 +1920,8 @@ class TsGanttDateEndHandle extends TsGanttChartBarHandle {
 }
 
 class TsGanttProgressHandle extends TsGanttChartBarHandle {
-    constructor(options) {
-        super(options, (displacement) => {
+    constructor(descriptor) {
+        super(descriptor, (displacement) => {
             document.dispatchEvent(new HandleMoveEvent({ handleType: "progress", displacement }));
         }, (displacement) => {
             document.dispatchEvent(new HandleMoveEndEvent({ handleType: "progress", displacement }));
@@ -1938,9 +1938,9 @@ class TsGanttProgressHandle extends TsGanttChartBarHandle {
 }
 
 class TsGanttChartBar extends TsGanttSvgComponentBase {
-    constructor(options) {
+    constructor(descriptor) {
         super();
-        this._options = options;
+        this._descriptor = descriptor;
         this.draw();
     }
     appendToWithOffset(parent, offsetX, addOffsetToCurrent = false) {
@@ -1953,17 +1953,17 @@ class TsGanttChartBar extends TsGanttSvgComponentBase {
         const { wrapper: wrapperCoords, bar: barCoords, handles: handlesCoords } = this.getDrawData();
         const wrapper = this.createWrapper(wrapperCoords);
         this.drawTaskBar(wrapper, barCoords);
-        if (this._options.showProgress) {
+        if (this._descriptor.showProgress) {
             this.drawProgressBars(wrapper, barCoords);
         }
-        if (this._options.showHandles) {
+        if (this._descriptor.showHandles) {
             this.drawHandles(wrapper, handlesCoords);
         }
         this._defaultOffsetX = wrapperCoords.left;
         this._svg = wrapper;
     }
     getDrawData() {
-        const { minDate, startDate, endDate, dayWidth, minWrapperWidth, wrapperHeight, borderWidth, topPosition, progress, } = this._options;
+        const { minDate, startDate, endDate, dayWidth, minWrapperWidth, wrapperHeight, borderWidth, topPosition, progress, } = this._descriptor;
         const baseOffsetX = (startDate.diff(minDate, "day")) * dayWidth;
         const widthDays = endDate.diff(startDate, "day") + 1;
         const baseWidth = Math.max(widthDays * dayWidth, minWrapperWidth);
@@ -2006,7 +2006,7 @@ class TsGanttChartBar extends TsGanttSvgComponentBase {
         };
     }
     drawTaskBar(wrapper, coords) {
-        const { barType, cornerRadius } = this._options;
+        const { barType, cornerRadius } = this._descriptor;
         const barClassList = barType === "planned"
             ? [TsGanttConst.CLASSES.CHART.BAR.PLANNED]
             : [TsGanttConst.CLASSES.CHART.BAR.ACTUAL];
@@ -2020,7 +2020,7 @@ class TsGanttChartBar extends TsGanttSvgComponentBase {
         ], wrapper);
     }
     drawProgressBars(wrapper, coords) {
-        const { barType, cornerRadius } = this._options;
+        const { barType, cornerRadius } = this._descriptor;
         const progressBarClassList = barType === "planned"
             ? [TsGanttConst.CLASSES.CHART.BAR.PLANNED_PROGRESS]
             : [TsGanttConst.CLASSES.CHART.BAR.ACTUAL_PROGRESS];
@@ -2058,9 +2058,9 @@ class TsGanttChartBar extends TsGanttSvgComponentBase {
 }
 
 class TsGanttChartBarGroup {
-    constructor(task, options) {
+    constructor(task, descriptor) {
         this.task = task;
-        this.draw(task, options);
+        this.draw(task, descriptor);
     }
     destroy() {
         var _a;
@@ -2086,8 +2086,8 @@ class TsGanttChartBarGroup {
             bar.appendToWithOffset(parent, offsetX);
         });
     }
-    draw(task, options) {
-        const { mode, showProgress, showHandles, dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
+    draw(task, descriptor) {
+        const { mode, showProgress, showHandles, dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = descriptor;
         const { minDate, maxDate } = task.getMinMaxDates(mode);
         if (!minDate || !maxDate) {
             return;
@@ -2095,7 +2095,7 @@ class TsGanttChartBarGroup {
         const { datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd } = task;
         const plannedDatesSet = datePlannedStart && datePlannedEnd;
         const actualDatesSet = dateActualStart && dateActualEnd;
-        const commonBarOptionsPartial = {
+        const commonBarDescriptorPartial = {
             minDate,
             showProgress,
             showHandles,
@@ -2106,12 +2106,12 @@ class TsGanttChartBarGroup {
             cornerRadius: barCornerR,
             progress: task.progress,
         };
-        const plannedBarOptionsPartial = {
+        const plannedBarDescriptorPartial = {
             barType: "planned",
             startDate: datePlannedStart,
             endDate: datePlannedEnd,
         };
-        const actualBarOptionsPartial = {
+        const actualBarDescriptorPartial = {
             barType: "actual",
             startDate: dateActualStart,
             endDate: dateActualEnd,
@@ -2120,24 +2120,24 @@ class TsGanttChartBarGroup {
         if (mode === "both") {
             if (actualDatesSet || plannedDatesSet) {
                 if (plannedDatesSet) {
-                    bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, plannedBarOptionsPartial, {
+                    bars.push(new TsGanttChartBar(Object.assign({}, commonBarDescriptorPartial, plannedBarDescriptorPartial, {
                         topPosition: y0,
                     })));
                 }
                 if (actualDatesSet) {
-                    bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, actualBarOptionsPartial, {
+                    bars.push(new TsGanttChartBar(Object.assign({}, commonBarDescriptorPartial, actualBarDescriptorPartial, {
                         topPosition: y1,
                     })));
                 }
             }
         }
         else if (mode === "planned" && plannedDatesSet) {
-            bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, plannedBarOptionsPartial, {
+            bars.push(new TsGanttChartBar(Object.assign({}, commonBarDescriptorPartial, plannedBarDescriptorPartial, {
                 topPosition: y0,
             })));
         }
         else if (mode === "actual" && actualDatesSet) {
-            bars.push(new TsGanttChartBar(Object.assign({}, commonBarOptionsPartial, actualBarOptionsPartial, {
+            bars.push(new TsGanttChartBar(Object.assign({}, commonBarDescriptorPartial, actualBarDescriptorPartial, {
                 topPosition: y0,
             })));
         }
@@ -2192,7 +2192,7 @@ class TsGanttChart {
         return svg;
     }
     updateBarGroups(data) {
-        const barGroupOptions = TsGanttChartBarGroupOptions.getFromGanttOptions(this._data.options);
+        const barGroupOptions = TsGanttChartBarGroupDescriptor.getFromGanttOptions(this._data.options);
         data.deleted.forEach(x => {
             var _a;
             (_a = this._chartBarGroups.get(x.uuid)) === null || _a === void 0 ? void 0 : _a.destroy();

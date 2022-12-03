@@ -8,7 +8,7 @@ import { TsGanttChartHeader } from "./ts-gantt-chart-header";
 import { TsGanttChartBody } from "./ts-gantt-chart-body";
 
 import { HandleMoveEvent } from "./bars/handles/custom-events";
-import { TsGanttChartBarGroupOptions } from "./bars/ts-gantt-chart-bar-group-options";
+import { TsGanttChartBarGroupDescriptor } from "./bars/ts-gantt-chart-bar-group-descriptor";
 import { TsGanttChartBarGroup } from "./bars/ts-gantt-chart-bar-group";
 
 class TsGanttChart implements TsGanttBaseComponent {
@@ -71,7 +71,7 @@ class TsGanttChart implements TsGanttBaseComponent {
   }
 
   private updateBarGroups(data: TsGanttDataChangeResult) {
-    const barGroupOptions = TsGanttChartBarGroupOptions.getFromGanttOptions(this._data.options);
+    const barGroupOptions = TsGanttChartBarGroupDescriptor.getFromGanttOptions(this._data.options);
     data.deleted.forEach(x => {
       this._chartBarGroups.get(x.uuid)?.destroy();
       this._chartBarGroups.delete(x.uuid);

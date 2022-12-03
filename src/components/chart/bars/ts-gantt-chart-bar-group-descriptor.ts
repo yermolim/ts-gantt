@@ -1,7 +1,7 @@
 import { ChartBarMode } from "../../../core/ts-gantt-common";
 import { TsGanttOptions } from "../../../core/ts-gantt-options";
 
-class TsGanttChartBarGroupOptions {
+export class TsGanttChartBarGroupDescriptor {
   readonly mode: ChartBarMode;
   readonly showProgress: boolean;
   readonly showHandles: boolean;
@@ -14,7 +14,7 @@ class TsGanttChartBarGroupOptions {
   readonly y0: number; 
   readonly y1: number;
 
-  static getFromGanttOptions(options: TsGanttOptions): TsGanttChartBarGroupOptions {
+  static getFromGanttOptions(options: TsGanttOptions): TsGanttChartBarGroupDescriptor {
     const mode = options.chartDisplayMode;
     const showProgress = options.chartShowProgress;
     const showHandles = options.enableChartEdit;
@@ -44,5 +44,3 @@ class TsGanttChartBarGroupOptions {
       barMinWidth, barHeight, barBorder, barCornerR, y0, y1 };
   }
 }
-
-export { TsGanttChartBarGroupOptions };

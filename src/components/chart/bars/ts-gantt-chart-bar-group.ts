@@ -2,16 +2,16 @@ import { ChartBarType } from "../../../core/ts-gantt-common";
 import { TsGanttTask } from "../../../core/ts-gantt-task";
 
 import { AppendableComponent } from "../../abstract/appendable-component";
-import { TsGanttChartBarGroupOptions } from "./ts-gantt-chart-bar-group-options";
+import { TsGanttChartBarGroupDescriptor } from "./ts-gantt-chart-bar-group-descriptor";
 import { TsGanttChartBar } from "./ts-gantt-chart-bar";
 
 export class TsGanttChartBarGroup implements AppendableComponent {
   readonly task: TsGanttTask;
   private _bars: TsGanttChartBar[];
 
-  constructor(task: TsGanttTask, options: TsGanttChartBarGroupOptions) {
+  constructor(task: TsGanttTask, descriptor: TsGanttChartBarGroupDescriptor) {
     this.task = task;
-    this.draw(task, options);
+    this.draw(task, descriptor);
   }
 
   destroy() {
@@ -38,9 +38,9 @@ export class TsGanttChartBarGroup implements AppendableComponent {
     });
   }
 
-  private draw(task: TsGanttTask, options: TsGanttChartBarGroupOptions) {
+  private draw(task: TsGanttTask, descriptor: TsGanttChartBarGroupDescriptor) {
     const { mode, showProgress, showHandles, 
-      dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = options;
+      dayWidth, barMinWidth, barHeight, barBorder, barCornerR, y0, y1 } = descriptor;
 
     const { minDate, maxDate } = task.getMinMaxDates(mode);
     if (!minDate || !maxDate) {
@@ -51,7 +51,7 @@ export class TsGanttChartBarGroup implements AppendableComponent {
     const plannedDatesSet = datePlannedStart && datePlannedEnd;
     const actualDatesSet = dateActualStart && dateActualEnd;
 
-    const commonBarOptionsPartial = {
+    const commonBarDescriptorPartial = {
       minDate,
       showProgress,
       showHandles,
@@ -63,13 +63,13 @@ export class TsGanttChartBarGroup implements AppendableComponent {
       progress: task.progress,
     };
  
-    const plannedBarOptionsPartial = {
+    const plannedBarDescriptorPartial = {
       barType: "planned" as ChartBarType,
       startDate: datePlannedStart,
       endDate: datePlannedEnd,
     };
 
-    const actualBarOptionsPartial = {
+    const actualBarDescriptorPartial = {
       barType: "actual" as ChartBarType,
       startDate: dateActualStart,
       endDate: dateActualEnd,
@@ -81,8 +81,8 @@ export class TsGanttChartBarGroup implements AppendableComponent {
       if (actualDatesSet || plannedDatesSet) {
         if (plannedDatesSet) {
           bars.push(new TsGanttChartBar(Object.assign({}, 
-            commonBarOptionsPartial, 
-            plannedBarOptionsPartial, 
+            commonBarDescriptorPartial, 
+            plannedBarDescriptorPartial, 
             {
               topPosition: y0,
             },
@@ -90,8 +90,8 @@ export class TsGanttChartBarGroup implements AppendableComponent {
         }
         if (actualDatesSet) {
           bars.push(new TsGanttChartBar(Object.assign({}, 
-            commonBarOptionsPartial, 
-            actualBarOptionsPartial, 
+            commonBarDescriptorPartial, 
+            actualBarDescriptorPartial, 
             {
               topPosition: y1,
             },
@@ -100,16 +100,16 @@ export class TsGanttChartBarGroup implements AppendableComponent {
       }
     } else if (mode === "planned" && plannedDatesSet) {
       bars.push(new TsGanttChartBar(Object.assign({}, 
-        commonBarOptionsPartial, 
-        plannedBarOptionsPartial, 
+        commonBarDescriptorPartial, 
+        plannedBarDescriptorPartial, 
         {
           topPosition: y0,
         },
       )));
     } else if (mode === "actual" && actualDatesSet) {
       bars.push(new TsGanttChartBar(Object.assign({}, 
-        commonBarOptionsPartial, 
-        actualBarOptionsPartial, 
+        commonBarDescriptorPartial, 
+        actualBarDescriptorPartial, 
         {
           topPosition: y0,
         },

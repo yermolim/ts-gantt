@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 
 import { ChartBarType } from "../../../core/ts-gantt-common";
 
-export interface TsGanttChartBarOptions {
+export interface TsGanttChartBarDescriptor {
   minDate: dayjs.Dayjs; 
   startDate: dayjs.Dayjs; 
   endDate: dayjs.Dayjs;

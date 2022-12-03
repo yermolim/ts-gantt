@@ -2,22 +2,22 @@ import { createSvgElement } from "../../../core/ts-gantt-common";
 import { TsGanttConst } from "../../../core/ts-gantt-const";
 import { TsGanttSvgComponentBase } from "../../abstract/ts-gantt-svg-component-base";
 
-import { TsGanttChartBarOptions } from "./ts-gantt-chart-bar-options";
+import { TsGanttChartBarDescriptor } from "./ts-gantt-chart-bar-descriptor";
 
-import { TsGanttChartBarHandleOptions } from "./handles/ts-gantt-chart-bar-handle-options";
+import { TsGanttChartBarHandleDescriptor } from "./handles/ts-gantt-chart-bar-handle-descriptor";
 import { TsGanttDateStartHandle } from "./handles/ts-gantt-date-start-handle";
 import { TsGanttDateEndHandle } from "./handles/ts-gantt-date-end-handle";
 import { TsGanttProgressHandle } from "./handles/ts-gantt-progress-handle";
 
 export class TsGanttChartBar extends TsGanttSvgComponentBase {
-  private readonly _options: TsGanttChartBarOptions;
+  private readonly _descriptor: TsGanttChartBarDescriptor;
 
   private _defaultOffsetX: number;
 
-  constructor(options: TsGanttChartBarOptions) {
+  constructor(descriptor: TsGanttChartBarDescriptor) {
     super();
 
-    this._options = options;
+    this._descriptor = descriptor;
     this.draw();
   }
 
@@ -35,11 +35,11 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
 
     this.drawTaskBar(wrapper, barCoords);
 
-    if (this._options.showProgress) {
+    if (this._descriptor.showProgress) {
       this.drawProgressBars(wrapper, barCoords);
     }
 
-    if (this._options.showHandles) {
+    if (this._descriptor.showHandles) {
       this.drawHandles(wrapper, handlesCoords);
     }
 
@@ -52,7 +52,7 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
       minDate, startDate, endDate,
       dayWidth, minWrapperWidth, wrapperHeight,
       borderWidth, topPosition, progress,
-    } = this._options;
+    } = this._descriptor;
 
     const baseOffsetX = (startDate.diff(minDate, "day")) * dayWidth;
     const widthDays = endDate.diff(startDate, "day") + 1;
@@ -103,7 +103,7 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
   }
 
   private drawTaskBar(wrapper: SVGElement, coords: BarCoords) {
-    const { barType, cornerRadius } = this._options;
+    const { barType, cornerRadius } = this._descriptor;
 
     const barClassList = barType === "planned"
       ? [TsGanttConst.CLASSES.CHART.BAR.PLANNED]
@@ -119,7 +119,7 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
   }
 
   private drawProgressBars(wrapper: SVGElement, coords: BarCoords) {
-    const { barType, cornerRadius } = this._options;
+    const { barType, cornerRadius } = this._descriptor;
 
     const progressBarClassList = barType === "planned"
       ? [TsGanttConst.CLASSES.CHART.BAR.PLANNED_PROGRESS]
@@ -135,7 +135,7 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
   }
 
   private drawHandles(wrapper: SVGElement, coords: HandlesCoords) {
-    const handleOptions: TsGanttChartBarHandleOptions = { 
+    const handleOptions: TsGanttChartBarHandleDescriptor = { 
       width: coords.width, 
       height: coords.height,
       displacementThreshold: coords.displacementThreshold,

@@ -20,13 +20,13 @@ export class TsGanttTableColumnDescriptor {
       if (!minColumnWidth) {
         continue;
       }
-      const columnOptions: TsGanttTableColumnDescriptor = {
+      const columnOptions = Object.assign(new TsGanttTableColumnDescriptor(), {
         minWidth: minColumnWidth,
         order: currentOrder++,
         header: options.localeHeaders[options.locale][i] || "",
         textAlign: options.columnsContentAlign[i],
         valueGetter: options.columnValueGetters[i] || ((task: TsGanttTask) => ""),
-      };
+      });
       descriptors.push(columnOptions);
     }
     
