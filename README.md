@@ -24,7 +24,7 @@ Simple library for creating gantt chart combined with task grid.
     <li>single or multiple row selection mode</li>
     <li>localization support
         <ul>
-            <li>three out-of-box supported languages: English, Ukrainian, Russian</li>
+            <li>four out-of-box supported languages: English, Ukrainian, Russian, Japanese</li>
             <li>custom locales support</li>
             <li>instant locale switching</li>
         </ul>
@@ -36,6 +36,7 @@ Simple library for creating gantt chart combined with task grid.
             <li>instant chart scale and display mode switching</li>
         </ul>
     </li>
+    <li>editing task dates and progress percentages by resizing the chart bars</li>
     <li>written completely in Typescript</li>
     <li>shadow DOM mode can be used to make sure it won't mess with your styling/layout</li>
     <li>light codebase: only one dependency (lightweight <a href="https://github.com/iamkun/dayjs">Day.js<a> is used to work with dates)</li>
@@ -254,6 +255,9 @@ this.chart = new TsGantt("#container-selector", options);
   //
   
   taskComparer: (taskA: TsGanttTask, taskB: TsGanttTask) => number; // you can provide here your custom task comparer
+     
+  enableChartEdit = false; // (experimental) allows making changes to tasks by dragging chart bar handles
+  // all the task models including the changed ones can be returned to your code using the TsGantt.tasks property getter
 ```
 </p>
 </details>
@@ -289,8 +293,10 @@ const ganttChart = new tsGantt.TsGantt("#gantt-container", options);
     <li><del>remove the hardcoded column number, allow adding custom columns</del> added in 0.4.0</li>
     <li><del>move chart to shadow DOM</del> added as an option in 0.5.0</li>
     <li><del>allow drag'n'drop grid column reordering</del> added in 0.6.0</li>
-    <li>add optional possibility to move/resize chart bars</li>
-    <li>add tooltips on bar hover</li>
+    <li><del>add optional possibility to move/resize chart bars</del> added in 0.7.0</li>
+    <li>implement applying changes to the parent task when changing dates for its child</li>
+    <li>add event firing on task change</li>
+    <li>add optional tooltips on bar hover</li>
     <li>increase code coverage</li>
     <li>optimize task change detection</li>
     <li>add row virtualization (move grid to custom table implementation)</li>
