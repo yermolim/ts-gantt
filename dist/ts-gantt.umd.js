@@ -412,6 +412,9 @@
   };
 
   class TsGanttOptions {
+      get dayWidthPx() {
+          return this.chartDayWidthPx[this.chartScale];
+      }
       constructor(item = null) {
           this.bindParentDatesToChild = false;
           this.enableChartEdit = false;
@@ -599,9 +602,6 @@
           if (item != null) {
               Object.assign(this, item);
           }
-      }
-      get dayWidthPx() {
-          return this.chartDayWidthPx[this.chartScale];
       }
   }
 
@@ -946,13 +946,6 @@
   TsGanttTask.defaultComparer = (a, b) => a.compareTo(b);
 
   class TsGanttData {
-      constructor(options) {
-          this._tasks = [];
-          this._taskByUuid = new Map();
-          this._tasksByParentUuid = new Map();
-          this._selectedTasks = [];
-          this._options = options;
-      }
       get options() {
           return this._options;
       }
@@ -973,6 +966,13 @@
       }
       get selectedModels() {
           return this._selectedTasks.map(x => x.toModel());
+      }
+      constructor(options) {
+          this._tasks = [];
+          this._taskByUuid = new Map();
+          this._tasksByParentUuid = new Map();
+          this._selectedTasks = [];
+          this._options = options;
       }
       getTaskByUuid(uuid) {
           return this._taskByUuid.get(uuid);
@@ -1486,10 +1486,6 @@
   }
 
   class TsGanttChartHeader {
-      constructor(options, minDate, maxDate) {
-          this._options = options;
-          this.drawSvg(minDate, maxDate);
-      }
       get width() {
           return this._width;
       }
@@ -1498,6 +1494,10 @@
       }
       get xCoords() {
           return this._xCoords;
+      }
+      constructor(options, minDate, maxDate) {
+          this._options = options;
+          this.drawSvg(minDate, maxDate);
       }
       destroy() {
           this._svg.remove();
@@ -2152,14 +2152,14 @@
   }
 
   class TsGanttChartBarGroup {
+      set minDate(value) {
+          this._minDate = value;
+      }
       constructor(descriptor, task, minDate) {
           this.task = task;
           this._descriptor = descriptor;
           this._minDate = minDate;
           this.draw();
-      }
-      set minDate(value) {
-          this._minDate = value;
       }
       hide() {
           var _a;
@@ -2406,6 +2406,40 @@
   }
 
   class TsGantt {
+      get _options() {
+          var _a;
+          return (_a = this._data) === null || _a === void 0 ? void 0 : _a.options;
+      }
+      get tasks() {
+          return this._data.models;
+      }
+      set tasks(models) {
+          this.updateTasks(models);
+      }
+      get selectedTasks() {
+          return this._data.selectedModels;
+      }
+      set selectedTasks(models) {
+          this.updateSelection(models);
+      }
+      set locale(value) {
+          if (value !== this._options.locale) {
+              this._options.locale = value;
+              this.updateLocale();
+          }
+      }
+      set chartScale(value) {
+          if (value !== this._options.chartScale) {
+              this._options.chartScale = value;
+              this.updateChartScale();
+          }
+      }
+      set chartDisplayMode(value) {
+          if (value !== this._options.chartDisplayMode) {
+              this._options.chartDisplayMode = value;
+              this.updateChartDisplayMode();
+          }
+      }
       constructor(containerSelector, options = null) {
           this._separatorDragActive = false;
           this._ignoreNextScrollEvent = false;
@@ -2519,40 +2553,6 @@
               throw new Error("Container is null");
           }
           this.createLayout();
-      }
-      get _options() {
-          var _a;
-          return (_a = this._data) === null || _a === void 0 ? void 0 : _a.options;
-      }
-      get tasks() {
-          return this._data.models;
-      }
-      set tasks(models) {
-          this.updateTasks(models);
-      }
-      get selectedTasks() {
-          return this._data.selectedModels;
-      }
-      set selectedTasks(models) {
-          this.updateSelection(models);
-      }
-      set locale(value) {
-          if (value !== this._options.locale) {
-              this._options.locale = value;
-              this.updateLocale();
-          }
-      }
-      set chartScale(value) {
-          if (value !== this._options.chartScale) {
-              this._options.chartScale = value;
-              this.updateChartScale();
-          }
-      }
-      set chartDisplayMode(value) {
-          if (value !== this._options.chartDisplayMode) {
-              this._options.chartDisplayMode = value;
-              this.updateChartDisplayMode();
-          }
       }
       destroy() {
           this.removeGlobalEventListeners();
