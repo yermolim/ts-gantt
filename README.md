@@ -170,7 +170,7 @@ you can apply your custom options by passing options object as second parameter 
 ```javascript
 const options = new TsGanttOptions({
     multilineSelection: false,
-    enableChartEdit = true;
+    enableChartEdit = true,
     // other options you want to change
 });
 // or you can use assignment expressions (come in handy for getters and formatters that refence options object itself)
