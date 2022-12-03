@@ -25,7 +25,7 @@ export class TsGanttTableHeaderCell extends TsGanttHtmlComponentBase {
     const target = e.target as HTMLElement;
     target.addEventListener("pointermove", this.onPointerMoveWhileResizing);
     target.addEventListener("pointerup", this.onPointerUpWhileResizing);
-    target.addEventListener("pointerout", this.onPointerMoveWhileResizing);
+    target.addEventListener("pointerout", this.onPointerUpWhileResizing);
     target.setPointerCapture(e.pointerId);
 
     this._dragActive = true;

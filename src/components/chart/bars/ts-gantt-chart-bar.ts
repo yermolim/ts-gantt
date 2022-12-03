@@ -28,6 +28,10 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
     super.appendToWithOffset(parent, offsetX, addOffsetToCurrent);
   }
 
+  hide() {
+    this._svg.style.visibility = "hidden";
+  }
+
   private draw() {
     const { wrapper: wrapperCoords, bar: barCoords, handles: handlesCoords } = this.getDrawData();
 
@@ -140,6 +144,7 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
       width: coords.width, 
       height: coords.height,
       displacementThreshold: coords.displacementThreshold,
+      barType: this._descriptor.barType,
     };
 
     const startHandle = new TsGanttDateStartHandle(handleOptions);
@@ -148,7 +153,7 @@ export class TsGanttChartBar extends TsGanttSvgComponentBase {
     const endHandle = new TsGanttDateEndHandle(handleOptions);
     endHandle.appendToWithOffset(wrapper, coords.endHandleOffsetX);
 
-    const progressHandle = new TsGanttProgressHandle(handleOptions);
+    const progressHandle = new TsGanttProgressHandle(Object.assign({}, handleOptions, {displacementThreshold: 1}));
     progressHandle.appendToWithOffset(wrapper, coords.progressHandleOffsetX);
   }
 

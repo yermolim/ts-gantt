@@ -13,14 +13,16 @@ export class TsGanttProgressHandle extends TsGanttChartBarHandle {
         document.dispatchEvent(new HandleMoveEvent({
           handleType: "progress", 
           displacement, taskUuid: 
-          descriptor.taskUuid
+          descriptor.taskUuid,
+          barType: descriptor.barType,
         })); 
       },
       (displacement: Coords) => { 
         document.dispatchEvent(new HandleMoveEndEvent({
           handleType: "progress", 
           displacement, 
-          taskUuid: descriptor.taskUuid
+          taskUuid: descriptor.taskUuid,
+          barType: descriptor.barType,
         })); 
       });
   }

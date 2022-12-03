@@ -153,6 +153,27 @@ describe("TsGanttTask", () => {
     expect(tasks.find(x => x.externalId === "root1child1child1id").hasChildren).toEqual(false);
   });
 
+  it("clone creates the identical tasks", () => {
+    tasks.forEach(task => {
+      const clonedTask = task.clone();
+      expect(clonedTask.externalId).toEqual(task.externalId);
+      expect(clonedTask.parentExternalId).toEqual(task.parentExternalId);
+      expect(clonedTask.uuid).toEqual(task.uuid);
+      expect(clonedTask.parentUuid).toEqual(task.parentUuid);
+      expect(clonedTask.nestingLvl).toEqual(task.nestingLvl);
+      expect(clonedTask.hasChildren).toEqual(task.hasChildren);
+      expect(clonedTask.name).toEqual(task.name);
+      expect(clonedTask.localizedNames).toEqual(task.localizedNames);
+      expect(clonedTask.datePlannedStart).toEqual(task.datePlannedStart);
+      expect(clonedTask.datePlannedEnd).toEqual(task.datePlannedEnd);
+      expect(clonedTask.dateActualStart).toEqual(task.dateActualStart);
+      expect(clonedTask.dateActualEnd).toEqual(task.dateActualEnd);
+      expect(clonedTask.progress).toEqual(task.progress);
+      expect(clonedTask.shown).toEqual(task.shown);
+      expect(clonedTask.expanded).toEqual(task.expanded);
+    });
+  });
+
   const taskForStateCheckNotStarted =  new TsGanttTask(<TsGanttTaskModel>{}, "id", null, "name", null, 0);
   const taskForStateCheckInProgress =  new TsGanttTask(<TsGanttTaskModel>{}, "id", null, "name", null, 20);
   const taskForStateCheckCompletedNoPlannedEndDate =  new TsGanttTask(<TsGanttTaskModel>{}, "id", 

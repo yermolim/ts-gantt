@@ -14,6 +14,8 @@ export const TsGanttConst = {
     
     HANDLE_MOVE: "tsghandlemove",
     HANDLE_MOVE_END: "tsghandlemoveend",
+
+    TASK_CHANGED_IN_CHART: "tsgtaskchangedinchart",
   },
 
   CLASSES: {

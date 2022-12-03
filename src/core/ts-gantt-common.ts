@@ -65,5 +65,6 @@ export interface Coords {
 
 export type ChartBarType = "planned" | "actual";
 export type ChartBarMode = ChartBarType | "both";
+export type ChartBarHandleType = "start" | "end" | "progress";
 export type ChartScale = "day" | "week" | "month" | "year";
 export type ColumnTextAlignment = "start" | "center" | "end";

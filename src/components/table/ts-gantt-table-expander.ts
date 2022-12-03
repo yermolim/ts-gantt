@@ -1,6 +1,6 @@
 import { TsGanttTask } from "../../core/ts-gantt-task";
 import { TsGanttConst } from "../../core/ts-gantt-const";
-import { TsGanttOptions } from "../../ts-gantt";
+import { TsGanttOptions } from "../../core/ts-gantt-options";
 
 import { TsGanttHtmlComponentBase } from "../abstract/ts-gantt-html-component-base";
 

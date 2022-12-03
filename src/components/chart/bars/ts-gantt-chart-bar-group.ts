@@ -8,10 +8,10 @@ import dayjs from "dayjs";
 
 export class TsGanttChartBarGroup implements AppendableComponent {
   readonly task: TsGanttTask;
-
+  
   private readonly _descriptor: TsGanttChartBarGroupDescriptor;
   private readonly _minDate: dayjs.Dayjs;
-
+  
   private _bars: TsGanttChartBar[];
 
   constructor(descriptor: TsGanttChartBarGroupDescriptor, task: TsGanttTask, minDate: dayjs.Dayjs) {
@@ -20,6 +20,12 @@ export class TsGanttChartBarGroup implements AppendableComponent {
     this._minDate = minDate;
 
     this.draw();
+  }
+
+  hide() {
+    this._bars?.forEach(bar => {
+      bar.hide();
+    });
   }
 
   destroy() {

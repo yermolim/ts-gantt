@@ -13,14 +13,16 @@ export class TsGanttDateEndHandle extends TsGanttChartBarHandle {
         document.dispatchEvent(new HandleMoveEvent({
           handleType: "end", 
           displacement, 
-          taskUuid: descriptor.taskUuid
+          taskUuid: descriptor.taskUuid,
+          barType: descriptor.barType,
         })); 
       },
       (displacement: Coords) => { 
         document.dispatchEvent(new HandleMoveEndEvent({
           handleType: "end", 
           displacement, 
-          taskUuid: descriptor.taskUuid
+          taskUuid: descriptor.taskUuid,
+          barType: descriptor.barType,
         })); 
       });
   }

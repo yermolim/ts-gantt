@@ -2,12 +2,12 @@ import dayjs from "dayjs";
 import { ChartBarMode, getRandomUuid } from "./ts-gantt-common";
 import { TsGanttTaskModel } from "./ts-gantt-task-model";
 
-export class TsGanttTask {
-  readonly uuid: string;
-  readonly parentUuid: string;
-  
+export class TsGanttTask {  
   readonly externalId: string;
   readonly parentExternalId: string;
+
+  readonly uuid: string;
+  readonly parentUuid: string;
 
   readonly nestingLvl: number;
   readonly hasChildren: boolean;
@@ -15,51 +15,61 @@ export class TsGanttTask {
   readonly name: string;
   readonly localizedNames: {[key: string]: string};
 
-  readonly datePlannedStart: dayjs.Dayjs;
-  readonly datePlannedEnd: dayjs.Dayjs;
-  readonly dateActualStart: dayjs.Dayjs;
-  readonly dateActualEnd: dayjs.Dayjs;  
-
-  readonly progress: number;
+  datePlannedStart: dayjs.Dayjs;
+  datePlannedEnd: dayjs.Dayjs;
+  dateActualStart: dayjs.Dayjs;
+  dateActualEnd: dayjs.Dayjs;
+  progress: number;
 
   shown: boolean;
   expanded: boolean;
 
-  // TODO. Reduce the parameters count
+  // TODO. Refactor
   constructor(
-    source: TsGanttTaskModel,
-    id: string,
-    parentId: string,
-    name: string,
-    localizedNames: {[key: string]: string},
-    progress: number,
-    datePlannedStart: Date = null, 
-    datePlannedEnd: Date = null,
-    dateActualStart: Date = null, 
-    dateActualEnd: Date = null,
-    nestingLvl = 0,
-    hasChildren = false,
-    parentUuid: string = null,
-    uuid: string = null) {
+    source?: Object,
+    id?: string,
+    parentId?: string,
+    name?: string,
+    localizedNames?: {[key: string]: string},
+    progress?: number,
+    datePlannedStart?: string | number | Date | dayjs.Dayjs, 
+    datePlannedEnd?: string | number | Date | dayjs.Dayjs,
+    dateActualStart?: string | number | Date | dayjs.Dayjs, 
+    dateActualEnd?: string | number | Date | dayjs.Dayjs,
+    nestingLvl?: number,
+    hasChildren?: boolean,
+    parentUuid?: string,
+    uuid?: string,
+    shown?: boolean,
+    expanded?: boolean) {
 
     // Note. Assign the source properties to allow custom column values
-    Object.assign(this, source);
+    Object.assign(this, source ?? {});
+
+    if (arguments.length < 2) {
+      return;
+    }
 
     this.externalId = id;
     this.parentExternalId = parentId;
+
+    this.uuid = uuid || getRandomUuid();
+    this.parentUuid = parentUuid;
+
+    this.nestingLvl = nestingLvl ?? 0;
+    this.hasChildren = hasChildren ?? false;
+
     this.name = name;
     this.localizedNames = localizedNames;
-    this.progress = progress < 0 ? 0 : progress > 100 ? 100 : progress;    
+
     this.datePlannedStart = datePlannedStart ? dayjs(datePlannedStart) : null;
     this.datePlannedEnd = datePlannedEnd ? dayjs(datePlannedEnd) : null;
     this.dateActualStart = dateActualStart ? dayjs(dateActualStart) : null;
-    this.dateActualEnd = dateActualEnd ? dayjs(dateActualEnd) : null;   
-    this.nestingLvl = nestingLvl;
-    this.hasChildren = hasChildren;
-    this.parentUuid = parentUuid;
-    this.uuid = uuid || getRandomUuid();
+    this.dateActualEnd = dateActualEnd ? dayjs(dateActualEnd) : null;
+    this.progress = (!progress || progress < 0) ? 0 : progress > 100 ? 100 : progress;
 
-    this.expanded = false;
+    this.shown = shown ?? false;
+    this.expanded = expanded ?? false;
   }
 
   static convertModelsToTasks(taskModels: TsGanttTaskModel[], 
@@ -359,6 +369,18 @@ export class TsGanttTask {
 
   updateParents() {
     // TODO: implement
+  }
+
+  applyChangesFrom(source: TsGanttTask) {
+    this.datePlannedStart = source.datePlannedStart;
+    this.datePlannedEnd = source.datePlannedEnd;
+    this.dateActualStart = source.dateActualStart;
+    this.dateActualEnd = source.dateActualEnd;
+    this.progress = source.progress;
+  }
+
+  clone(): TsGanttTask {
+    return new TsGanttTask(this);
   }
 }
 

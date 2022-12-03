@@ -28,7 +28,8 @@ export class TsGanttData {
   get models(): TsGanttTaskModel[] {
     return this._tasks.map(x => x.toModel());
   }
-
+  
+  private _taskByUuid: Map<string, TsGanttTask> = new Map<string, TsGanttTask>();
   private _tasksByParentUuid: Map<string, TsGanttTask[]> = new Map<string, TsGanttTask[]>();
 
   private _selectedTasks: TsGanttTask[] = [];
@@ -41,6 +42,10 @@ export class TsGanttData {
 
   constructor(options: TsGanttOptions) {
     this._options = options;
+  }
+
+  getTaskByUuid(uuid: string): TsGanttTask {
+    return this._taskByUuid.get(uuid);
   }
 
   getAllTasksAsChanged(): TsGanttDataChangeResult {
@@ -74,12 +79,37 @@ export class TsGanttData {
     const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldTasksIdMap);
     const changes = TsGanttTask.detectTaskChanges({oldTasks, newTasks});
 
-    this._tasks = changes.all;
-
+    this.updateInternalTaskCollections(changes.all);
     this.groupAndSortTasks();
     const datesChanged = this.updateMinMaxDates();
 
     return Object.assign({}, changes, { datesChanged });
+  }
+
+  updateSingleTask(updatedTask: TsGanttTask): TsGanttDataChangeResult {
+    const currentTask = this._taskByUuid.get(updatedTask.uuid);
+    if (!currentTask) {
+      return {
+        deleted: [],
+        added: [],
+        changed: [],
+        all: this._tasks,
+        datesChanged: false,
+      };
+    }
+
+    currentTask.applyChangesFrom(updatedTask);
+    if (this.options.bindParentDatesToChild) {
+      // TODO. implement updating task parents
+    }
+
+    return {
+      deleted: [],
+      added: [],
+      changed: [currentTask],
+      all: this._tasks,
+      datesChanged: this.updateMinMaxDates(),
+    };
   }
 
   expandAllTasks(state: boolean) {
@@ -134,7 +164,7 @@ export class TsGanttData {
       deselectedTasks,
     }; 
   }
-  
+
   refreshSelectedTasks(): TsGanttTaskSelectionChangeResult {
     const tasks = this._selectedTasks.filter(x => !TsGanttTask.checkForCollapsedParent(this._tasks, x));  
     return this.updateSelectedTasks(tasks);
@@ -164,7 +194,15 @@ export class TsGanttData {
     return this.updateSelectedTasks(selectedTasks);   
   }
 
-  //#endregion
+  //#endregion  
+
+  private updateInternalTaskCollections(tasks: TsGanttTask[]) {
+    this._tasks = [...tasks];
+    this._taskByUuid = new Map<string, TsGanttTask>();
+    for (const task of tasks) {
+      this._taskByUuid.set(task.uuid, task);
+    }
+  }
 
   private groupAndSortTasks() {
     this._tasksByParentUuid.clear();
@@ -173,7 +211,7 @@ export class TsGanttData {
         this._tasksByParentUuid.get(task.parentUuid).push(task);
       } else {
         this._tasksByParentUuid.set(task.parentUuid, [task]);
-      }      
+      }
     }
     this._tasksByParentUuid.forEach((v: TsGanttTask[]) => 
       v.sort(this._options.taskComparer || TsGanttTask.defaultComparer));

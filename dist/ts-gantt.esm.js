@@ -355,6 +355,7 @@ const TsGanttConst = {
         TABLE_BODY_CELL_EXPANDER_CLICK: "tsgexpanderclick",
         HANDLE_MOVE: "tsghandlemove",
         HANDLE_MOVE_END: "tsghandlemoveend",
+        TASK_CHANGED_IN_CHART: "tsgtaskchangedinchart",
     },
     CLASSES: {
         ROOT: {
@@ -653,22 +654,26 @@ function getAllDatesBetweenTwoDates(start, end) {
 }
 
 class TsGanttTask {
-    constructor(source, id, parentId, name, localizedNames, progress, datePlannedStart = null, datePlannedEnd = null, dateActualStart = null, dateActualEnd = null, nestingLvl = 0, hasChildren = false, parentUuid = null, uuid = null) {
-        Object.assign(this, source);
+    constructor(source, id, parentId, name, localizedNames, progress, datePlannedStart, datePlannedEnd, dateActualStart, dateActualEnd, nestingLvl, hasChildren, parentUuid, uuid, shown, expanded) {
+        Object.assign(this, source !== null && source !== void 0 ? source : {});
+        if (arguments.length < 2) {
+            return;
+        }
         this.externalId = id;
         this.parentExternalId = parentId;
+        this.uuid = uuid || getRandomUuid();
+        this.parentUuid = parentUuid;
+        this.nestingLvl = nestingLvl !== null && nestingLvl !== void 0 ? nestingLvl : 0;
+        this.hasChildren = hasChildren !== null && hasChildren !== void 0 ? hasChildren : false;
         this.name = name;
         this.localizedNames = localizedNames;
-        this.progress = progress < 0 ? 0 : progress > 100 ? 100 : progress;
         this.datePlannedStart = datePlannedStart ? dayjs(datePlannedStart) : null;
         this.datePlannedEnd = datePlannedEnd ? dayjs(datePlannedEnd) : null;
         this.dateActualStart = dateActualStart ? dayjs(dateActualStart) : null;
         this.dateActualEnd = dateActualEnd ? dayjs(dateActualEnd) : null;
-        this.nestingLvl = nestingLvl;
-        this.hasChildren = hasChildren;
-        this.parentUuid = parentUuid;
-        this.uuid = uuid || getRandomUuid();
-        this.expanded = false;
+        this.progress = (!progress || progress < 0) ? 0 : progress > 100 ? 100 : progress;
+        this.shown = shown !== null && shown !== void 0 ? shown : false;
+        this.expanded = expanded !== null && expanded !== void 0 ? expanded : false;
     }
     static convertModelsToTasks(taskModels, idMap = new Map()) {
         const models = taskModels.slice();
@@ -921,12 +926,23 @@ class TsGanttTask {
     }
     updateParents() {
     }
+    applyChangesFrom(source) {
+        this.datePlannedStart = source.datePlannedStart;
+        this.datePlannedEnd = source.datePlannedEnd;
+        this.dateActualStart = source.dateActualStart;
+        this.dateActualEnd = source.dateActualEnd;
+        this.progress = source.progress;
+    }
+    clone() {
+        return new TsGanttTask(this);
+    }
 }
 TsGanttTask.defaultComparer = (a, b) => a.compareTo(b);
 
 class TsGanttData {
     constructor(options) {
         this._tasks = [];
+        this._taskByUuid = new Map();
         this._tasksByParentUuid = new Map();
         this._selectedTasks = [];
         this._options = options;
@@ -951,6 +967,9 @@ class TsGanttData {
     }
     get selectedModels() {
         return this._selectedTasks.map(x => x.toModel());
+    }
+    getTaskByUuid(uuid) {
+        return this._taskByUuid.get(uuid);
     }
     getAllTasksAsChanged() {
         const minMaxDatesUpdated = this.updateMinMaxDates();
@@ -978,10 +997,31 @@ class TsGanttData {
         const oldTasksIdMap = TsGanttTask.createTasksIdMap(oldTasks);
         const newTasks = TsGanttTask.convertModelsToTasks(taskModels, oldTasksIdMap);
         const changes = TsGanttTask.detectTaskChanges({ oldTasks, newTasks });
-        this._tasks = changes.all;
+        this.updateInternalTaskCollections(changes.all);
         this.groupAndSortTasks();
         const datesChanged = this.updateMinMaxDates();
         return Object.assign({}, changes, { datesChanged });
+    }
+    updateSingleTask(updatedTask) {
+        const currentTask = this._taskByUuid.get(updatedTask.uuid);
+        if (!currentTask) {
+            return {
+                deleted: [],
+                added: [],
+                changed: [],
+                all: this._tasks,
+                datesChanged: false,
+            };
+        }
+        currentTask.applyChangesFrom(updatedTask);
+        if (this.options.bindParentDatesToChild) ;
+        return {
+            deleted: [],
+            added: [],
+            changed: [currentTask],
+            all: this._tasks,
+            datesChanged: this.updateMinMaxDates(),
+        };
     }
     expandAllTasks(state) {
         for (const task of this._tasks) {
@@ -1051,6 +1091,13 @@ class TsGanttData {
             selectedTasks.push(task);
         }
         return this.updateSelectedTasks(selectedTasks);
+    }
+    updateInternalTaskCollections(tasks) {
+        this._tasks = [...tasks];
+        this._taskByUuid = new Map();
+        for (const task of tasks) {
+            this._taskByUuid.set(task.uuid, task);
+        }
     }
     groupAndSortTasks() {
         this._tasksByParentUuid.clear();
@@ -1259,7 +1306,7 @@ class TsGanttTableHeaderCell extends TsGanttHtmlComponentBase {
             const target = e.target;
             target.addEventListener("pointermove", this.onPointerMoveWhileResizing);
             target.addEventListener("pointerup", this.onPointerUpWhileResizing);
-            target.addEventListener("pointerout", this.onPointerMoveWhileResizing);
+            target.addEventListener("pointerout", this.onPointerUpWhileResizing);
             target.setPointerCapture(e.pointerId);
             this._dragActive = true;
         };
@@ -1421,6 +1468,12 @@ class TsGanttTable {
         this._headerRow.appendTo(this._htmlHead);
         this._htmlBody.innerHTML = "";
         this._activeUuids.forEach(uuid => { var _a; return (_a = this._dataRowByTaskUuid.get(uuid)) === null || _a === void 0 ? void 0 : _a.appendTo(this._htmlBody); });
+    }
+}
+
+class TaskChangeInChartEvent extends CustomEvent {
+    constructor(detail) {
+        super(TsGanttConst.EVENTS.TASK_CHANGED_IN_CHART, { detail });
     }
 }
 
@@ -1892,13 +1945,15 @@ class TsGanttDateStartHandle extends TsGanttChartBarHandle {
             document.dispatchEvent(new HandleMoveEvent({
                 handleType: "start",
                 displacement,
-                taskUuid: descriptor.taskUuid
+                taskUuid: descriptor.taskUuid,
+                barType: descriptor.barType,
             }));
         }, (displacement) => {
             document.dispatchEvent(new HandleMoveEndEvent({
                 handleType: "start",
                 displacement,
-                taskUuid: descriptor.taskUuid
+                taskUuid: descriptor.taskUuid,
+                barType: descriptor.barType,
             }));
         });
     }
@@ -1916,13 +1971,15 @@ class TsGanttDateEndHandle extends TsGanttChartBarHandle {
             document.dispatchEvent(new HandleMoveEvent({
                 handleType: "end",
                 displacement,
-                taskUuid: descriptor.taskUuid
+                taskUuid: descriptor.taskUuid,
+                barType: descriptor.barType,
             }));
         }, (displacement) => {
             document.dispatchEvent(new HandleMoveEndEvent({
                 handleType: "end",
                 displacement,
-                taskUuid: descriptor.taskUuid
+                taskUuid: descriptor.taskUuid,
+                barType: descriptor.barType,
             }));
         });
     }
@@ -1939,13 +1996,15 @@ class TsGanttProgressHandle extends TsGanttChartBarHandle {
         super(descriptor, (displacement) => {
             document.dispatchEvent(new HandleMoveEvent({
                 handleType: "progress",
-                displacement, taskUuid: descriptor.taskUuid
+                displacement, taskUuid: descriptor.taskUuid,
+                barType: descriptor.barType,
             }));
         }, (displacement) => {
             document.dispatchEvent(new HandleMoveEndEvent({
                 handleType: "progress",
                 displacement,
-                taskUuid: descriptor.taskUuid
+                taskUuid: descriptor.taskUuid,
+                barType: descriptor.barType,
             }));
         });
     }
@@ -1970,6 +2029,9 @@ class TsGanttChartBar extends TsGanttSvgComponentBase {
             offsetX = offsetX + this._defaultOffsetX;
         }
         super.appendToWithOffset(parent, offsetX, addOffsetToCurrent);
+    }
+    hide() {
+        this._svg.style.visibility = "hidden";
     }
     draw() {
         const { wrapper: wrapperCoords, bar: barCoords, handles: handlesCoords } = this.getDrawData();
@@ -2061,12 +2123,13 @@ class TsGanttChartBar extends TsGanttSvgComponentBase {
             width: coords.width,
             height: coords.height,
             displacementThreshold: coords.displacementThreshold,
+            barType: this._descriptor.barType,
         };
         const startHandle = new TsGanttDateStartHandle(handleOptions);
         startHandle.appendToWithOffset(wrapper, coords.startHandleOffsetX);
         const endHandle = new TsGanttDateEndHandle(handleOptions);
         endHandle.appendToWithOffset(wrapper, coords.endHandleOffsetX);
-        const progressHandle = new TsGanttProgressHandle(handleOptions);
+        const progressHandle = new TsGanttProgressHandle(Object.assign({}, handleOptions, { displacementThreshold: 1 }));
         progressHandle.appendToWithOffset(wrapper, coords.progressHandleOffsetX);
     }
     createWrapper(coords) {
@@ -2086,6 +2149,12 @@ class TsGanttChartBarGroup {
         this._descriptor = descriptor;
         this._minDate = minDate;
         this.draw();
+    }
+    hide() {
+        var _a;
+        (_a = this._bars) === null || _a === void 0 ? void 0 : _a.forEach(bar => {
+            bar.hide();
+        });
     }
     destroy() {
         var _a;
@@ -2170,13 +2239,32 @@ class TsGanttChartBarGroup {
 class TsGanttChart {
     constructor(data) {
         this._activeUuids = [];
-        this._chartBarGroups = new Map();
+        this._barGroups = new Map();
         this.onHandleMove = (e) => {
-            console.log(e.detail.taskUuid);
+            var _a;
+            const { taskUuid, handleType, barType, displacement } = e.detail;
+            this.destroyTempBarGroup();
+            if (!this._barGroupDescriptor) {
+                return;
+            }
+            const task = this._data.getTaskByUuid(taskUuid);
+            if (!task) {
+                return;
+            }
+            const tempTask = this.buildTempTask(task, handleType, barType, this._data.options.dayWidthPx, displacement.x);
+            (_a = this._barGroups.get(tempTask.uuid)) === null || _a === void 0 ? void 0 : _a.hide();
+            this._tempBarGroup = new TsGanttChartBarGroup(this._barGroupDescriptor, tempTask, this._data.dateMinOffset);
+            this._body.appendComponentToRow(tempTask.uuid, this._tempBarGroup);
         };
         this.onHandleMoveEnd = (e) => {
-            console.log(e.detail.taskUuid);
-            console.log("ENDED");
+            if (!this._tempBarGroup) {
+                return;
+            }
+            document.dispatchEvent(new TaskChangeInChartEvent({
+                manual: true,
+                task: this._tempBarGroup.task,
+            }));
+            this.destroyTempBarGroup();
         };
         this._data = data;
         this._html = this.createChartDiv();
@@ -2200,7 +2288,7 @@ class TsGanttChart {
         if (uuids) {
             this._activeUuids = uuids;
         }
-        const barGroups = this._activeUuids.map(x => this._chartBarGroups.get(x));
+        const barGroups = this._activeUuids.map(x => this._barGroups.get(x));
         const tasks = barGroups.map(bg => bg.task);
         this._body = new TsGanttChartBody(this._data, tasks, this._header.xCoords, this._header.height, this._header.width);
         barGroups.forEach(bg => this._body.appendComponentToRow(bg.task.uuid, bg));
@@ -2216,18 +2304,18 @@ class TsGanttChart {
         return svg;
     }
     updateBarGroups(data) {
-        const barGroupOptions = TsGanttChartBarGroupDescriptor.getFromGanttOptions(this._data.options);
+        this._barGroupDescriptor = TsGanttChartBarGroupDescriptor.getFromGanttOptions(this._data.options);
         data.deleted.forEach(task => {
             var _a;
-            (_a = this._chartBarGroups.get(task.uuid)) === null || _a === void 0 ? void 0 : _a.destroy();
-            this._chartBarGroups.delete(task.uuid);
+            (_a = this._barGroups.get(task.uuid)) === null || _a === void 0 ? void 0 : _a.destroy();
+            this._barGroups.delete(task.uuid);
         });
         data.changed.forEach(task => {
             var _a;
-            (_a = this._chartBarGroups.get(task.uuid)) === null || _a === void 0 ? void 0 : _a.destroy();
-            this._chartBarGroups.set(task.uuid, new TsGanttChartBarGroup(barGroupOptions, task, this._data.dateMinOffset));
+            (_a = this._barGroups.get(task.uuid)) === null || _a === void 0 ? void 0 : _a.destroy();
+            this._barGroups.set(task.uuid, new TsGanttChartBarGroup(this._barGroupDescriptor, task, this._data.dateMinOffset));
         });
-        data.added.forEach(task => this._chartBarGroups.set(task.uuid, new TsGanttChartBarGroup(barGroupOptions, task, this._data.dateMinOffset)));
+        data.added.forEach(task => this._barGroups.set(task.uuid, new TsGanttChartBarGroup(this._barGroupDescriptor, task, this._data.dateMinOffset)));
     }
     redraw() {
         const oldHtml = this._html;
@@ -2245,6 +2333,66 @@ class TsGanttChart {
         document.removeEventListener(TsGanttConst.EVENTS.HANDLE_MOVE, this.onHandleMove);
         document.removeEventListener(TsGanttConst.EVENTS.HANDLE_MOVE_END, this.onHandleMoveEnd);
     }
+    buildTempTask(sourceTask, handleType, barType, dayWidthPx, xDisplacementPx) {
+        const tempTask = sourceTask.clone();
+        const shiftDays = Math.floor(xDisplacementPx / dayWidthPx);
+        switch (handleType) {
+            case "start":
+                if (barType === "planned") {
+                    const maxStart = tempTask.datePlannedEnd;
+                    const shiftedStart = tempTask.datePlannedStart.add(shiftDays, "days");
+                    tempTask.datePlannedStart = shiftedStart.isAfter(maxStart)
+                        ? maxStart
+                        : shiftedStart;
+                }
+                else if (barType === "actual") {
+                    const maxStart = tempTask.dateActualEnd;
+                    const shiftedStart = tempTask.dateActualStart.add(shiftDays, "days");
+                    tempTask.dateActualStart = shiftedStart.isAfter(maxStart)
+                        ? maxStart
+                        : shiftedStart;
+                }
+                break;
+            case "end":
+                if (barType === "planned") {
+                    const minEnd = tempTask.datePlannedStart;
+                    const shiftedEnd = tempTask.datePlannedEnd.add(shiftDays, "days");
+                    tempTask.datePlannedEnd = shiftedEnd.isBefore(minEnd)
+                        ? minEnd
+                        : shiftedEnd;
+                }
+                else if (barType === "actual") {
+                    const minEnd = tempTask.dateActualStart;
+                    const shiftedEnd = tempTask.dateActualEnd.add(shiftDays, "days");
+                    tempTask.dateActualEnd = shiftedEnd.isBefore(minEnd)
+                        ? minEnd
+                        : shiftedEnd;
+                }
+                break;
+            case "progress":
+                const currentProgress = tempTask.progress;
+                let totalBarWidth;
+                if (barType === "planned") {
+                    totalBarWidth = tempTask.datePlannedEnd.diff(tempTask.datePlannedStart, "days") * dayWidthPx;
+                }
+                else if (barType === "actual") {
+                    totalBarWidth = tempTask.dateActualEnd.diff(tempTask.dateActualStart, "days") * dayWidthPx;
+                }
+                const currentPosition = totalBarWidth * currentProgress / 100;
+                const newPosition = currentPosition + xDisplacementPx;
+                const newProgress = Math.floor(Math.max(0, Math.min(100, newPosition / totalBarWidth * 100)));
+                tempTask.progress = newProgress;
+                break;
+        }
+        return tempTask;
+    }
+    destroyTempBarGroup() {
+        if (!this._tempBarGroup) {
+            return;
+        }
+        this._tempBarGroup.destroy();
+        this._tempBarGroup = null;
+    }
 }
 
 class TsGantt {
@@ -2258,31 +2406,37 @@ class TsGantt {
             this._htmlChartWrapper.style.width =
                 (wrapperWidth - tableWrapperWidth - this._options.separatorWidthPx) + "px";
         };
-        this.onMouseDownOnPartsSeparator = (e) => {
-            document.addEventListener("mousemove", this.onMouseMoveWhileResizingParts);
-            document.addEventListener("mouseup", this.onMouseUpWhileResizingParts);
-            document.addEventListener("touchmove", this.onMouseMoveWhileResizingParts);
-            document.addEventListener("touchend", this.onMouseUpWhileResizingParts);
+        this.onPointerDownOnPartsSeparator = (e) => {
+            if (!e.isPrimary || e.button === 2) {
+                return;
+            }
+            const target = e.target;
+            target.addEventListener("pointermove", this.onPointerMoveWhileResizingParts);
+            target.addEventListener("pointerup", this.onPointerUpWhileResizingParts);
+            target.addEventListener("pointerout", this.onPointerUpWhileResizingParts);
+            target.setPointerCapture(e.pointerId);
             this._separatorDragActive = true;
         };
-        this.onMouseMoveWhileResizingParts = (e) => {
+        this.onPointerMoveWhileResizingParts = (e) => {
             if (!this._separatorDragActive) {
                 return false;
             }
             const rect = this._htmlWrapper.getBoundingClientRect();
             const wrapperLeftOffset = rect.left;
             const wrapperWidth = rect.width;
-            const userDefinedWidth = e instanceof MouseEvent
-                ? e.clientX - wrapperLeftOffset
-                : e.touches[0].clientX - wrapperLeftOffset;
+            const userDefinedWidth = e.clientX - wrapperLeftOffset;
             this._htmlTableWrapper.style.width = (userDefinedWidth - this._options.separatorWidthPx) + "px";
             this._htmlChartWrapper.style.width = (wrapperWidth - userDefinedWidth) + "px";
         };
-        this.onMouseUpWhileResizingParts = (e) => {
-            document.removeEventListener("mousemove", this.onMouseMoveWhileResizingParts);
-            document.removeEventListener("mouseup", this.onMouseUpWhileResizingParts);
-            document.removeEventListener("touchmove", this.onMouseMoveWhileResizingParts);
-            document.removeEventListener("touchend", this.onMouseUpWhileResizingParts);
+        this.onPointerUpWhileResizingParts = (e) => {
+            if (!e.isPrimary) {
+                return;
+            }
+            const target = e.target;
+            target.removeEventListener("pointermove", this.onPointerMoveWhileResizingParts);
+            target.removeEventListener("pointerup", this.onPointerUpWhileResizingParts);
+            target.removeEventListener("pointerout", this.onPointerUpWhileResizingParts);
+            target.releasePointerCapture(e.pointerId);
             this._separatorDragActive = false;
         };
         this.onWrapperScroll = ((e) => {
@@ -2335,6 +2489,16 @@ class TsGantt {
         this.onRowExpanderClick = ((e) => {
             this.toggleTaskExpanded(e.detail.task);
         });
+        this.onTaskChange = (e) => {
+            var _a, _b;
+            if (!((_a = e.detail) === null || _a === void 0 ? void 0 : _a.task)) {
+                return;
+            }
+            const changes = this._data.updateSingleTask(e.detail.task);
+            if ((_b = changes.changed) === null || _b === void 0 ? void 0 : _b.length) {
+                this.update(changes);
+            }
+        };
         options = options instanceof TsGanttOptions
             ? options
             : new TsGanttOptions(options);
@@ -2381,8 +2545,7 @@ class TsGantt {
         }
     }
     destroy() {
-        this.removeWindowEventListeners();
-        this.removeDocumentEventListeners();
+        this.removeGlobalEventListeners();
         this._baseComponents.forEach(bc => bc.destroy());
         this._htmlWrapper.remove();
     }
@@ -2416,8 +2579,7 @@ class TsGantt {
         this._chart.appendTo(chartWrapper);
         tableWrapper.addEventListener("scroll", this.onWrapperScroll);
         chartWrapper.addEventListener("scroll", this.onWrapperScroll);
-        separator.addEventListener("mousedown", this.onMouseDownOnPartsSeparator);
-        separator.addEventListener("touchstart", this.onMouseDownOnPartsSeparator);
+        separator.addEventListener("pointerdown", this.onPointerDownOnPartsSeparator);
         if (this._options.useShadowDom) {
             this._shadowRoot = this._htmlContainer.attachShadow({ mode: "open" });
             this._shadowRoot.innerHTML = styles;
@@ -2429,18 +2591,21 @@ class TsGantt {
         this._htmlWrapper = wrapper;
         this._htmlTableWrapper = tableWrapper;
         this._htmlChartWrapper = chartWrapper;
+        this.addGlobalEventListeners();
+    }
+    addGlobalEventListeners() {
         window.addEventListener("resize", this.onResize);
         document.addEventListener(TsGanttConst.EVENTS.ROW_CLICK, this.onRowClick);
         document.addEventListener(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, this.onRowContextMenu);
         document.addEventListener(TsGanttConst.EVENTS.TABLE_BODY_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
+        document.addEventListener(TsGanttConst.EVENTS.TASK_CHANGED_IN_CHART, this.onTaskChange);
     }
-    removeWindowEventListeners() {
+    removeGlobalEventListeners() {
         window.removeEventListener("resize", this.onResize);
-    }
-    removeDocumentEventListeners() {
         document.removeEventListener(TsGanttConst.EVENTS.ROW_CLICK, this.onRowClick);
         document.removeEventListener(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, this.onRowContextMenu);
         document.removeEventListener(TsGanttConst.EVENTS.TABLE_BODY_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
+        document.removeEventListener(TsGanttConst.EVENTS.TASK_CHANGED_IN_CHART, this.onTaskChange);
     }
     toggleTaskSelection(task, ctrl) {
         const selectionResult = this._data.toggleTaskSelection(task, ctrl);

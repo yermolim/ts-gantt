@@ -25,26 +25,26 @@ export interface TsGanttTaskModel {
 	};
 }
 export declare class TsGanttTask {
-	readonly uuid: string;
-	readonly parentUuid: string;
 	readonly externalId: string;
 	readonly parentExternalId: string;
+	readonly uuid: string;
+	readonly parentUuid: string;
 	readonly nestingLvl: number;
 	readonly hasChildren: boolean;
 	readonly name: string;
 	readonly localizedNames: {
 		[key: string]: string;
 	};
-	readonly datePlannedStart: dayjs.Dayjs;
-	readonly datePlannedEnd: dayjs.Dayjs;
-	readonly dateActualStart: dayjs.Dayjs;
-	readonly dateActualEnd: dayjs.Dayjs;
-	readonly progress: number;
+	datePlannedStart: dayjs.Dayjs;
+	datePlannedEnd: dayjs.Dayjs;
+	dateActualStart: dayjs.Dayjs;
+	dateActualEnd: dayjs.Dayjs;
+	progress: number;
 	shown: boolean;
 	expanded: boolean;
-	constructor(source: TsGanttTaskModel, id: string, parentId: string, name: string, localizedNames: {
+	constructor(source?: Object, id?: string, parentId?: string, name?: string, localizedNames?: {
 		[key: string]: string;
-	}, progress: number, datePlannedStart?: Date, datePlannedEnd?: Date, dateActualStart?: Date, dateActualEnd?: Date, nestingLvl?: number, hasChildren?: boolean, parentUuid?: string, uuid?: string);
+	}, progress?: number, datePlannedStart?: string | number | Date | dayjs.Dayjs, datePlannedEnd?: string | number | Date | dayjs.Dayjs, dateActualStart?: string | number | Date | dayjs.Dayjs, dateActualEnd?: string | number | Date | dayjs.Dayjs, nestingLvl?: number, hasChildren?: boolean, parentUuid?: string, uuid?: string, shown?: boolean, expanded?: boolean);
 	static convertModelsToTasks(taskModels: TsGanttTaskModel[], idMap?: Map<string, string>): TsGanttTask[];
 	static detectTaskChanges(data: TsGanttTaskUpdateResult): TsGanttTaskChangeResult;
 	static createTasksIdMap(tasks: TsGanttTask[]): Map<string, string>;
@@ -67,6 +67,8 @@ export declare class TsGanttTask {
 	};
 	getHorizontalOffsetPx(chartBarMode: ChartBarMode, chartMinDate: dayjs.Dayjs, dayWidthPx: number): number;
 	updateParents(): void;
+	applyChangesFrom(source: TsGanttTask): void;
+	clone(): TsGanttTask;
 }
 export interface TsGanttTaskUpdateResult {
 	oldTasks: TsGanttTask[];
@@ -176,15 +178,16 @@ export declare class TsGantt {
 	private setCssVariables;
 	private createLayout;
 	onResize: (e: Event) => void;
-	private onMouseDownOnPartsSeparator;
-	private onMouseMoveWhileResizingParts;
-	private onMouseUpWhileResizingParts;
+	private onPointerDownOnPartsSeparator;
+	private onPointerMoveWhileResizingParts;
+	private onPointerUpWhileResizingParts;
 	private onWrapperScroll;
 	private onRowClick;
 	private onRowContextMenu;
 	private onRowExpanderClick;
-	private removeWindowEventListeners;
-	private removeDocumentEventListeners;
+	private onTaskChange;
+	private addGlobalEventListeners;
+	private removeGlobalEventListeners;
 	private toggleTaskSelection;
 	private refreshSelection;
 	private updateSelection;

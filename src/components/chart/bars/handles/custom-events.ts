@@ -1,8 +1,9 @@
 import { TsGanttConst } from "../../../../core/ts-gantt-const";
-import { Coords } from "../../../../core/ts-gantt-common";
+import { ChartBarHandleType, ChartBarType, Coords } from "../../../../core/ts-gantt-common";
 
 export interface HandleMoveEventDetail {
-  handleType: "start" | "end" | "progress";
+  handleType: ChartBarHandleType;
+  barType: ChartBarType;
   displacement: Coords;
   taskUuid: string;
 }

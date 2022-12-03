@@ -2,6 +2,7 @@ import "./assets/styles.css"; // this import is here only for rollup
 import { styles } from "./assets/styles";
 
 import { TsGanttConst } from "./core/ts-gantt-const";
+import { ChartBarMode, ChartScale } from "./core/ts-gantt-common";
 import { TsGanttOptions } from "./core/ts-gantt-options";
 import { TsGanttTaskModel } from "./core/ts-gantt-task-model";
 import { TsGanttTask, TsGanttTaskSelectionChangeResult } from "./core/ts-gantt-task";
@@ -10,7 +11,7 @@ import { TsGanttData, TsGanttDataChangeResult } from "./core/ts-gantt-data";
 import { TsGanttBaseComponent } from "./components/abstract/ts-gantt-base-component";
 import { TsGanttTable } from "./components/table/ts-gantt-table";
 import { TsGanttChart } from "./components/chart/ts-gantt-chart";
-import { ChartBarMode, ChartScale } from "./core/ts-gantt-common";
+import { TaskChangeInChartEvent } from "./components/chart/custom-events";
 
 class TsGantt {
   private readonly _data: TsGanttData;
@@ -92,8 +93,7 @@ class TsGantt {
   }
 
   destroy() {
-    this.removeWindowEventListeners();
-    this.removeDocumentEventListeners();
+    this.removeGlobalEventListeners();
     this._baseComponents.forEach(bc => bc.destroy());
     this._htmlWrapper.remove();
   }
@@ -135,8 +135,7 @@ class TsGantt {
 
     tableWrapper.addEventListener("scroll", this.onWrapperScroll);
     chartWrapper.addEventListener("scroll", this.onWrapperScroll);
-    separator.addEventListener("mousedown", this.onMouseDownOnPartsSeparator);
-    separator.addEventListener("touchstart", this.onMouseDownOnPartsSeparator);
+    separator.addEventListener("pointerdown", this.onPointerDownOnPartsSeparator);
 
     if (this._options.useShadowDom) {
       this._shadowRoot = this._htmlContainer.attachShadow({mode: "open"});
@@ -150,10 +149,7 @@ class TsGantt {
     this._htmlTableWrapper = tableWrapper;
     this._htmlChartWrapper = chartWrapper;
 
-    window.addEventListener("resize", this.onResize);
-    document.addEventListener(TsGanttConst.EVENTS.ROW_CLICK, this.onRowClick);
-    document.addEventListener(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, this.onRowContextMenu);
-    document.addEventListener(TsGanttConst.EVENTS.TABLE_BODY_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
+    this.addGlobalEventListeners();
   }
   // #endregion
 
@@ -165,32 +161,42 @@ class TsGantt {
       (wrapperWidth - tableWrapperWidth - this._options.separatorWidthPx) + "px";
   };
 
-  private onMouseDownOnPartsSeparator = (e: MouseEvent | TouchEvent) => {
-    document.addEventListener("mousemove", this.onMouseMoveWhileResizingParts);
-    document.addEventListener("mouseup", this.onMouseUpWhileResizingParts);
-    document.addEventListener("touchmove", this.onMouseMoveWhileResizingParts);
-    document.addEventListener("touchend", this.onMouseUpWhileResizingParts);
+  private onPointerDownOnPartsSeparator = (e: PointerEvent) => {
+    if (!e.isPrimary || e.button === 2) {
+      return;
+    }
+
+    const target = e.target as HTMLElement;
+    target.addEventListener("pointermove", this.onPointerMoveWhileResizingParts);
+    target.addEventListener("pointerup", this.onPointerUpWhileResizingParts);
+    target.addEventListener("pointerout", this.onPointerUpWhileResizingParts);
+    target.setPointerCapture(e.pointerId);
+
     this._separatorDragActive = true;
   };
-  private onMouseMoveWhileResizingParts = (e: MouseEvent | TouchEvent) => {
+  private onPointerMoveWhileResizingParts = (e: PointerEvent) => {
     if (!this._separatorDragActive) {
       return false;
     }
     const rect = this._htmlWrapper.getBoundingClientRect();
     const wrapperLeftOffset = rect.left;
     const wrapperWidth = rect.width;
-    const userDefinedWidth = e instanceof MouseEvent 
-      ? e.clientX - wrapperLeftOffset 
-      : e.touches[0].clientX - wrapperLeftOffset;
+    const userDefinedWidth = e.clientX - wrapperLeftOffset;
 
     this._htmlTableWrapper.style.width = (userDefinedWidth - this._options.separatorWidthPx) + "px";
     this._htmlChartWrapper.style.width = (wrapperWidth - userDefinedWidth) + "px";
   };
-  private onMouseUpWhileResizingParts = (e: MouseEvent | TouchEvent) => {
-    document.removeEventListener("mousemove", this.onMouseMoveWhileResizingParts);
-    document.removeEventListener("mouseup", this.onMouseUpWhileResizingParts);
-    document.removeEventListener("touchmove", this.onMouseMoveWhileResizingParts);
-    document.removeEventListener("touchend", this.onMouseUpWhileResizingParts);
+  private onPointerUpWhileResizingParts = (e: PointerEvent) => {
+    if (!e.isPrimary) {
+      return;
+    }
+
+    const target = e.target as HTMLElement;
+    target.removeEventListener("pointermove", this.onPointerMoveWhileResizingParts);
+    target.removeEventListener("pointerup", this.onPointerUpWhileResizingParts);
+    target.removeEventListener("pointerout", this.onPointerUpWhileResizingParts);
+    target.releasePointerCapture(e.pointerId);
+
     this._separatorDragActive = false;
   };
 
@@ -248,13 +254,30 @@ class TsGantt {
     this.toggleTaskExpanded(e.detail.task);
   });
 
-  private removeWindowEventListeners() {
-    window.removeEventListener("resize", this.onResize);
+  private onTaskChange = (e: TaskChangeInChartEvent) => {
+    if (!e.detail?.task) {
+      return;
+    }
+
+    const changes = this._data.updateSingleTask(e.detail.task);
+    if (changes.changed?.length) {
+      this.update(changes);
+    }
+  };
+
+  private addGlobalEventListeners() {    
+    window.addEventListener("resize", this.onResize);
+    document.addEventListener(TsGanttConst.EVENTS.ROW_CLICK, this.onRowClick);
+    document.addEventListener(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, this.onRowContextMenu);
+    document.addEventListener(TsGanttConst.EVENTS.TABLE_BODY_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
+    document.addEventListener(TsGanttConst.EVENTS.TASK_CHANGED_IN_CHART, this.onTaskChange);
   }
-  private removeDocumentEventListeners() {
+  private removeGlobalEventListeners() {
+    window.removeEventListener("resize", this.onResize);
     document.removeEventListener(TsGanttConst.EVENTS.ROW_CLICK, this.onRowClick);
     document.removeEventListener(TsGanttConst.EVENTS.ROW_CONTEXT_MENU, this.onRowContextMenu);
     document.removeEventListener(TsGanttConst.EVENTS.TABLE_BODY_CELL_EXPANDER_CLICK, this.onRowExpanderClick);
+    document.removeEventListener(TsGanttConst.EVENTS.TASK_CHANGED_IN_CHART, this.onTaskChange);
   }
   // #endregion
 

@@ -1,8 +1,10 @@
 import { TsGanttConst } from "../../core/ts-gantt-const";
 import { TsGanttData, TsGanttDataChangeResult } from "../../core/ts-gantt-data";
-import { TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
+import { TsGanttTask, TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
 
 import { TsGanttBaseComponent } from "../abstract/ts-gantt-base-component";
+
+import { TaskChangeInChartEvent } from "./custom-events";
 
 import { TsGanttChartHeader } from "./ts-gantt-chart-header";
 import { TsGanttChartBody } from "./ts-gantt-chart-body";
@@ -18,7 +20,10 @@ class TsGanttChart implements TsGanttBaseComponent {
 
   private _html: HTMLDivElement;
 
-  private _chartBarGroups: Map<string, TsGanttChartBarGroup> = new Map<string, TsGanttChartBarGroup>();
+  private _barGroupDescriptor: TsGanttChartBarGroupDescriptor;
+  private _barGroups: Map<string, TsGanttChartBarGroup> = new Map<string, TsGanttChartBarGroup>();
+  private _tempBarGroup: TsGanttChartBarGroup;
+
   private _header: TsGanttChartHeader;
   private _body: TsGanttChartBody;
 
@@ -52,7 +57,7 @@ class TsGanttChart implements TsGanttBaseComponent {
       this._activeUuids = uuids;
     }
 
-    const barGroups = this._activeUuids.map(x => this._chartBarGroups.get(x));
+    const barGroups = this._activeUuids.map(x => this._barGroups.get(x));
     const tasks = barGroups.map(bg => bg.task);
 
     // TODO: try to optimize this and get rid of redrawing the body on each update
@@ -74,17 +79,17 @@ class TsGanttChart implements TsGanttBaseComponent {
   }
 
   private updateBarGroups(data: TsGanttDataChangeResult) {
-    const barGroupOptions = TsGanttChartBarGroupDescriptor.getFromGanttOptions(this._data.options);
+    this._barGroupDescriptor = TsGanttChartBarGroupDescriptor.getFromGanttOptions(this._data.options);
     data.deleted.forEach(task => {
-      this._chartBarGroups.get(task.uuid)?.destroy();
-      this._chartBarGroups.delete(task.uuid);
+      this._barGroups.get(task.uuid)?.destroy();
+      this._barGroups.delete(task.uuid);
     });
     data.changed.forEach(task => {
-      this._chartBarGroups.get(task.uuid)?.destroy();
-      this._chartBarGroups.set(task.uuid, new TsGanttChartBarGroup(barGroupOptions, task, this._data.dateMinOffset));
+      this._barGroups.get(task.uuid)?.destroy();
+      this._barGroups.set(task.uuid, new TsGanttChartBarGroup(this._barGroupDescriptor, task, this._data.dateMinOffset));
     });
     data.added.forEach(task => 
-      this._chartBarGroups.set(task.uuid, new TsGanttChartBarGroup(barGroupOptions, task, this._data.dateMinOffset)));
+      this._barGroups.set(task.uuid, new TsGanttChartBarGroup(this._barGroupDescriptor, task, this._data.dateMinOffset)));
   }
 
   private redraw() {
@@ -109,17 +114,101 @@ class TsGanttChart implements TsGanttBaseComponent {
   }
 
   private onHandleMove = (e: HandleMoveEvent) => {
-    console.log(e.detail.taskUuid);
-    // if temp bar group is not created - create one with a temp task based on the task from the set
-    // draw it as a semi-transparent one on top of the body
+    const { taskUuid, handleType, barType, displacement } = e.detail;
+
+    this.destroyTempBarGroup();
+
+    if (!this._barGroupDescriptor) {
+      // Note. no data to build a temp bar broup 
+      return;
+    }
+
+    const task = this._data.getTaskByUuid(taskUuid);
+    if (!task) {
+      return;
+    }
+
+    const tempTask = this.buildTempTask(task, handleType, barType, this._data.options.dayWidthPx, displacement.x);
+
+    this._barGroups.get(tempTask.uuid)?.hide();
+    this._tempBarGroup = new TsGanttChartBarGroup(this._barGroupDescriptor, tempTask, this._data.dateMinOffset);
+    this._body.appendComponentToRow(tempTask.uuid, this._tempBarGroup);
   };
 
   private onHandleMoveEnd = (e: HandleMoveEvent) => {
-    console.log(e.detail.taskUuid);
-    console.log("ENDED"); 
-    // remove temp bar group if present
-    // TODO: raise task changed event
+    if (!this._tempBarGroup) {
+      return;
+    }
+
+    document.dispatchEvent(new TaskChangeInChartEvent({
+      manual: true,
+      task: this._tempBarGroup.task,
+    })); 
+
+    this.destroyTempBarGroup();
   };
+
+  // TODO. move it out of here. It's not within the current class' responsibility
+  private buildTempTask(sourceTask: TsGanttTask,
+    handleType: string, barType: string,
+    dayWidthPx: number, xDisplacementPx: number) {
+    const tempTask = sourceTask.clone();
+    const shiftDays = Math.floor(xDisplacementPx / dayWidthPx);
+    switch (handleType) {
+      case "start":
+        if (barType === "planned") {
+          const maxStart = tempTask.datePlannedEnd;
+          const shiftedStart = tempTask.datePlannedStart.add(shiftDays, "days");
+          tempTask.datePlannedStart = shiftedStart.isAfter(maxStart)
+            ? maxStart
+            : shiftedStart;
+        } else if (barType === "actual") {
+          const maxStart = tempTask.dateActualEnd;
+          const shiftedStart = tempTask.dateActualStart.add(shiftDays, "days");
+          tempTask.dateActualStart = shiftedStart.isAfter(maxStart)
+            ? maxStart
+            : shiftedStart;
+        }
+        break;
+      case "end":
+        if (barType === "planned") {
+          const minEnd = tempTask.datePlannedStart;
+          const shiftedEnd = tempTask.datePlannedEnd.add(shiftDays, "days");
+          tempTask.datePlannedEnd = shiftedEnd.isBefore(minEnd)
+            ? minEnd
+            : shiftedEnd;
+        } else if (barType === "actual") {
+          const minEnd = tempTask.dateActualStart;
+          const shiftedEnd = tempTask.dateActualEnd.add(shiftDays, "days");
+          tempTask.dateActualEnd = shiftedEnd.isBefore(minEnd)
+            ? minEnd
+            : shiftedEnd;
+        }
+        break;
+      case "progress":
+        const currentProgress = tempTask.progress;
+        let totalBarWidth: number;
+        if (barType === "planned") {
+          totalBarWidth = tempTask.datePlannedEnd.diff(tempTask.datePlannedStart, "days") * dayWidthPx;
+        } else if (barType === "actual") {
+          totalBarWidth = tempTask.dateActualEnd.diff(tempTask.dateActualStart, "days") * dayWidthPx;
+        }
+        const currentPosition = totalBarWidth * currentProgress / 100;
+        const newPosition = currentPosition + xDisplacementPx;
+        const newProgress = Math.floor(Math.max(0, Math.min(100, newPosition / totalBarWidth * 100)));
+        tempTask.progress = newProgress;
+        break;
+    }
+    return tempTask;
+  }
+
+  private destroyTempBarGroup() {
+    if (!this._tempBarGroup) {
+      return;
+    }
+    this._tempBarGroup.destroy();
+    this._tempBarGroup = null;
+  }
 }
 
 export { TsGanttChart };
