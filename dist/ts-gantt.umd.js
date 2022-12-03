@@ -1389,6 +1389,7 @@
           for (const uuid of selected) {
               (_b = this._dataRowByTaskUuid.get(uuid)) === null || _b === void 0 ? void 0 : _b.select();
           }
+          this._lastSelectionResult = selectionResult;
       }
       initBaseHtml() {
           const table = document.createElement("table");
@@ -1419,6 +1420,7 @@
           this.updateColumns();
           this.updateRows(this._data.getAllTasksAsChanged());
           this.redraw();
+          this.applySelection(this._lastSelectionResult);
       }
       redraw() {
           this._htmlHead.innerHTML = "";

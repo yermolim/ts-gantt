@@ -24,6 +24,8 @@ class TsGanttTable implements TsGanttBaseComponent {
   private _headerRow: TsGanttTableHeaderRow;
   private _dataRowByTaskUuid: Map<string, TsGanttTableDataRow> = new Map<string, TsGanttTableDataRow>();
 
+  private _lastSelectionResult: TsGanttTaskSelectionChangeResult;
+
   constructor(data: TsGanttData) {
     this._data = data;
 
@@ -63,6 +65,8 @@ class TsGanttTable implements TsGanttBaseComponent {
     for (const uuid of selected) {
       this._dataRowByTaskUuid.get(uuid)?.select();
     }
+    
+    this._lastSelectionResult = selectionResult;
   }
 
   private initBaseHtml() {
@@ -99,6 +103,7 @@ class TsGanttTable implements TsGanttBaseComponent {
     this.updateColumns();
     this.updateRows(this._data.getAllTasksAsChanged());
     this.redraw();
+    this.applySelection(this._lastSelectionResult);
   }
 
   private redraw() {
