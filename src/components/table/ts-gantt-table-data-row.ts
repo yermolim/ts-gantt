@@ -4,15 +4,15 @@ import { TsGanttOptions } from "../../ts-gantt";
 
 import { TsGanttHtmlComponentBase } from "../abstract/ts-gantt-html-component-base";
 
-import { TsGanttTableCell } from "./ts-gantt-table-cell";
+import { TsGanttTableDataCell } from "./ts-gantt-table-data-cell";
 import { TsGanttTableExpander } from "./ts-gantt-table-expander";
-import { TsGanttTableColumnOptions } from "./ts-gantt-table-column-options";
+import { TsGanttTableColumnDescriptor } from "./ts-gantt-table-column-descriptor";
 
-class TsGanttTableRow extends TsGanttHtmlComponentBase {
+export class TsGanttTableDataRow extends TsGanttHtmlComponentBase {
   private readonly _task: TsGanttTask;
   private readonly _expander: TsGanttTableExpander;
 
-  constructor(options: TsGanttOptions, task: TsGanttTask, columns: TsGanttTableColumnOptions[]) {
+  constructor(options: TsGanttOptions, task: TsGanttTask, columns: TsGanttTableColumnDescriptor[]) {
     super();
     this._task = task;
     this._expander = new TsGanttTableExpander(options, task);
@@ -32,7 +32,7 @@ class TsGanttTableRow extends TsGanttHtmlComponentBase {
     this._html.classList.remove(TsGanttConst.CLASSES.ROOT.ROW_SELECTED);
   }
 
-  private createElement(columns: TsGanttTableColumnOptions[], addStateClass: boolean): HTMLTableRowElement {
+  private createElement(columns: TsGanttTableColumnDescriptor[], addStateClass: boolean): HTMLTableRowElement {
     const task = this._task;
 
     const row = document.createElement("tr");
@@ -63,12 +63,10 @@ class TsGanttTableRow extends TsGanttHtmlComponentBase {
 
     columns.forEach((column, i) => {
       const taskValue = column.valueGetter(task);
-      const cell = new TsGanttTableCell(taskValue, column.textAlign, i === 0 ? this._expander: null);
+      const cell = new TsGanttTableDataCell(taskValue, column.textAlign, i === 0 ? this._expander: null);
       cell.appendTo(row);
     });
 
     return row;
   }
 }
-
-export { TsGanttTableRow };

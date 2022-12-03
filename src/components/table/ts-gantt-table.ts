@@ -1,13 +1,13 @@
 import { TsGanttConst } from "../../core/ts-gantt-const";
-import { TsGanttTask, TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
+import { TsGanttTaskSelectionChangeResult } from "../../core/ts-gantt-task";
 import { TsGanttData, TsGanttDataChangeResult } from "../../core/ts-gantt-data";
 
 import { TsGanttBaseComponent } from "../abstract/ts-gantt-base-component";
 
+import { TsGanttTableColumnDescriptor } from "./ts-gantt-table-column-descriptor";
 import { TsGanttTableColumnOrder } from "./ts-gantt-table-column-order";
-import { TsGanttTableColumn } from "./ts-gantt-table-column";
-import { TsGanttTableRow } from "./ts-gantt-table-row";
-import { TsGanttTableColumnOptions } from "./ts-gantt-table-column-options";
+import { TsGanttTableDataRow } from "./ts-gantt-table-data-row";
+import { TsGanttTableHeaderRow } from "./ts-gantt-table-header-row";
 
 class TsGanttTable implements TsGanttBaseComponent {
   private _data: TsGanttData;
@@ -19,21 +19,23 @@ class TsGanttTable implements TsGanttBaseComponent {
   private _htmlBody: HTMLTableSectionElement;
 
   private _columnOrder: TsGanttTableColumnOrder;
-  private _tableColumns: TsGanttTableColumn[];
-  private _tableRows: Map<string, TsGanttTableRow> = new Map<string, TsGanttTableRow>();
+  private _columnDescriptors: TsGanttTableColumnDescriptor[];
+
+  private _headerRow: TsGanttTableHeaderRow;
+  private _dataRowByTaskUuid: Map<string, TsGanttTableDataRow> = new Map<string, TsGanttTableDataRow>();
 
   constructor(data: TsGanttData) {
     this._data = data;
 
     this.initBaseHtml();
-    this.initColumns();
+    this.updateColumns();
 
-    document.addEventListener(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, this.onColumnReorder);
+    this._html.addEventListener(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, this.onColumnReorder);
   }
 
   destroy() {
+    this._html.removeEventListener(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, this.onColumnReorder);
     this._html.remove();
-    document.removeEventListener(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, this.onColumnReorder);
   }
 
   appendTo(parent: HTMLElement) {
@@ -56,10 +58,10 @@ class TsGanttTable implements TsGanttBaseComponent {
   applySelection(selectionResult: TsGanttTaskSelectionChangeResult) {
     const {selected, deselected} = selectionResult;
     for (const uuid of deselected) {
-      this._tableRows.get(uuid)?.deselect();
+      this._dataRowByTaskUuid.get(uuid)?.deselect();
     }
     for (const uuid of selected) {
-      this._tableRows.get(uuid)?.select();
+      this._dataRowByTaskUuid.get(uuid)?.select();
     }
   }
 
@@ -74,31 +76,22 @@ class TsGanttTable implements TsGanttBaseComponent {
     this._html = table;
   }
 
-  private initColumns() {
-    this._columnOrder = new TsGanttTableColumnOrder(this._data.options.columnsMinWidthPx.length);
-    this.updateColumns();
+  private updateColumns() {
+    if (!this._columnOrder) {
+      this._columnOrder = new TsGanttTableColumnOrder(this._data.options.columnsMinWidthPx.length);
+    }
+    this._columnDescriptors = TsGanttTableColumnDescriptor.buildFromGanttOptions(this._data.options, this._columnOrder);
+    this._headerRow = new TsGanttTableHeaderRow(this._columnDescriptors);
   }
 
-  private updateColumns() {
-    const options = this._data.options;
+  private updateRows(data: TsGanttDataChangeResult) {
+    const columnOptions = this._columnDescriptors;
+    const rows = this._dataRowByTaskUuid;
 
-    const columns: TsGanttTableColumn[] = [];
-    let currentOrder = 0;
-    for (const i of this._columnOrder) {
-      const minColumnWidth = options.columnsMinWidthPx[i];
-      if (!minColumnWidth) {
-        continue;
-      }
-      const columnOptions: TsGanttTableColumnOptions = {
-        minWidth: minColumnWidth,
-        order: currentOrder++,
-        header: options.localeHeaders[options.locale][i] || "",
-        textAlign: options.columnsContentAlign[i],
-        valueGetter: options.columnValueGetters[i] || ((task: TsGanttTask) => ""),
-      };
-      columns.push(new TsGanttTableColumn(columnOptions));
+    data.deleted.forEach(task => rows.delete(task.uuid));
+    for (const task of data.changed.concat(data.added)) {
+      rows.set(task.uuid, new TsGanttTableDataRow(this._data.options, task, columnOptions));
     }
-    this._tableColumns = columns;
   }
 
   private changeColumnIndex(oldIndex: number, newIndex: number) {
@@ -108,24 +101,12 @@ class TsGanttTable implements TsGanttBaseComponent {
     this.redraw();
   }
 
-  private updateRows(data: TsGanttDataChangeResult) {
-    const columns = this._tableColumns;
-    const rows = this._tableRows;
-
-    data.deleted.forEach(task => rows.delete(task.uuid));
-    data.changed.forEach(task => rows.set(task.uuid, new TsGanttTableRow(this._data.options, task, columns.map(col => col.options))));
-    data.added.forEach(task => rows.set(task.uuid, new TsGanttTableRow(this._data.options, task, columns.map(col => col.options))));
-  }
-
   private redraw() {
-    const headerRow = document.createElement("tr");
-    this._tableColumns.forEach(col => col.appendTo(headerRow));
-
     this._htmlHead.innerHTML = "";
-    this._htmlHead.append(headerRow);
+    this._headerRow.appendTo(this._htmlHead);
 
     this._htmlBody.innerHTML = "";
-    this._activeUuids.forEach(uuid => this._tableRows.get(uuid)?.appendTo(this._htmlBody));
+    this._activeUuids.forEach(uuid => this._dataRowByTaskUuid.get(uuid)?.appendTo(this._htmlBody));
   }
 
   private onColumnReorder = <EventListener>((e: CustomEvent) => {

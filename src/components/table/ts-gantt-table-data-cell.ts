@@ -5,7 +5,7 @@ import { TsGanttHtmlComponentBase } from "../abstract/ts-gantt-html-component-ba
 
 import { TsGanttTableExpander } from "./ts-gantt-table-expander";
 
-export class TsGanttTableCell extends TsGanttHtmlComponentBase {
+export class TsGanttTableDataCell extends TsGanttHtmlComponentBase {
 
   constructor(value: string, alignment: ColumnTextAlignment, expander: TsGanttTableExpander) {
     super();

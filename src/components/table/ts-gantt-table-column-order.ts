@@ -1,4 +1,4 @@
-class TsGanttTableColumnOrder {
+export class TsGanttTableColumnOrder {
   private readonly _columnOrder: number[];
 
   constructor(length: number) {
@@ -15,5 +15,3 @@ class TsGanttTableColumnOrder {
     }
   }
 }
-
-export { TsGanttTableColumnOrder };

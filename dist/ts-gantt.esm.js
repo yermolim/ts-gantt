@@ -1086,6 +1086,28 @@ class TsGanttData {
     }
 }
 
+class TsGanttTableColumnDescriptor {
+    static buildFromGanttOptions(options, order) {
+        const descriptors = [];
+        let currentOrder = 0;
+        for (const i of order) {
+            const minColumnWidth = options.columnsMinWidthPx[i];
+            if (!minColumnWidth) {
+                continue;
+            }
+            const columnOptions = {
+                minWidth: minColumnWidth,
+                order: currentOrder++,
+                header: options.localeHeaders[options.locale][i] || "",
+                textAlign: options.columnsContentAlign[i],
+                valueGetter: options.columnValueGetters[i] || ((task) => ""),
+            };
+            descriptors.push(columnOptions);
+        }
+        return descriptors;
+    }
+}
+
 class TsGanttTableColumnOrder {
     constructor(length) {
         this._columnOrder = Array.from(new Array(length).keys());
@@ -1109,81 +1131,7 @@ class TsGanttHtmlComponentBase {
     }
 }
 
-const TABLE_COLUMN_DATA_ORDER = "tsgColOrder";
-const TABLE_COLUMN_REORDER_DATA = "application/tsg-col-order";
-class TsGanttTableColumn extends TsGanttHtmlComponentBase {
-    constructor(options) {
-        super();
-        this._dragActive = false;
-        this.onMouseDownOnResizer = (e) => {
-            document.addEventListener("mousemove", this.onMouseMoveWhileResizing);
-            document.addEventListener("mouseup", this.onMouseUpWhileResizing);
-            document.addEventListener("touchmove", this.onMouseMoveWhileResizing, { passive: false });
-            document.addEventListener("touchend", this.onMouseUpWhileResizing);
-            this._dragActive = true;
-        };
-        this.onMouseMoveWhileResizing = (e) => {
-            if (!this._dragActive) {
-                return false;
-            }
-            const headerOffset = this._html.getBoundingClientRect().left;
-            const userDefinedWidth = e instanceof MouseEvent
-                ? e.clientX - headerOffset
-                : e.touches[0].clientX - headerOffset;
-            this._html.style.width = Math.max(this.options.minWidth, userDefinedWidth) + "px";
-            e.preventDefault();
-        };
-        this.onMouseUpWhileResizing = (e) => {
-            document.removeEventListener("mousemove", this.onMouseMoveWhileResizing);
-            document.removeEventListener("mouseup", this.onMouseUpWhileResizing);
-            document.removeEventListener("touchmove", this.onMouseMoveWhileResizing, { passive: false });
-            document.removeEventListener("touchend", this.onMouseUpWhileResizing);
-            this._dragActive = false;
-        };
-        this.options = options;
-        this._html = this.createHeaderCell();
-    }
-    createHeaderCell() {
-        const { header, order, minWidth } = this.options;
-        const headerCell = document.createElement("th");
-        headerCell.classList.add(TsGanttConst.CLASSES.TABLE.HEADER);
-        headerCell.dataset[TABLE_COLUMN_DATA_ORDER] = order + "";
-        headerCell.style.minWidth = minWidth + "px";
-        headerCell.style.width = minWidth + "px";
-        headerCell.draggable = true;
-        headerCell.innerHTML = header;
-        headerCell.addEventListener("dragstart", (e) => {
-            e.dataTransfer.setData(TABLE_COLUMN_REORDER_DATA, order + "");
-        });
-        headerCell.addEventListener("dragover", (e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = "move";
-        });
-        headerCell.addEventListener("drop", (e) => {
-            e.preventDefault();
-            const orderFrom = e.dataTransfer.getData(TABLE_COLUMN_REORDER_DATA);
-            if (!orderFrom && orderFrom !== "0") {
-                return;
-            }
-            headerCell.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, {
-                bubbles: true,
-                composed: true,
-                detail: { orderFrom: +orderFrom, orderTo: order, event: e },
-            }));
-        });
-        headerCell.append(this.createResizer());
-        return headerCell;
-    }
-    createResizer() {
-        const resizer = document.createElement("div");
-        resizer.classList.add(TsGanttConst.CLASSES.TABLE.COLUMN_RESIZER);
-        resizer.addEventListener("mousedown", this.onMouseDownOnResizer);
-        resizer.addEventListener("touchstart", this.onMouseDownOnResizer);
-        return resizer;
-    }
-}
-
-class TsGanttTableCell extends TsGanttHtmlComponentBase {
+class TsGanttTableDataCell extends TsGanttHtmlComponentBase {
     constructor(value, alignment, expander) {
         super();
         this._html = this.createElement(value, alignment, expander);
@@ -1245,7 +1193,7 @@ class TsGanttTableExpander extends TsGanttHtmlComponentBase {
     }
 }
 
-class TsGanttTableRow extends TsGanttHtmlComponentBase {
+class TsGanttTableDataRow extends TsGanttHtmlComponentBase {
     constructor(options, task, columns) {
         super();
         this._task = task;
@@ -1291,9 +1239,102 @@ class TsGanttTableRow extends TsGanttHtmlComponentBase {
         }
         columns.forEach((column, i) => {
             const taskValue = column.valueGetter(task);
-            const cell = new TsGanttTableCell(taskValue, column.textAlign, i === 0 ? this._expander : null);
+            const cell = new TsGanttTableDataCell(taskValue, column.textAlign, i === 0 ? this._expander : null);
             cell.appendTo(row);
         });
+        return row;
+    }
+}
+
+const TABLE_COLUMN_DATA_ORDER = "tsgColOrder";
+const TABLE_COLUMN_REORDER_DATA = "application/tsg-col-order";
+class TsGanttTableHeaderCell extends TsGanttHtmlComponentBase {
+    constructor(columnDescriptor) {
+        super();
+        this._dragActive = false;
+        this.onPointerDownOnResizer = (e) => {
+            if (!e.isPrimary || e.button === 2) {
+                return;
+            }
+            const target = e.target;
+            target.addEventListener("pointermove", this.onPointerMoveWhileResizing);
+            target.addEventListener("pointerup", this.onPointerUpWhileResizing);
+            target.addEventListener("pointerout", this.onPointerMoveWhileResizing);
+            target.setPointerCapture(e.pointerId);
+            this._dragActive = true;
+        };
+        this.onPointerMoveWhileResizing = (e) => {
+            if (!e.isPrimary || !this._dragActive) {
+                return false;
+            }
+            const headerOffset = this._html.getBoundingClientRect().left;
+            const userDefinedWidth = e.clientX - headerOffset;
+            this._html.style.width = Math.max(this._columnDescriptor.minWidth, userDefinedWidth) + "px";
+            e.preventDefault();
+        };
+        this.onPointerUpWhileResizing = (e) => {
+            if (!e.isPrimary) {
+                return;
+            }
+            const target = e.target;
+            target.removeEventListener("pointermove", this.onPointerMoveWhileResizing);
+            target.removeEventListener("pointerup", this.onPointerUpWhileResizing);
+            target.removeEventListener("pointerout", this.onPointerUpWhileResizing);
+            target.releasePointerCapture(e.pointerId);
+            this._dragActive = false;
+        };
+        this._columnDescriptor = columnDescriptor;
+        this._html = this.createElement();
+    }
+    createElement() {
+        const { header, order, minWidth } = this._columnDescriptor;
+        const headerCell = document.createElement("th");
+        headerCell.classList.add(TsGanttConst.CLASSES.TABLE.HEADER);
+        headerCell.dataset[TABLE_COLUMN_DATA_ORDER] = order + "";
+        headerCell.style.minWidth = minWidth + "px";
+        headerCell.style.width = minWidth + "px";
+        headerCell.draggable = true;
+        headerCell.innerHTML = header;
+        headerCell.addEventListener("dragstart", (e) => {
+            e.dataTransfer.setData(TABLE_COLUMN_REORDER_DATA, order + "");
+        });
+        headerCell.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+        });
+        headerCell.addEventListener("drop", (e) => {
+            e.preventDefault();
+            const orderFrom = e.dataTransfer.getData(TABLE_COLUMN_REORDER_DATA);
+            if (!orderFrom && orderFrom !== "0") {
+                return;
+            }
+            headerCell.dispatchEvent(new CustomEvent(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, {
+                bubbles: true,
+                composed: true,
+                detail: { orderFrom: +orderFrom, orderTo: order, event: e },
+            }));
+        });
+        headerCell.append(this.createResizer());
+        return headerCell;
+    }
+    createResizer() {
+        const resizer = document.createElement("div");
+        resizer.classList.add(TsGanttConst.CLASSES.TABLE.COLUMN_RESIZER);
+        resizer.addEventListener("pointerdown", this.onPointerDownOnResizer);
+        return resizer;
+    }
+}
+
+class TsGanttTableHeaderRow extends TsGanttHtmlComponentBase {
+    constructor(options) {
+        super();
+        this._html = this.createElement(options);
+    }
+    createElement(columnDescriptors) {
+        const row = document.createElement("tr");
+        for (const columnDescriptor of columnDescriptors) {
+            new TsGanttTableHeaderCell(columnDescriptor).appendTo(row);
+        }
         return row;
     }
 }
@@ -1301,7 +1342,7 @@ class TsGanttTableRow extends TsGanttHtmlComponentBase {
 class TsGanttTable {
     constructor(data) {
         this._activeUuids = [];
-        this._tableRows = new Map();
+        this._dataRowByTaskUuid = new Map();
         this.onColumnReorder = ((e) => {
             const detail = e.detail;
             if (!detail) {
@@ -1311,12 +1352,12 @@ class TsGanttTable {
         });
         this._data = data;
         this.initBaseHtml();
-        this.initColumns();
-        document.addEventListener(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, this.onColumnReorder);
+        this.updateColumns();
+        this._html.addEventListener(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, this.onColumnReorder);
     }
     destroy() {
+        this._html.removeEventListener(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, this.onColumnReorder);
         this._html.remove();
-        document.removeEventListener(TsGanttConst.EVENTS.TABLE_COLUMN_REORDER, this.onColumnReorder);
     }
     appendTo(parent) {
         parent.append(this._html);
@@ -1337,10 +1378,10 @@ class TsGanttTable {
         var _a, _b;
         const { selected, deselected } = selectionResult;
         for (const uuid of deselected) {
-            (_a = this._tableRows.get(uuid)) === null || _a === void 0 ? void 0 : _a.deselect();
+            (_a = this._dataRowByTaskUuid.get(uuid)) === null || _a === void 0 ? void 0 : _a.deselect();
         }
         for (const uuid of selected) {
-            (_b = this._tableRows.get(uuid)) === null || _b === void 0 ? void 0 : _b.select();
+            (_b = this._dataRowByTaskUuid.get(uuid)) === null || _b === void 0 ? void 0 : _b.select();
         }
     }
     initBaseHtml() {
@@ -1352,29 +1393,20 @@ class TsGanttTable {
         this._htmlBody = tableBody;
         this._html = table;
     }
-    initColumns() {
-        this._columnOrder = new TsGanttTableColumnOrder(this._data.options.columnsMinWidthPx.length);
-        this.updateColumns();
-    }
     updateColumns() {
-        const options = this._data.options;
-        const columns = [];
-        let currentOrder = 0;
-        for (const i of this._columnOrder) {
-            const minColumnWidth = options.columnsMinWidthPx[i];
-            if (!minColumnWidth) {
-                continue;
-            }
-            const columnOptions = {
-                minWidth: minColumnWidth,
-                order: currentOrder++,
-                header: options.localeHeaders[options.locale][i] || "",
-                textAlign: options.columnsContentAlign[i],
-                valueGetter: options.columnValueGetters[i] || ((task) => ""),
-            };
-            columns.push(new TsGanttTableColumn(columnOptions));
+        if (!this._columnOrder) {
+            this._columnOrder = new TsGanttTableColumnOrder(this._data.options.columnsMinWidthPx.length);
         }
-        this._tableColumns = columns;
+        this._columnDescriptors = TsGanttTableColumnDescriptor.buildFromGanttOptions(this._data.options, this._columnOrder);
+        this._headerRow = new TsGanttTableHeaderRow(this._columnDescriptors);
+    }
+    updateRows(data) {
+        const columnOptions = this._columnDescriptors;
+        const rows = this._dataRowByTaskUuid;
+        data.deleted.forEach(task => rows.delete(task.uuid));
+        for (const task of data.changed.concat(data.added)) {
+            rows.set(task.uuid, new TsGanttTableDataRow(this._data.options, task, columnOptions));
+        }
     }
     changeColumnIndex(oldIndex, newIndex) {
         this._columnOrder.move(oldIndex, newIndex);
@@ -1382,20 +1414,11 @@ class TsGanttTable {
         this.updateRows(this._data.getAllTasksAsChanged());
         this.redraw();
     }
-    updateRows(data) {
-        const columns = this._tableColumns;
-        const rows = this._tableRows;
-        data.deleted.forEach(task => rows.delete(task.uuid));
-        data.changed.forEach(task => rows.set(task.uuid, new TsGanttTableRow(this._data.options, task, columns.map(col => col.options))));
-        data.added.forEach(task => rows.set(task.uuid, new TsGanttTableRow(this._data.options, task, columns.map(col => col.options))));
-    }
     redraw() {
-        const headerRow = document.createElement("tr");
-        this._tableColumns.forEach(col => col.appendTo(headerRow));
         this._htmlHead.innerHTML = "";
-        this._htmlHead.append(headerRow);
+        this._headerRow.appendTo(this._htmlHead);
         this._htmlBody.innerHTML = "";
-        this._activeUuids.forEach(uuid => { var _a; return (_a = this._tableRows.get(uuid)) === null || _a === void 0 ? void 0 : _a.appendTo(this._htmlBody); });
+        this._activeUuids.forEach(uuid => { var _a; return (_a = this._dataRowByTaskUuid.get(uuid)) === null || _a === void 0 ? void 0 : _a.appendTo(this._htmlBody); });
     }
 }
 
