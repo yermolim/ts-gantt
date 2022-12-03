@@ -402,6 +402,8 @@ export interface TsGanttTaskSelectionChangeResult {
 
   deselectedTasks: TsGanttTask[];
   selectedTasks: TsGanttTask[];
+
+  changed: boolean;
 }
 
 export type TsGanttTaskState = "not-started" | "in-progress" | "overdue" | "completed" | "completed-late";

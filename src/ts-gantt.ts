@@ -306,7 +306,7 @@ class TsGantt {
     this._table.applySelection(selectionResult);
     this._chart.applySelection(selectionResult);
 
-    if (selectionResult.selectedTasks?.length) {
+    if (selectionResult.changed && selectionResult.selectedTasks?.length) {
       this.scrollChartToTasks(selectionResult.selectedTasks);
     }
 

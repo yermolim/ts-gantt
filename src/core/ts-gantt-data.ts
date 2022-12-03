@@ -149,6 +149,7 @@ export class TsGanttData {
         selectedTasks: newSelectedTasks,
         deselected: [],
         deselectedTasks: [],
+        changed: false,
       }; 
     } 
 
@@ -162,6 +163,7 @@ export class TsGanttData {
       selectedTasks: newSelectedTasks,
       deselected: deselectedUuids,
       deselectedTasks,
+      changed: true,
     }; 
   }
 

@@ -1054,6 +1054,7 @@ class TsGanttData {
                 selectedTasks: newSelectedTasks,
                 deselected: [],
                 deselectedTasks: [],
+                changed: false,
             };
         }
         this._selectedTasks = newSelectedTasks;
@@ -1064,6 +1065,7 @@ class TsGanttData {
             selectedTasks: newSelectedTasks,
             deselected: deselectedUuids,
             deselectedTasks,
+            changed: true,
         };
     }
     refreshSelectedTasks() {
@@ -2628,7 +2630,7 @@ class TsGantt {
         }
         this._table.applySelection(selectionResult);
         this._chart.applySelection(selectionResult);
-        if ((_a = selectionResult.selectedTasks) === null || _a === void 0 ? void 0 : _a.length) {
+        if (selectionResult.changed && ((_a = selectionResult.selectedTasks) === null || _a === void 0 ? void 0 : _a.length)) {
             this.scrollChartToTasks(selectionResult.selectedTasks);
         }
         if (this.onSelectionChangeCb) {
