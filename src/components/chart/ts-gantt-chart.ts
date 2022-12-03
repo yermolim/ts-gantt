@@ -60,7 +60,7 @@ class TsGanttChart implements TsGanttBaseComponent {
     const barGroups = this._activeUuids.map(x => this._barGroups.get(x));
     const tasks = barGroups.map(bg => bg.task);
 
-    // TODO: try to optimize this and get rid of redrawing the body on each update
+    // TODO: try to get rid of redrawing the body on each update if possible
     this._body = new TsGanttChartBody(this._data, tasks,
       this._header.xCoords, this._header.height, this._header.width);
     barGroups.forEach(bg => this._body.appendComponentToRow(bg.task.uuid, bg));
@@ -79,16 +79,18 @@ class TsGanttChart implements TsGanttBaseComponent {
   }
 
   private updateBarGroups(data: TsGanttDataChangeResult) {
-    this._barGroupDescriptor = TsGanttChartBarGroupDescriptor.getFromGanttOptions(this._data.options);
-    data.deleted.forEach(task => {
+    data.deleted.concat(data.changed).forEach(task => {
       this._barGroups.get(task.uuid)?.destroy();
       this._barGroups.delete(task.uuid);
     });
-    data.changed.forEach(task => {
-      this._barGroups.get(task.uuid)?.destroy();
-      this._barGroups.set(task.uuid, new TsGanttChartBarGroup(this._barGroupDescriptor, task, this._data.dateMinOffset));
-    });
-    data.added.forEach(task => 
+
+    if (data.datesChanged) {
+      const minDate = this._data.dateMinOffset;
+      this._barGroups.forEach(bg => bg.minDate = minDate);
+    }
+
+    this._barGroupDescriptor = TsGanttChartBarGroupDescriptor.getFromGanttOptions(this._data.options);
+    data.changed.concat(data.added).forEach(task => 
       this._barGroups.set(task.uuid, new TsGanttChartBarGroup(this._barGroupDescriptor, task, this._data.dateMinOffset)));
   }
 

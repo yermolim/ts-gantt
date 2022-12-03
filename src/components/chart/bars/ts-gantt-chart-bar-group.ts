@@ -10,7 +10,11 @@ export class TsGanttChartBarGroup implements AppendableComponent {
   readonly task: TsGanttTask;
   
   private readonly _descriptor: TsGanttChartBarGroupDescriptor;
-  private readonly _minDate: dayjs.Dayjs;
+
+  private _minDate: dayjs.Dayjs;
+  set minDate(value: dayjs.Dayjs) {
+    this._minDate = value;
+  }
   
   private _bars: TsGanttChartBar[];
 

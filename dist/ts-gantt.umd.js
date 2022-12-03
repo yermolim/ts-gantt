@@ -2156,6 +2156,9 @@
           this._minDate = minDate;
           this.draw();
       }
+      set minDate(value) {
+          this._minDate = value;
+      }
       hide() {
           var _a;
           (_a = this._bars) === null || _a === void 0 ? void 0 : _a.forEach(bar => {
@@ -2310,18 +2313,17 @@
           return svg;
       }
       updateBarGroups(data) {
-          this._barGroupDescriptor = TsGanttChartBarGroupDescriptor.getFromGanttOptions(this._data.options);
-          data.deleted.forEach(task => {
+          data.deleted.concat(data.changed).forEach(task => {
               var _a;
               (_a = this._barGroups.get(task.uuid)) === null || _a === void 0 ? void 0 : _a.destroy();
               this._barGroups.delete(task.uuid);
           });
-          data.changed.forEach(task => {
-              var _a;
-              (_a = this._barGroups.get(task.uuid)) === null || _a === void 0 ? void 0 : _a.destroy();
-              this._barGroups.set(task.uuid, new TsGanttChartBarGroup(this._barGroupDescriptor, task, this._data.dateMinOffset));
-          });
-          data.added.forEach(task => this._barGroups.set(task.uuid, new TsGanttChartBarGroup(this._barGroupDescriptor, task, this._data.dateMinOffset)));
+          if (data.datesChanged) {
+              const minDate = this._data.dateMinOffset;
+              this._barGroups.forEach(bg => bg.minDate = minDate);
+          }
+          this._barGroupDescriptor = TsGanttChartBarGroupDescriptor.getFromGanttOptions(this._data.options);
+          data.changed.concat(data.added).forEach(task => this._barGroups.set(task.uuid, new TsGanttChartBarGroup(this._barGroupDescriptor, task, this._data.dateMinOffset)));
       }
       redraw() {
           const oldHtml = this._html;
